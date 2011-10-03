@@ -8,6 +8,7 @@ class Shader
 {
 public:
 	Shader();
+	~Shader();
 
 	bool install(const char* VSPath, const char* FSPath);
 	bool installFromCString( const char * vertShader, const char * fragShader );

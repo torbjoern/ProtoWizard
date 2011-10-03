@@ -11,7 +11,8 @@ struct TexturedVertex
 struct XYZVertex
 {
 	float x,y,z;
-	explicit XYZVertex(glm::vec3 v){ x = v.x; y = v.y; z = v.z; }
+	XYZVertex(){}
+	XYZVertex(glm::vec3 v){ x = v.x; y = v.y; z = v.z; }
 };
 
 struct PNVertex

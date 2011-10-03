@@ -1,8 +1,10 @@
-#include <angelscript.h>
-#include <scriptstdstring/scriptstdstring.h>
-#include <scriptbuilder/scriptbuilder.h>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
 
 #include "protographics.h"
+
 
 #include <string>
 using std::string;
@@ -10,147 +12,139 @@ using std::string;
 #include <cstdio>
 #include <fstream>
 
-// TODO: fix evil global
-ProtoGraphics protoGraphics;
-
-void print(string &msg)
+void spiky(ProtoGraphics &protoGraphics, glm::vec3 location, float angle)
 {
-	printf("%s", msg.c_str());
+	int SEGMENTS = 4;
+	for(int i=0; i<SEGMENTS; i++)
+	for(int j=0; j<SEGMENTS; j++)
+	{
+		float u = i / (float)(SEGMENTS) * M_PI;
+		float v = j / (float)(SEGMENTS) * TWO_PI;
+
+		float r = 5.0f;
+		glm::vec3 vertex( r * sin(u) * cos(v), 
+			r * sin(u) * sin(v),
+			r * cos(u) );
+
+		protoGraphics.setColor( i / (float)SEGMENTS, j / (float)SEGMENTS, 0.0f );
+
+		glm::mat4 rotation = glm::rotate( glm::mat4(1.f), angle * 180.f / 3.14f, glm::vec3(0.f, 1.f, 0.f) );
+		glm::vec4 rotated1 = rotation * glm::vec4 ( vertex, 0.f );
+
+		protoGraphics.drawCone( glm::vec3(rotated1) + location, 0.01f, glm::vec3(0.f) + location, 1.0f );
+	}
 }
 
-void cls(float r, float g, float b)
+void draw_cone_grid(ProtoGraphics &protoGraphics, int cones)
 {
-	protoGraphics.cls(r,g,b);
-}
-
-void circle(float x, float y, float r)
-{
-	protoGraphics.drawCircle(x,y,r);
-}
-
-
-// Implement a simple message callback function
-void MessageCallback(const asSMessageInfo *msg, void *param)
-{
-	const char *type = "ERR ";
-	if( msg->type == asMSGTYPE_WARNING ) 
-		type = "WARN";
-	else if( msg->type == asMSGTYPE_INFORMATION ) 
-		type = "INFO";
-	printf("%s (%d, %d) : %s : %s\n", msg->section, msg->row, msg->col, type, msg->message);
-}
-
-
-bool init( asIScriptEngine **engine, asIScriptContext **ctx, int &funcId )
-{
-	// Create the script engine
-	*engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
-
-	// Set the message callback to receive information on errors in human readable form.
-	int r = (*engine)->SetMessageCallback(asFUNCTION(MessageCallback), 0, asCALL_CDECL); assert( r >= 0 );
-
-	// AngelScript doesn't have a built-in string type, as there is no definite standard 
-	// string type for C++ applications. Every developer is free to register it's own string type.
-	// The SDK do however provide a standard add-on for registering a string type, so it's not
-	// necessary to implement the registration yourself if you don't want to.
-	RegisterStdString(*engine);
-
-	// Register the function that we want the scripts to call 
-	r = (*engine)->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(print), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void cls(float r, float g, float b)", asFUNCTION(cls), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void circle(float x, float y, float r)", asFUNCTION(circle), asCALL_CDECL); assert( r >= 0 );
-
-	// Create our context, prepare it, and then execute
-	*ctx = (*engine)->CreateContext();
-
-	// The CScriptBuilder helper is an add-on that loads the file,
-	// performs a pre-processing pass if necessary, and then tells
-	// the engine to build a script module.
-	CScriptBuilder builder;
-	r = builder.StartNewModule(*engine, "MyModule"); 
-	if( r < 0 ) 
+	float range = +25.0f;
+	for(int i=0; i<cones; i++)
+	for(int j=0; j<cones; j++)
 	{
-		// If the code fails here it is usually because there
-		// is no more memory to allocate the module
-		printf("Unrecoverable error while starting a new module.\n");
-		return 0;
-	}
-	r =  builder.AddSectionFromFile("test.as");
-	if( r < 0 )
-	{
-		// The builder wasn't able to load the file. Maybe the file
-		// has been removed, or the wrong name was given, or some
-		// preprocessing commands are incorrectly written.
-		printf("Please correct the errors in the script and try again.\n");
-		return 0 ;
-	}
-	r = builder.BuildModule();
-	if( r < 0 )
-	{
-		// An error occurred. Instruct the script writer to fix the 
-		// compilation errors that were listed in the output stream.
-		printf("Please correct the errors in the script and try again.\n");
-		return 0;
+		float x = i/(float) (cones-1);
+		float y = 0.f;
+		float z = j/(float) (cones-1);
+
+		protoGraphics.setColor( x,y,z );
+		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(x,0.f,z) * range, 0.5f,  
+			glm::vec3(-range * .5f) + glm::vec3(x,1.f,z) * range, 0.5f  );
 	}
 
-
-	// Find the function that is to be called. 
-	asIScriptModule *mod = (*engine)->GetModule("MyModule");
-
-	funcId = mod->GetFunctionIdByDecl("void main(int mousx, int mousy)");
-	if( funcId < 0 )
+	for(int i=0; i<cones; i++)
+	for(int j=0; j<cones; j++)
 	{
-		// The function couldn't be found. Instruct the script writer
-		// to include the expected function in the script.
-		printf("The script must have the function 'void main()'. Please add it and try again.\n");
-		return 0;
+		float x = i/(float) (cones-1);
+		float y = j/(float) (cones-1);
+		float z = 0.f;
+
+		protoGraphics.setColor( x,y,z );
+		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(x,y,0.f) * range, 0.5f,  
+			glm::vec3(-range * .5f) + glm::vec3(x,y,1.f) * range, 0.5f  );
 	}
 
+	for(int i=0; i<cones; i++)
+	for(int j=0; j<cones; j++)
+	{
+		float x = 0.f;
+		float y = i/(float) (cones-1);
+		float z = j/(float) (cones-1);
 
-	return true;
+		protoGraphics.setColor( x,y,z );
+		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(0.f,y,z) * range, 0.5f,  
+			glm::vec3(-range * .5f) + glm::vec3(1.f,y,z) * range, 0.5f  );
+	}
 }
 
 int main()
 {
+	ProtoGraphics protoGraphics;
 
-	asIScriptEngine *engine = NULL;
-	asIScriptContext *ctx = NULL;
-	
-	int funcId = 0;
-	if ( init( &engine, &ctx, funcId ) == false )
-	{
-		printf("failed to init angelscript\n");
-		return 0;
-
-	}
-
-	if ( protoGraphics.init() == false )
+	if ( protoGraphics.init(800,800) == false )
 	{
 		printf("Failed to init OpenGL graphics\n");
 		return 0;
 	}
 
-
-
 	while( true )
 	{
-		// pass main(mousx, mousy) its parameters and then call it
-		ctx->Prepare(funcId);
-		ctx->SetArgDWord(0, protoGraphics.getMouseX());
-		ctx->SetArgDWord(1, protoGraphics.getMouseY());
+		protoGraphics.cls(0.0f, 0.0f, 0.0f);
 
-		int r = ctx->Execute();
+		float time = protoGraphics.klock();
 
+		//float angle = time; // M_PI / 4.f
+		//float r = -35.f;
+		//float sa = cos( angle ) * r;
+		//float ca = sin( angle ) * r;
+		//protoGraphics.setCamera( glm::vec3(sa, 25.0f, ca), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f) );
+		
+		//////////////////////////////////////////////////////////////////////////
+		float range = +250.0f;
 
-		if( r != asEXECUTION_FINISHED )
+		int balls = 10;
+		for(int i=0; i<balls; i++)
+		for(int j=0; j<balls; j++)
+		for(int k=0; k<balls; k++)
 		{
-			// The execution didn't complete as expected. Determine what happened.
-			if( r == asEXECUTION_EXCEPTION )
-			{
-				// An exception occurred, let the script writer know what happened so it can be corrected.
-				printf("An exception '%s' occurred. Please correct the code and try again.\n", ctx->GetExceptionString());
-			}
+			float x = i/(float) (balls-1);
+			float y = j/(float) (balls-1);
+			float z = k/(float) (balls-1);
+
+			//protoGraphics.setColor( x,y,z );
+			//protoGraphics.drawSphere( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 0.8f );
+
+			protoGraphics.setColor( 1.f, 1.f, 1.f );
+			protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 1.f );
 		}
+		//////////////////////////////////////////////////////////////////////////
+
+
+		
+		//draw_cone_grid(protoGraphics, 3);
+
+		//protoGraphics.drawCone( glm::vec3(0.f, 10.f, 0.f), 1.0f, glm::vec3(0.f, -10.f, 0.f), 1.f );
+		//protoGraphics.drawCone( glm::vec3(-10.f, 0.f, 0.f), 1.0f, glm::vec3(10.f, 0.f, 0.f), 1.f );
+		//protoGraphics.drawCone( glm::vec3(0.f, 0.f, -10), 1.0f, glm::vec3(0.f, 0.f, 10.f), 1.f );
+		//
+
+		spiky( protoGraphics, glm::vec3(-25.f, 0.f, 0.f), time );
+
+		protoGraphics.setColor(1.f, 0.f, 0.f);
+		protoGraphics.drawCircle( (float) protoGraphics.getMouseX(),(float) protoGraphics.getMouseY(), 10.0f );
+
+		//////////////////////////////////////////////////////////////////////////
+		//int num = 100;
+		//float numf = (float)num;
+		//float radi = 10.f;
+		//for (int i=0; i<num; i++)
+		//{
+		//	for(int j=0; j<num; j++)
+		//	{
+		//		protoGraphics.setColor( i / numf, j / numf, 0.f );
+		//		protoGraphics.drawCircle( 10.f + (i * 790.f / numf), 10.f + (j * 790.f / numf), radi );
+		//	}
+		//	
+		//}
+		
 
 		protoGraphics.frame();
 		
@@ -159,10 +153,4 @@ int main()
 	}
 
 	protoGraphics.shutdown();
-
-
-
-	// Clean up
-	ctx->Release();
-	engine->Release();
 }

@@ -10,6 +10,12 @@ Shader::Shader()
 	name = "un-initialized shader";
 }
 
+Shader::~Shader()
+{
+	// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteProgram.xml
+	glDeleteProgram( program );
+}
+
 void Shader::begin() { glUseProgram(program); }
 void Shader::end() { glUseProgram(0); }
 
@@ -39,6 +45,8 @@ bool Shader::install(const char* VSPath, const char* FSPath)
 	}
 
 	_vs_string = std::string(temp);
+	free( temp );
+
 	temp = LoadShaderText(FSPath);
 	if( temp == NULL)
 	{
@@ -47,6 +55,7 @@ bool Shader::install(const char* VSPath, const char* FSPath)
 	}
 
 	_fs_string = std::string(temp);
+	free( temp );
 	temp = 0;
 
 	if ( compileSources() == false )
@@ -175,6 +184,7 @@ void Shader::printShaderInfoLog(unsigned int shader)
 		}
 		glGetShaderInfoLog(shader, infologLen, &charsWritten, infoLog);
 		printf("InfoLog shader:\n%s\n", infoLog);
+		free( infoLog );
 	}
 }
 
@@ -196,6 +206,7 @@ void Shader::printProgramInfoLog()
 		}
 		glGetProgramInfoLog(program, infologLen, &charsWritten, infoLog);
 		printf("InfoLog program:\n%s\n", infoLog);
+		free ( infoLog );
 	}
 }
 
