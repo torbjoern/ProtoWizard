@@ -11,6 +11,7 @@
 #include "depends/noise/perlin.h"
 
 #include <vector>
+#include <algorithm>
 
 
 #define M_PI       3.14159265358979323846f
@@ -25,6 +26,8 @@ template <class T> T RADIANS_TO_DEGREES(T radians)
 {
 	return radians / T(M_PI) * T(180.f);
 }
+
+
 
 
 
@@ -83,6 +86,7 @@ public:
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
 		glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 		ok = glfwOpenWindow(xres,yres,8,8,8,8,24,16,GLFW_WINDOW);
 		if (ok == 0 ) return false;
 
@@ -98,6 +102,8 @@ public:
 			return false;
 		}
 
+		glEnable(GL_MULTISAMPLE);
+
 		glfwSetWindowCloseCallback( &_closeCallback );
 
 		// Clear error caused by GLEW using glGetString instead of glGetStringi( char*, int )
@@ -106,7 +112,7 @@ public:
 		}
 
 
-		camera.pos = glm::vec3( 0.0f, 0.0f, -25.0f );
+		camera.pos = glm::vec3( 0.0f, 0.0f, -50.0f );
 
 		// TODO.. remove this, make it so line is a static class that checks if it
 		// has a VBO on draw...
@@ -253,10 +259,7 @@ public:
 		draw_buffered_objects();
 
 		
-		for(int i=0; i<256; i++)
-		{
-			glfwGetKey(i) == 1 ? key_array[i]=true : key_array[i]=false;
-		}
+
 
 		char title_buf[256];
 		sprintf_s(title_buf, 256, "%i .... %f", numframes, delta);
@@ -267,6 +270,11 @@ public:
 		numframes++;
 
 		glfwSwapBuffers();
+
+		for(int i=0; i<256; i++)
+		{
+			glfwGetKey(i) == 1 ? key_array[i]=true : key_array[i]=false;
+		}
 	}
 
 	bool isWindowOpen()
@@ -307,6 +315,11 @@ public:
 	bool keystatus(int key)
 	{
 		return key_array[key];
+	}
+
+	FirstPersonCamera getCamera()
+	{
+		return camera;
 	}
 
 
@@ -499,6 +512,16 @@ private:
 		buffered_spheres.clear();
 	}
 
+	static bool sort_func( const CylinderState &a, const CylinderState &b )
+	{
+		glm::vec3 cam_pos = instance->getCamera().pos;
+		glm::vec3 a_center = a.p1 + 0.5f * (a.p2 - a.p1);
+		glm::vec3 b_center = b.p1 + 0.5f * (b.p2 - b.p1);
+		float z1 = glm::length( a_center - cam_pos );
+		float z2 = glm::length( b_center - cam_pos );
+		return z1 < z2;
+	}
+
 	void draw_buffered_cylinders()
 	{
 		// TODO find out how expensive it is to sort opaque and translucent objects into buckets...
@@ -543,9 +566,11 @@ private:
 			cylinder.draw( opaque[i].p1, opaque[i].radius1, opaque[i].p2, opaque[i].radius2 );
 		}
 
+		std::sort( translucent.begin(), translucent.end(), &ProtoGraphics::sort_func );
+
 		if ( translucent.size() > 0 )
 		{
-			glDisable(GL_DEPTH_TEST);
+			glDepthMask(GL_FALSE);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			glEnable(GL_BLEND);
 		}
@@ -558,9 +583,8 @@ private:
 		if ( translucent.size() > 0 )
 		{
 			glDisable(GL_BLEND);
-			glEnable(GL_DEPTH_TEST);
+			glDepthMask(GL_TRUE);
 		}
-
 
 		buffered_cylinders.clear();
 	}

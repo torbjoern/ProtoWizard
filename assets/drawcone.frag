@@ -13,7 +13,7 @@ void main()
 	
 	//out_Color = fColor*intensity;
 
-   out_Color = vec4( (fNormal.xyz+1)*0.5  , 0.5);	
+   out_Color = vec4( (fNormal.xyz+1)*0.5  , 0.15);	
    //out_Color = vec4( 1.0 , 0.0, 0.0, 0.2 );
 }
 

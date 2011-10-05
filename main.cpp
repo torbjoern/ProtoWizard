@@ -37,6 +37,8 @@ void spiky(ProtoGraphics &protoGraphics, glm::vec3 location, float angle)
 
 void draw_cone_grid(ProtoGraphics &protoGraphics, int cones)
 {
+	float radius = 1.0f;
+
 	float range = +25.0f;
 	for(int i=0; i<cones; i++)
 	for(int j=0; j<cones; j++)
@@ -46,8 +48,8 @@ void draw_cone_grid(ProtoGraphics &protoGraphics, int cones)
 		float z = j/(float) (cones-1);
 
 		protoGraphics.setColor( x,y,z );
-		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(x,0.f,z) * range, 0.5f,  
-			glm::vec3(-range * .5f) + glm::vec3(x,1.f,z) * range, 0.5f  );
+		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(x,0.f,z) * range, radius,  
+			glm::vec3(-range * .5f) + glm::vec3(x,1.f,z) * range, radius  );
 	}
 
 	for(int i=0; i<cones; i++)
@@ -58,8 +60,8 @@ void draw_cone_grid(ProtoGraphics &protoGraphics, int cones)
 		float z = 0.f;
 
 		protoGraphics.setColor( x,y,z );
-		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(x,y,0.f) * range, 0.5f,  
-			glm::vec3(-range * .5f) + glm::vec3(x,y,1.f) * range, 0.5f  );
+		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(x,y,0.f) * range, radius,  
+			glm::vec3(-range * .5f) + glm::vec3(x,y,1.f) * range, radius  );
 	}
 
 	for(int i=0; i<cones; i++)
@@ -70,8 +72,8 @@ void draw_cone_grid(ProtoGraphics &protoGraphics, int cones)
 		float z = j/(float) (cones-1);
 
 		protoGraphics.setColor( x,y,z );
-		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(0.f,y,z) * range, 0.5f,  
-			glm::vec3(-range * .5f) + glm::vec3(1.f,y,z) * range, 0.5f  );
+		protoGraphics.drawCone( glm::vec3(-range * .5f) + glm::vec3(0.f,y,z) * range, radius,  
+			glm::vec3(-range * .5f) + glm::vec3(1.f,y,z) * range, radius  );
 	}
 }
 
@@ -117,43 +119,46 @@ int main()
 		//protoGraphics.setCamera( glm::vec3(sa, 25.0f, ca), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f) );
 		
 		//////////////////////////////////////////////////////////////////////////
-		float range = +25.0f;
+		//float range = +25.0f;
 
-		float ball_radius = 0.5f * (2*range / (balls-1) );
+		//float ball_radius = 0.5f * (2*range / (balls-1) );
 
-		for(int i=0; i<balls; i++)
-		{
-			for(int j=0; j<balls; j++)
-			{
-				for(int k=0; k<balls; k++)
-				{
-					float x = i/(float) (balls-1);
-					float y = j/(float) (balls-1);
-					float z = k/(float) (balls-1);
+		//for(int i=0; i<balls; i++)
+		//{
+		//	for(int j=0; j<balls; j++)
+		//	{
+		//		for(int k=0; k<balls; k++)
+		//		{
+		//			float x = i/(float) (balls-1);
+		//			float y = j/(float) (balls-1);
+		//			float z = k/(float) (balls-1);
 
-					//protoGraphics.setColor( x,y,z );
+		//			//protoGraphics.setColor( x,y,z );
 
 
-					if ( do_draw[i+j*balls+k*balls*balls] == 1 ){
-						//protoGraphics.drawSphere( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, ball_radius );
-						protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, ball_radius );
-					}
+		//			if ( do_draw[i+j*balls+k*balls*balls] == 1 ){
+		//				//protoGraphics.drawSphere( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, ball_radius );
+		//				protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, ball_radius );
+		//			}
 
-					//protoGraphics.setColor( 1.f, 1.f, 1.f );
-					//protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 5.f );
-				}
-			}
-		}
+		//			//protoGraphics.setColor( 1.f, 1.f, 1.f );
+		//			//protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 5.f );
+		//		}
+		//	}
+		//}
 
 		//////////////////////////////////////////////////////////////////////////
 
-
 		
-		//draw_cone_grid(protoGraphics, 4);
-
 		protoGraphics.setBlend( true );
 		protoGraphics.drawCone( glm::vec3(0.f, 15.f, 0.f), 25.0f, glm::vec3(0.f, -15.f, 0.f), 25.f );
+		draw_cone_grid(protoGraphics, 6);
 		protoGraphics.setBlend( false );
+
+
+		
+
+		//protoGraphics.drawCone( glm::vec3(0.f, 10.f, 0.f), 1.0f, glm::vec3(0.f, -10.f, 0.f), 1.f );
 		//protoGraphics.drawCone( glm::vec3(-10.f, 0.f, 0.f), 1.0f, glm::vec3(10.f, 0.f, 0.f), 1.f );
 		//protoGraphics.drawCone( glm::vec3(0.f, 0.f, -10), 1.0f, glm::vec3(0.f, 0.f, 10.f), 1.f );
 		//
@@ -162,17 +167,17 @@ int main()
 		{
 			float ang = i * TWO_PI / 8;
 			float r = -25.f;
-			spiky( protoGraphics, glm::vec3(cos(ang)*r, 0.f, sin(ang)*r), time );
+			spiky( protoGraphics, glm::vec3(cos(ang)*r, 0.f, sin(ang)*r), time*pow(-1.0f, (float)i) );
 		}
 		
 
 		protoGraphics.setColor(1.f, 0.f, 0.f);
 		protoGraphics.drawCircle( (float) protoGraphics.getMouseX(),(float) protoGraphics.getMouseY(), 10.0f + (0.5f + sin(time*16)*0.5f ) *5.f );
 
-		protoGraphics.setColor(1.f, 1.f, 0.f);
-		protoGraphics.moveTo( 0.f, 0.f );
-		protoGraphics.setColor(0.f, 1.f, 0.f);
-		protoGraphics.lineTo( 400.f, 400.f );
+		//protoGraphics.setColor(1.f, 1.f, 0.f);
+		//protoGraphics.moveTo( 0.f, 0.f );
+		//protoGraphics.setColor(0.f, 1.f, 0.f);
+		//protoGraphics.lineTo( 400.f, 400.f );
 
 		////////////////////////////////////////////////////////////////////////// Line speed test
 		//float xres = (float)protoGraphics.getWindowWidth();
