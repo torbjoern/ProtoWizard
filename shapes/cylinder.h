@@ -14,8 +14,14 @@ class Cylinder
 	
 	~Cylinder()
 	{
+
+	}
+
+	void shutdown()
+	{
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
 		glDeleteBuffers( 1, &cylinderBufferObject);	
+		glDeleteVertexArrays(1, &cylinderVAO);
 	}
 
 	void create_geometry( glm::vec3 p1, float r1, glm::vec3 p2, float r2 )
@@ -71,9 +77,11 @@ class Cylinder
 
 		num_vertices = vertices.size();
 
+		glBindVertexArray(cylinderVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, cylinderBufferObject);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(PNVertex) * vertices.size(), &vertices[0], GL_DYNAMIC_DRAW);
-		// TODO any point in considering this? if (glGetError() == GL_OUT_OF_MEMORY) 
+		glBindVertexArray(0);
+		
 	}
 	
 	// TODO could have a check to see if geometry actually changes between calls
@@ -93,41 +101,37 @@ class Cylinder
 			create_geometry(p1,r1,p2,r2);
 		}
 
-		glBindBuffer(GL_ARRAY_BUFFER, cylinderBufferObject);
-
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
-		//void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * pointer);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
-
-		#define BUFFER_OFFSET(p) ((char*)0 + (p))
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
-
+		glBindVertexArray(cylinderVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_vertices );
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+		glBindVertexArray(0);
 	}
 	
 	// TODO can this function fail?
 	bool init()
 	{
 		cylinderBufferObject = 0;
+		glGenVertexArrays(1, &cylinderVAO);
+		glBindVertexArray(cylinderVAO);
 		glGenBuffers(1, &cylinderBufferObject);
 
 		glBindBuffer(GL_ARRAY_BUFFER, cylinderBufferObject);
 		glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
+		#define BUFFER_OFFSET(p) ((char*)0 + (p))
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
+
+		glBindVertexArray(0);
 
 		return true;
 	}
 	
 	private:
 		unsigned int cylinderBufferObject;
+		unsigned int cylinderVAO;
 		int num_vertices;
 
 		bool is_dirty;

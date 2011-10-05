@@ -6,20 +6,26 @@
 class Sphere
 {
 	public:
-		Sphere(){}
-		~Sphere()
-		{
-			// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
-			glDeleteBuffers( 1, &sphereBufferObject);	
-		}
+	Sphere(){}
+	~Sphere()
+	{
+
+	}
+
+	void shutdown()
+	{
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
+		glDeleteBuffers( 1, &sphereBufferObject);	
+		glDeleteVertexArrays( 1, &sphereVAO );
+	}
 	
 	void draw() 
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, sphereBufferObject);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glBindVertexArray(sphereVAO);
 		glDrawArrays(GL_TRIANGLES, 0, SPHERE_VERTS);
-		glDisableVertexAttribArray(0);
+		glBindVertexArray(0);
+
+		GetError();
 	}
 	
 	void subdivide(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, int depth, std::vector< XYZVertex > &vertbuf) 
@@ -79,14 +85,19 @@ class Sphere
 
 		sphereBufferObject = 0;
 		SPHERE_VERTS = sphere_vertices.size();
+
+		// VAOs allocation & setup
+		glGenVertexArrays(1, &sphereVAO);
+		glBindVertexArray(sphereVAO);
 		glGenBuffers(1, &sphereBufferObject);
+
 		glBindBuffer(GL_ARRAY_BUFFER, sphereBufferObject);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(XYZVertex) * SPHERE_VERTS, &sphere_vertices[0], GL_STATIC_DRAW);
-		if (glGetError() == GL_OUT_OF_MEMORY)
-		{
-			return false;
-		}
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glVertexAttribPointer( (GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+
+		glBindVertexArray(0);
 		
 		return true;
 	}
@@ -94,6 +105,7 @@ class Sphere
 	
 	private:
 		unsigned int sphereBufferObject;
+		unsigned int sphereVAO;
 		int SPHERE_VERTS;
 };
 

@@ -6,6 +6,13 @@
 class Cube
 {
 	public:
+
+	void shutdown()
+	{
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
+		glDeleteBuffers( 1, &cubeBufferObject);
+		glDeleteVertexArrays( 1, &cubeVAO );
+	}
 	
 	bool init()
 	{
@@ -49,6 +56,8 @@ class Cube
 
 		num_vertices = cube_vertices.size();
 		cubeBufferObject = 0;
+		glGenVertexArrays( 1, &cubeVAO );
+		glBindVertexArray(cubeVAO);
 		glGenBuffers(1, &cubeBufferObject);
 		glBindBuffer(GL_ARRAY_BUFFER, cubeBufferObject);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(PNVertex) * num_vertices, &cube_vertices[0], GL_STATIC_DRAW);
@@ -56,39 +65,36 @@ class Cube
 		{
 			return false;
 		}
+
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
+
+#define BUFFER_OFFSET(p) ((char*)0 + (p))
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
+#undef BUFFER_OFFSET
+
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 
 		return true;
 	}
 	
 	void draw() 
 	{
-		//glBindBuffer(GL_ARRAY_BUFFER, cubeBufferObject);
-		//glEnableVertexAttribArray(0);
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, num_vertices);
-		//glDisableVertexAttribArray(0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, cubeBufferObject);
-
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
-
-		#define BUFFER_OFFSET(p) ((char*)0 + (p))
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
-
+		// http://www.opengl.org/sdk/docs/man3/xhtml/glBindBuffer.xml
+		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, num_vertices );
-
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 	}
 	
 	private:
 	unsigned int cubeBufferObject;
+	unsigned int cubeVAO;
 	int num_vertices;
 	
 };

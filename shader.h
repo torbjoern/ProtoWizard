@@ -10,9 +10,15 @@ public:
 	Shader();
 	~Shader();
 
+	void shutdown()
+	{
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteProgram.xml
+		glDeleteProgram( program );
+	}
+
 	bool install(const char* VSPath, const char* FSPath);
 	bool installFromCString( const char * vertShader, const char * fragShader );
-	void reload();
+	bool reload();
 	char* LoadShaderText(const char *fileName);
 	void printShaderInfoLog(unsigned int shader);
 	void printProgramInfoLog();
@@ -31,7 +37,7 @@ public:
 	
 private:
 	bool compileSources();
-	void validate();
+	bool validate();
 	
 	unsigned int program;
 	std::string strVSPath;

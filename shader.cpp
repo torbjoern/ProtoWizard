@@ -12,8 +12,7 @@ Shader::Shader()
 
 Shader::~Shader()
 {
-	// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteProgram.xml
-	glDeleteProgram( program );
+
 }
 
 void Shader::begin() { glUseProgram(program); }
@@ -127,7 +126,7 @@ bool Shader::compileSources()
 	return true;
 }
 
-void Shader::reload()
+bool Shader::reload()
 {
 	if( _loadedFromFile )
 	{
@@ -137,8 +136,8 @@ void Shader::reload()
 		printf("Shader source is in memory and cannot be reloaded from disk.\n");
 	}
 
-	validate();
-	
+	bool validation_status = validate();
+	return validation_status;
 }
 
 char* Shader::LoadShaderText(const char *fileName)
@@ -210,7 +209,7 @@ void Shader::printProgramInfoLog()
 	}
 }
 
-void Shader::validate()
+bool Shader::validate()
 {
 	const unsigned int BUFFER_SIZE = 512;
 	char buffer[BUFFER_SIZE];
@@ -218,15 +217,21 @@ void Shader::validate()
 	GLsizei length = 0;
 
 	memset(buffer, 0, BUFFER_SIZE);
+	// http://www.opengl.org/sdk/docs/man/xhtml/glGetProgramInfoLog.xml
 	glGetProgramInfoLog(program, BUFFER_SIZE, &length, buffer);
 	if (length > 0)
 		std::cout << "Program " << program << " link error: " << buffer << std::endl;
 
+	// http://www.opengl.org/sdk/docs/man/xhtml/glValidateProgram.xml
 	glValidateProgram(program);
 	GLint status;
 	glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
 	if (status == GL_FALSE)
+	{
 		std::cout << "Error validating shader " << program << std::endl;
+		return false;
+	}
+	return true;
 }
 
 int Shader::GetVariable( char* strVariable )

@@ -75,6 +75,9 @@ void draw_cone_grid(ProtoGraphics &protoGraphics, int cones)
 	}
 }
 
+
+
+
 int main()
 {
 	ProtoGraphics protoGraphics;
@@ -83,6 +86,22 @@ int main()
 	{
 		printf("Failed to init OpenGL graphics\n");
 		return 0;
+	}
+
+	int balls = 25;
+	std::vector<char> do_draw(balls*balls*balls);
+	
+	
+	for(int i=0; i<balls; i++)
+	{
+		for(int j=0; j<balls; j++)
+			for(int k=0; k<balls; k++)
+			{
+				float x = i/(float) (balls-1);
+				float y = j/(float) (balls-1);
+				float z = k/(float) (balls-1);
+				do_draw[i+j*balls+k*balls*balls] = protoGraphics.octaves_of_noise( 4, x, y, z) < 0.0 ? char(0) : char(1);
+			}
 	}
 
 	while( true )
@@ -98,38 +117,78 @@ int main()
 		//protoGraphics.setCamera( glm::vec3(sa, 25.0f, ca), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f) );
 		
 		//////////////////////////////////////////////////////////////////////////
-		float range = +250.0f;
+		float range = +25.0f;
 
-		int balls = 10;
+		float ball_radius = 0.5f * (2*range / (balls-1) );
+
 		for(int i=0; i<balls; i++)
-		for(int j=0; j<balls; j++)
-		for(int k=0; k<balls; k++)
 		{
-			float x = i/(float) (balls-1);
-			float y = j/(float) (balls-1);
-			float z = k/(float) (balls-1);
+			for(int j=0; j<balls; j++)
+			{
+				for(int k=0; k<balls; k++)
+				{
+					float x = i/(float) (balls-1);
+					float y = j/(float) (balls-1);
+					float z = k/(float) (balls-1);
 
-			//protoGraphics.setColor( x,y,z );
-			//protoGraphics.drawSphere( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 0.8f );
+					//protoGraphics.setColor( x,y,z );
 
-			protoGraphics.setColor( 1.f, 1.f, 1.f );
-			protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 1.f );
+
+					if ( do_draw[i+j*balls+k*balls*balls] == 1 ){
+						//protoGraphics.drawSphere( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, ball_radius );
+						protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, ball_radius );
+					}
+
+					//protoGraphics.setColor( 1.f, 1.f, 1.f );
+					//protoGraphics.drawCube( glm::vec3(-range * .5f) + glm::vec3(x,y,z) * range, 5.f );
+				}
+			}
 		}
+
 		//////////////////////////////////////////////////////////////////////////
 
 
 		
-		//draw_cone_grid(protoGraphics, 3);
+		//draw_cone_grid(protoGraphics, 4);
 
-		//protoGraphics.drawCone( glm::vec3(0.f, 10.f, 0.f), 1.0f, glm::vec3(0.f, -10.f, 0.f), 1.f );
+		protoGraphics.setBlend( true );
+		protoGraphics.drawCone( glm::vec3(0.f, 15.f, 0.f), 25.0f, glm::vec3(0.f, -15.f, 0.f), 25.f );
+		protoGraphics.setBlend( false );
 		//protoGraphics.drawCone( glm::vec3(-10.f, 0.f, 0.f), 1.0f, glm::vec3(10.f, 0.f, 0.f), 1.f );
 		//protoGraphics.drawCone( glm::vec3(0.f, 0.f, -10), 1.0f, glm::vec3(0.f, 0.f, 10.f), 1.f );
 		//
 
-		spiky( protoGraphics, glm::vec3(-25.f, 0.f, 0.f), time );
+		for (int i = 0; i<8; i++)
+		{
+			float ang = i * TWO_PI / 8;
+			float r = -25.f;
+			spiky( protoGraphics, glm::vec3(cos(ang)*r, 0.f, sin(ang)*r), time );
+		}
+		
 
 		protoGraphics.setColor(1.f, 0.f, 0.f);
-		protoGraphics.drawCircle( (float) protoGraphics.getMouseX(),(float) protoGraphics.getMouseY(), 10.0f );
+		protoGraphics.drawCircle( (float) protoGraphics.getMouseX(),(float) protoGraphics.getMouseY(), 10.0f + (0.5f + sin(time*16)*0.5f ) *5.f );
+
+		protoGraphics.setColor(1.f, 1.f, 0.f);
+		protoGraphics.moveTo( 0.f, 0.f );
+		protoGraphics.setColor(0.f, 1.f, 0.f);
+		protoGraphics.lineTo( 400.f, 400.f );
+
+		////////////////////////////////////////////////////////////////////////// Line speed test
+		//float xres = (float)protoGraphics.getWindowWidth();
+		//float yres = (float)protoGraphics.getWindowHeight();
+		//
+		//protoGraphics.setColor( 1.f, 1.f, 0.f );
+		//for(int i=0; i<10000; i++)
+		//{
+		//	int x = i;
+		//	x = (x<<13) ^ x;
+		//	float noise1 = ( 1.0 - ( (x * (x * x * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0);
+		//	x = (i<<13) ^ (i+1);
+		//	float noise2 = ( 1.0 - ( (x * (x * x * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0);
+		//	protoGraphics.moveTo(xres*0.5f, yres*0.5f );
+		//	protoGraphics.lineTo( xres*0.5f + (xres*.5f) * noise1, yres*0.5f + (yres*.5f) * noise2 );
+		//}
 
 		//////////////////////////////////////////////////////////////////////////
 		//int num = 100;
@@ -152,5 +211,5 @@ int main()
 		if (protoGraphics.isWindowOpen() == false) break;
 	}
 
-	protoGraphics.shutdown();
+
 }

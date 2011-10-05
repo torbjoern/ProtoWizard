@@ -8,14 +8,30 @@
 class Circle
 {
 	public:
-		Circle(){}
-		~Circle()
-		{
-			// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
-			glDeleteBuffers( 1, &vbo_handle);
-		}
+	Circle()
+	{
+		vbo_handle = 0;
+	}
+	~Circle()
+	{
+		
+	}
+
+	void shutdown()
+	{
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
+		glDeleteBuffers(1, &vbo_handle);
+		glDeleteVertexArrays(1, &vao_handle);
+	}
 	
-	
+	void draw()
+	{
+		glBindVertexArray( vao_handle );
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDrawArrays.xml
+		glDrawArrays(GL_TRIANGLE_FAN, 0, CIRCLE_SEGMENTS+1);
+		glBindVertexArray(0);
+	}
+
 	bool init()
 	{
 		circle_vertices[0].set( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -30,6 +46,10 @@ class Circle
 		}
 
 		vbo_handle = 0;
+		vao_handle = 0;
+
+		glGenVertexArrays(1, &vao_handle);
+		glBindVertexArray(vao_handle);
 
 		// http://www.opengl.org/sdk/docs/man/xhtml/glGenBuffers.xml
 		glGenBuffers(1, &vbo_handle);
@@ -42,29 +62,21 @@ class Circle
 		{
 			return false;
 		}
+
+		// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribPointer.xml
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+		glEnableVertexAttribArray(0);
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		return true;
 	}
 	
-	void draw()
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_handle);
-		glEnableVertexAttribArray(0);
-
-		// http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribPointer.xml
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-
-		// http://www.opengl.org/sdk/docs/man/xhtml/glDrawArrays.xml
-		glDrawArrays(GL_TRIANGLE_FAN, 0, CIRCLE_SEGMENTS+1);
-
-		glDisableVertexAttribArray(0);
-	}
-	
-	
 	private:
 	
 	unsigned int vbo_handle;
+	unsigned int vao_handle;
 	
 	static const int CIRCLE_SEGMENTS = 36*2;
 	TexturedVertex circle_vertices[CIRCLE_SEGMENTS+1];

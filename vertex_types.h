@@ -1,10 +1,25 @@
 #ifndef _VERTEX_TYPES_H
 #define _VERTEX_TYPES_H
 
+struct ColorRGBA
+{
+	float r,g,b,a;
+};
+
+struct LineSegmentState
+{
+	float x1, y1;
+	ColorRGBA color1;
+	float x2, y2;
+	ColorRGBA color2;
+};
+
 struct TexturedVertex
 {
 	float x,y;
 	float u,v;
+	TexturedVertex(){}
+	TexturedVertex(float xx,float yy,float uu, float vv){x = xx; y = yy; u = uu; v = vv;}
 	void set(float xx,float yy,float uu, float vv){x = xx; y = yy; u = uu; v = vv;}
 };
 
