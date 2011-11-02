@@ -234,7 +234,7 @@ bool Shader::validate()
 	return true;
 }
 
-int Shader::GetVariable( char* strVariable )
+int Shader::GetVariable( char* strVariable ) const 
 {
 	return glGetUniformLocation(program, strVariable);
 }

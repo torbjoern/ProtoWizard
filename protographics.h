@@ -66,6 +66,7 @@ public:
 
 		blend_state = blending::SOLID_BLEND;
 		colorState = glm::vec4( 1.f );
+		emissiveColor = glm::vec3( 0.f );
 		move_to_state = glm::vec2(0.f, 0.f);
 	}
 
@@ -245,9 +246,10 @@ public:
 
 
 		setColor(1.f, 1.f, 1.f);
-		light_pos = glm::vec3( cos(time) * 15.f, 10.0f , sin(time) * 15.f );
+		light_pos = glm::vec3( cos(time) * 15.f, 3.0f , sin(time) * 15.f );
+		setEmissive( glm::vec3( 1.f ) );
 		drawSphere( light_pos, 1.0f );
-
+		setEmissive( glm::vec3( 0.f ) );
 
 
 		if ( key_array['R'] )
@@ -363,7 +365,10 @@ public:
 		colorState.a = a;
 	}
 
-	
+	void setEmissive( glm::vec3 emissive )
+	{
+		emissiveColor = emissive;
+	}
 
 	void setBlend( bool active )
 	{
@@ -417,6 +422,7 @@ public:
 	{
 		SphereState *state = new SphereState;
 		state->color = colorState;
+		state->emissiveColor = emissiveColor;
 		state->transform = glm::translate( glm::mat4( 1.0f ), position );
 		state->radius = radius;
 		state->blend_mode = blend_state;
@@ -427,6 +433,7 @@ public:
 	{
 		CylinderState *state = new CylinderState;
 		state->color = colorState;
+		state->emissiveColor = emissiveColor;
 		state->p1 = p1;
 		state->p2 = p2;
 		state->radius1 = r1;
@@ -439,6 +446,7 @@ public:
 	{
 		CubeState *state = new CubeState;
 		state->color = colorState;
+		state->emissiveColor = emissiveColor;
 		state->transform = glm::translate( glm::mat4( 1.0f ), position );
 		state->radius = radius;
 		state->blend_mode = blend_state;
@@ -449,6 +457,7 @@ public:
 	{
 		PlaneState *state = new PlaneState;
 		state->color = colorState;
+		state->emissiveColor = emissiveColor;
 		state->transform = glm::translate( glm::mat4( 1.0f ), position );
 		state->normal = normal;
 		state->radius = radius;
@@ -582,7 +591,7 @@ private:
 		unsigned int loc2 = phong_shader.GetVariable("ambientIntensity");
 
 		phong_shader.SetFloat4( loc1, 0.8f, 0.8f, 0.8f, 1.0f );
-		phong_shader.SetFloat4( loc2, 0.2f, 0.2f, 0.2f, 1.0f );
+		phong_shader.SetFloat4( loc2, 0.1f, 0.1f, 0.1f, 1.0f );
 
 		phong_shader.SetVec3( phong_shader.GetVariable("cameraSpaceLightPos"), light_pos );
 		phong_shader.SetFloat( phong_shader.GetVariable("lightAttenuation"), 0.02f );
@@ -615,13 +624,26 @@ private:
 		phong_shader.begin();
 		_init_phong();
 
+		unsigned int worldLoc = phong_shader.GetVariable("worldMatrix");
+		unsigned int viewLoc = phong_shader.GetVariable("viewMatrix");
 		unsigned int projLoc = phong_shader.GetVariable("projMatrix");
-		unsigned int mvLoc = phong_shader.GetVariable("modelviewMatrix");
 		
 		VSML *vsml = VSML::getInstance();
-		vsml->initUniformLocs(mvLoc, projLoc);
+		//vsml->initUniformLocs(mvLoc, projLoc);
+		//vsml->matrixToUniform(VSML::PROJECTION);
+
+		//uniform mat4 worldMatrix;
+		//uniform mat4 viewMatrix;
+		//uniform mat4 projMatrix;
+
+		glm::mat4 projection =
+			glm::perspective(60.0f, xres/(float)yres, 1.0f, 1000.f);
+		glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
+
+		glm::mat4 viewMatrix = camera.getViewMatrix();
+		glUniformMatrix4fv( viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix) );
+		//vsml->loadMatrix( VSML::PROJECTION, glm::value_ptr(projection) );
 		
-		vsml->matrixToUniform(VSML::PROJECTION);
 
 		unsigned int colorLoc = phong_shader.GetVariable("diffuseColor");
 		//////////////////////////////////////////////////////////////////////////
@@ -634,7 +656,7 @@ private:
 		{
 				BaseState3D *state = opaque[i];
 				phong_shader.SetVec4( colorLoc, state->color );
-				state->pre_draw( vsml, camera.getViewMatrix() );
+				state->pre_draw( phong_shader );
 				state->draw(&geo_lib);	
 		}
 
@@ -665,7 +687,7 @@ private:
 		{
 			BaseState3D *state = translucent[i];
 			phong_shader.SetVec4( colorLoc, state->color );
-			state->pre_draw( vsml, camera.getViewMatrix() );
+			state->pre_draw( phong_shader );
 			translucent[i]->draw( &geo_lib );
 		}
 		if ( translucent.size() > 0 )
@@ -676,18 +698,19 @@ private:
 
 		opaque.clear();
 		translucent.clear();
+
+
+		for(unsigned i=0; i<buffered_shapes.size(); i++)
+		{
+			delete buffered_shapes[i];
+		}
+
 		buffered_shapes.clear();
 	}
 
 	void draw_buffered_objects()
 	{
-		// Draw 3D first, set up our matrices
-		VSML *vsml = VSML::getInstance();
-
-		
-		glm::mat4 projection =
-			glm::perspective(60.0f, xres/(float)yres, 1.0f, 1000.f);
-		vsml->loadMatrix( VSML::PROJECTION, glm::value_ptr(projection) );
+		// Draw 3D first
 
 		// We want depth test enabled for 3D
 		glEnable( GL_DEPTH_TEST );
@@ -706,6 +729,7 @@ private:
 
 		// Setup projection for 2D, but now modelview, as we will modify 
 		// modelview in most 2D drawcalls using translation, rotation and scaling.
+		VSML *vsml = VSML::getInstance();
 		vsml->loadIdentity(VSML::PROJECTION);
 		vsml->ortho(0.0f, (float)xres, (float)yres, 0.f, -1.f , 1.f);
 
@@ -734,6 +758,7 @@ private:
 	int blend_state;
 
 	glm::vec3 light_pos;
+	glm::vec3 emissiveColor;
 
 	FirstPersonCamera camera;
 	glm::mat4 mCam;

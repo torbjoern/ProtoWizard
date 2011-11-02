@@ -106,12 +106,23 @@ struct BaseState3D : public BaseState
 		return blend_mode != blending::SOLID_BLEND;
 	}
 
-	virtual void pre_draw(VSML *vsml, glm::mat4 &viewMatrix )
+	virtual void pre_draw(Shader const& shader)
 	{
 		transform = glm::scale( transform, glm::vec3(radius) );
-		glm::mat4 model_view = viewMatrix * transform;
-		vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( model_view ) );
-		vsml->matrixToUniform(VSML::MODELVIEW);
+
+		int worldLoc = shader.GetVariable("worldMatrix");
+		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
+
+		int isSphere = shader.GetVariable("isSphere");
+		shader.SetInt(isSphere, 0);
+
+		int locEmissive = shader.GetVariable("emissiveColor");
+		shader.SetVec3(locEmissive, emissiveColor);
+		
+
+		//glm::mat4 model_view = viewMatrix * transform;
+		//vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( model_view ) );
+		//vsml->matrixToUniform(VSML::MODELVIEW);
 	}
 
 
@@ -124,11 +135,26 @@ struct BaseState3D : public BaseState
 
 	glm::mat4 transform;
 	float radius;
+	glm::vec3 emissiveColor;
 };
 
 
 struct SphereState : public BaseState3D
 {
+	virtual void pre_draw(Shader const& shader)
+	{
+		transform = glm::scale( transform, glm::vec3(radius) );
+
+		int worldLoc = shader.GetVariable("worldMatrix");
+		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
+
+		int locEmissive = shader.GetVariable("emissiveColor");
+		shader.SetVec3(locEmissive, emissiveColor);
+
+		int isSphere = shader.GetVariable("isSphere");
+		shader.SetInt(isSphere, 1);
+	}
+
 	virtual void draw( GeometryLibrary* geo_lib )
 	{
 		geo_lib->sphere.draw();
@@ -137,10 +163,19 @@ struct SphereState : public BaseState3D
 
 struct CylinderState : public BaseState3D
 {
-	virtual void pre_draw(VSML *vsml, glm::mat4 &viewMatrix )
+	virtual void pre_draw(Shader const& shader)
 	{
-		vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( viewMatrix ) );
-		vsml->matrixToUniform(VSML::MODELVIEW);
+		transform = glm::mat4(1.0f);
+
+		int worldLoc = shader.GetVariable("worldMatrix");
+
+		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
+
+		int isSphere = shader.GetVariable("isSphere");
+		shader.SetInt(isSphere, 0);
+
+		//vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( viewMatrix ) );
+		//vsml->matrixToUniform(VSML::MODELVIEW);
 	}
 
 	virtual void draw( GeometryLibrary* geo_lib )
@@ -172,10 +207,13 @@ struct PlaneState : public BaseState3D
 	virtual void draw( GeometryLibrary* geo_lib )
 	{
 		glm::vec3 pos = glm::vec3(transform[3]);
+		glDisable(GL_CULL_FACE);
 		geo_lib->plane.createGeometry( pos, normal, 1.0 );
 		geo_lib->plane.draw();
-		geo_lib->plane.createGeometry( pos, -normal, 1.0);
-		geo_lib->plane.draw();
+		//geo_lib->plane.createGeometry( pos + normal*0.01f, -normal, 1.0);
+		//geo_lib->plane.draw();
+
+		glEnable(GL_CULL_FACE);
 	}
 
 	glm::vec3 normal;

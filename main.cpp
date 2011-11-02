@@ -45,7 +45,6 @@ int main()
 		protoGraphics.drawSphere( glm::vec3(10.0f, 5.f, 0.0f), 5.0f );
 
 		protoGraphics.setAlpha( protoGraphics.getMouseX() / (float)protoGraphics.getWindowWidth() );
-
 		
 		protoGraphics.setColor( 1.0f, 0.0f, 0.0f );
 		protoGraphics.drawCone( glm::vec3(10.0f, 0.f, 10.0f), 1.0f, glm::vec3(10.0f, 10.f, 10.0f), 1.0f );
