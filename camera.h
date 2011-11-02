@@ -43,8 +43,9 @@ public:
 			hang += mouse_speed_x * 0.5f;
 			vang += mouse_speed_y * 0.5f;
 		}
+		float speed = 3.0; // meters per second
 
-		dirvec = glm::vec4( delta * (left_key-right_key), 0.0f,  delta * (back_key - forwards_key), 1.0f );
+		dirvec = glm::vec4(  delta * speed * (left_key-right_key), 0.0f,  delta * speed * (back_key - forwards_key), 1.0f );
 	}
 
 	glm::mat4 getViewMatrix()

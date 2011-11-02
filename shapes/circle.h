@@ -7,14 +7,16 @@
 
 class Circle
 {
-	public:
+public:
 	Circle()
 	{
 		vbo_handle = 0;
+		vao_handle = 0;
+		num_vertices = 0;
 	}
 	~Circle()
 	{
-		
+
 	}
 
 	void shutdown()
@@ -23,26 +25,32 @@ class Circle
 		glDeleteBuffers(1, &vbo_handle);
 		glDeleteVertexArrays(1, &vao_handle);
 	}
-	
+
 	void draw()
 	{
 		glBindVertexArray( vao_handle );
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDrawArrays.xml
-		glDrawArrays(GL_TRIANGLE_FAN, 0, CIRCLE_SEGMENTS+1);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, num_vertices);
 		glBindVertexArray(0);
 	}
 
 	bool init()
 	{
-		circle_vertices[0].set( 0.0f, 0.0f, 0.0f, 0.0f );
 
+		std::vector<glm::vec4> circle_vertices;
+
+		glm::vec4 first( 0.0f, 0.0f, 0.0f, 0.0f );
+		circle_vertices.push_back(first);
+
+		int CIRCLE_SEGMENTS = 32;
 		for (int i=0; i<CIRCLE_SEGMENTS; i++)
 		{
 			// Counter clockwise wound vertices
 			float a = TWO_PI - ( i * TWO_PI / (CIRCLE_SEGMENTS-1) ); 
 			float ca = cos(a);
 			float sa = sin(a);
-			circle_vertices[i+1].set( ca, sa, 0.0f, 0.0f );
+			glm::vec4 pos_and_texcoord( ca, sa, 0.0f, 0.0f );
+			circle_vertices.push_back( pos_and_texcoord );
 		}
 
 		vbo_handle = 0;
@@ -55,9 +63,12 @@ class Circle
 		glGenBuffers(1, &vbo_handle);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_handle);
 
+		int glm_vec_4_size = sizeof(glm::vec4);
+		num_vertices = circle_vertices.size();
+
 		// http://www.opengl.org/sdk/docs/man/xhtml/glBufferData.xml
 		// can generate GL_OUT_OF_MEMORY 
-		glBufferData(GL_ARRAY_BUFFER, sizeof(circle_vertices), circle_vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, glm_vec_4_size * num_vertices, &circle_vertices[0], GL_STATIC_DRAW);
 		if (glGetError() == GL_OUT_OF_MEMORY)
 		{
 			return false;
@@ -72,14 +83,11 @@ class Circle
 
 		return true;
 	}
-	
-	private:
-	
+
+private:
 	unsigned int vbo_handle;
 	unsigned int vao_handle;
-	
-	static const int CIRCLE_SEGMENTS = 36*2;
-	TexturedVertex circle_vertices[CIRCLE_SEGMENTS+1];
+	int num_vertices;
 };
 
 #endif

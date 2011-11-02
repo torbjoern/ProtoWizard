@@ -1,17 +1,13 @@
 #ifndef _VERTEX_TYPES_H
 #define _VERTEX_TYPES_H
 
-struct ColorRGBA
-{
-	float r,g,b,a;
-};
 
 struct LineSegmentState
 {
 	float x1, y1;
-	ColorRGBA color1;
+	glm::vec4 color1;
 	float x2, y2;
-	ColorRGBA color2;
+	glm::vec4 color2;
 };
 
 struct TexturedVertex

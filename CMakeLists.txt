@@ -9,7 +9,8 @@ include_directories(${GLM_INCLUDE_PATH})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 
-# too lazy to move GLFW.h and lib out of my visual studio folder...
+find_package(GLFW REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR})
 
 set(HDRS
 	camera.h
@@ -22,6 +23,7 @@ set(HDRS
 	shapes/circle.h
 	shapes/line.h
 	shapes/cube.h
+	shapes/plane.h
 	shapes/shapes.h
 	
 	depends/vsml.h
@@ -40,4 +42,4 @@ set(SRCS
 
 # add the executable
 add_executable ( ProtoWizard main.cpp ${GLEW_INCLUDE_DIR} ${HDRS} ${SRCS} )
-target_link_libraries (ProtoWizard  ${GLEW_LIB}  )
+target_link_libraries (ProtoWizard  ${GLEW_LIB}  ${GLFW_LIB} )

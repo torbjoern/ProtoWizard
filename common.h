@@ -3,7 +3,7 @@
 
 #define GLEW_STATIC
 #include <glew.h>
-#include <gl/glfw.h>
+#include <glfw.h>
 #include <cmath>
 
 #include <glm/glm.hpp>

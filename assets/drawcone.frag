@@ -10,8 +10,9 @@ void main()
 	float intensity;
 	
 	intensity = max(dot(fNormal, vec3(0.0, 0.0, 1.0)), 0.0);
-	
-	//out_Color = fColor*intensity;
+	//vec4 fColor2 = fColor * .2;
+	//fColor2.a = .5;
+	out_Color = fColor*intensity;//fColor2*intensity;
 
    out_Color = vec4( (fNormal.xyz+1)*0.5  , 0.15);	
    //out_Color = vec4( 1.0 , 0.0, 0.0, 0.2 );

@@ -31,7 +31,7 @@ class Cube
 
 
 		glm::vec3 v[8];  // Will be filled in with X,Y,Z vertexes.
-		float size = 1.f;
+		float size = 2.0f;
 		v[0].x = v[1].x = v[2].x = v[3].x = -size * 0.5f;
 		v[4].x = v[5].x = v[6].x = v[7].x = size * 0.5f;
 		v[0].y = v[1].y = v[4].y = v[5].y = -size * 0.5f;

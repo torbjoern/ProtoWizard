@@ -1,4 +1,4 @@
-#pragma comment(lib, "glfw_d.lib")
+
 #pragma comment(lib, "opengl32.lib")
 
 
@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 
 #define M_PI       3.14159265358979323846f
@@ -34,6 +35,11 @@ template <class T> T RADIANS_TO_DEGREES(T radians)
 
 class ProtoGraphics
 {
+private:
+	// Disallowing copying. Please pass protographics about as a const ptr or refrence!
+	ProtoGraphics(const ProtoGraphics&); // no implementation 
+	ProtoGraphics& operator=(const ProtoGraphics&); // no implementation 
+
 
 public:
 	ProtoGraphics()
@@ -55,20 +61,35 @@ public:
 
 		for( int i = 0; i < 256; i++ )
 		{
-			key_array[256] = false;
+			key_array[i] = false;
 		}
 
-		blend_state = false;
-		colorState.r = 1.f;
-		colorState.b = 1.f;
-		colorState.g = 1.f;
-		colorState.a = 1.f;
+		blend_state = blending::SOLID_BLEND;
+		colorState = glm::vec4( 1.f );
 		move_to_state = glm::vec2(0.f, 0.f);
 	}
 
 	~ProtoGraphics()
 	{
 
+	}
+
+	// fast float random in interval -1,1
+	// source by RGBA: http://www.rgba.org/articles/sfrand/sfrand.htm
+	float sfrand( void )
+	{
+		unsigned int a=(rand()<<16)|rand();  //we use the bottom 23 bits of the int, so one
+		//16 bit rand() won't cut it.
+		a=(a&0x007fffff) | 0x40000000;  
+
+		return( *((float*)&a) - 3.0f );
+	}
+
+	void dump_stats()
+	{
+		printf("------------------------\n");
+		printf("num opaque: %d\n", num_opaque);
+		printf("num blended: %d\n", num_blended);
 	}
 
 	
@@ -102,8 +123,6 @@ public:
 			return false;
 		}
 
-		glEnable(GL_MULTISAMPLE);
-
 		glfwSetWindowCloseCallback( &_closeCallback );
 
 		// Clear error caused by GLEW using glGetString instead of glGetStringi( char*, int )
@@ -114,46 +133,19 @@ public:
 
 		camera.pos = glm::vec3( 0.0f, 0.0f, -50.0f );
 
-		// TODO.. remove this, make it so line is a static class that checks if it
-		// has a VBO on draw...
-		if ( !line.init() )
-		{
-			printf("failed to init Line VBO");
-			return false;
-		}
 
-		if ( !circle.init() )
-		{
-			printf("failed to init Circle VBO");
-			return false;
-		}
 
-		if ( !sphere.init() )
-		{
-			printf("failed to init Sphere VBO");
-			return false;
-		}
+		geo_lib.init();
 
-		if ( !cylinder.init() )
-		{
-			printf("failed to init cylinder VBO");
-			return false;
-		}
-
-		if ( !cube.init() )
-		{
-			printf("failed to init cube VBO");
-			return false;
-		}
-
-		GetError();
+		
 
 
 		if ( shader_lines2d.install("assets/line2d_shader.vert", "assets/line2d_shader.frag") == false )
 		{
 			return false;
+		}else{
+			shader_list.push_back( &shader_lines2d );
 		}
-		shader_list.push_back( &shader_lines2d );
 
 		if ( shader_2d.install("assets/shader2d.vert", "assets/shader2d.frag") == false )
 		{
@@ -177,8 +169,26 @@ public:
 		//if (cube_shader.install("assets/cube_shader.vert", "assets/cube_shader.frag") == false)
 		{
 			return false;
+		}else{
+			shader_list.push_back( &cube_shader );
 		}
-		shader_list.push_back( &cube_shader );
+
+		if (plane_shader.install("assets/drawcone.vert", "assets/drawcone.frag") == false)
+		{
+			return false;
+		}else{
+			shader_list.push_back( &plane_shader );
+		}
+
+		if ( phong_shader.install("assets/phong.vert", "assets/phong.frag") == false )
+		{
+			return false;
+		}else{
+			shader_list.push_back( &phong_shader );
+		}
+		
+
+		glEnable(GL_MULTISAMPLE);
 
 		GetError();
 			
@@ -201,11 +211,7 @@ public:
 
 	void shutdown()
 	{	
-		circle.shutdown();
-		line.shutdown();
-		sphere.shutdown();
-		cube.shutdown();
-		cylinder.shutdown();
+		geo_lib.shutdown();
 
 		for(unsigned int i=0; i<shader_list.size(); i++){
 			shader_list[i]->shutdown();
@@ -231,14 +237,18 @@ public:
 
 		time = klock();
 		delta = time - old_time;
+		delta = std::min<float>( 0.01f, delta );
+
 		old_time = time;
 
-		camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDown(), 1.0f );
+		camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDown(), delta );
 
 
 		setColor(1.f, 1.f, 1.f);
-		light_pos = glm::vec3( cos(time) * 15.f, sin(time) * 15.f , 0.0f );
+		light_pos = glm::vec3( cos(time) * 15.f, 10.0f , sin(time) * 15.f );
 		drawSphere( light_pos, 1.0f );
+
+
 
 		if ( key_array['R'] )
 		{
@@ -256,13 +266,19 @@ public:
 			}
 		}
 
+		if ( key_array['1'] == true )
+		{
+			key_array['1'] = false;
+			static bool wire_frame_mode = false;
+			wire_frame_mode = !wire_frame_mode;
+			
+			glPolygonMode(GL_FRONT_AND_BACK, wire_frame_mode ? GL_LINE : GL_FILL);
+			
+		}
 		draw_buffered_objects();
 
-		
-
-
 		char title_buf[256];
-		sprintf_s(title_buf, 256, "%i .... %f", numframes, delta);
+		sprintf_s(title_buf, 256, "%i .... %.1f mspf alpha = %f", numframes, delta*1000.0f, colorState.a);
 		glfwSetWindowTitle(title_buf);
 
 		glfwGetMousePos(&mousx, &mousy);
@@ -279,7 +295,7 @@ public:
 
 	bool isWindowOpen()
 	{
-		return isRunning; //glfwGetWindowParam( GLFW_OPENED ) == 1;
+		return isRunning;
 	}
 
 	int getWindowWidth() 
@@ -340,19 +356,31 @@ public:
 		colorState.r = r;
 		colorState.b = b;
 		colorState.g = g;
-		colorState.a = 1.0f;
 	}
+
+	void setAlpha( float a )
+	{
+		colorState.a = a;
+	}
+
+	
 
 	void setBlend( bool active )
 	{
 		// TODO guess I want 2D blending at least... so, should each ShapeState have a BLEND_FUNC property?
 		// and should blending allways be enabled? yes... maybe... maybe handle it the same way as color
 		// so you do setBlend( LIGHT_BLEND ) etc. steal blitzmax' names :]
-		// SOLIDBLEND (no blend, overwrite) ALPHABLEND (self explanatory), LIGHTBLEND (additive), SHADEBLEND (multiply with backbuffer, MASKBLEND (draw if alpha > .5 )
+		// SOLIDBLEND (no blend, overwrite) ALPHABLEND (use alpha channel in image and specified draw color RGBA), LIGHTBLEND (additive), SHADEBLEND (multiply with backbuffer, MASKBLEND (draw if alpha > .5 )
 		// see http://en.wikibooks.org/wiki/BlitzMax/Modules/Graphics/Max2D#SetBlend
 		//glEnable(GL_BLEND);
 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		blend_state = active;
+		if ( active )
+		{
+			blend_state = blending::ADDITIVE_BLEND;
+		}else{
+			blend_state = blending::SOLID_BLEND;
+		}
+		
 	}
 
 	void moveTo( float x, float y )
@@ -387,36 +415,103 @@ public:
 
 	void drawSphere( glm::vec3 position, float radius ) 
 	{
-		SphereState state;
-		state.color = colorState;
-		state.x = position.x;
-		state.y = position.y;
-		state.z = position.z;
-		state.radius = radius;
-		buffered_spheres.push_back( state );
+		SphereState *state = new SphereState;
+		state->color = colorState;
+		state->transform = glm::translate( glm::mat4( 1.0f ), position );
+		state->radius = radius;
+		state->blend_mode = blend_state;
+		buffered_shapes.push_back( state );
 	}
 
 	void drawCone( glm::vec3 p1, float r1, glm::vec3 p2, float r2 ) 
 	{
-		CylinderState state;
-		state.color = colorState;
-		state.p1 = p1;
-		state.p2 = p2;
-		state.radius1 = r1;
-		state.radius2 = r2;
-		state.blended = blend_state;
-		buffered_cylinders.push_back( state );
+		CylinderState *state = new CylinderState;
+		state->color = colorState;
+		state->p1 = p1;
+		state->p2 = p2;
+		state->radius1 = r1;
+		state->radius2 = r2;
+		state->blend_mode = blend_state;
+		buffered_shapes.push_back( state );
 	}
 
 	void drawCube( glm::vec3 position, float radius )
 	{
-		CubeState state;
-		state.color = colorState;
-		state.x = position.x;
-		state.y = position.y;
-		state.z = position.z;
-		state.radius = radius;
-		buffered_cubes.push_back( state );
+		CubeState *state = new CubeState;
+		state->color = colorState;
+		state->transform = glm::translate( glm::mat4( 1.0f ), position );
+		state->radius = radius;
+		state->blend_mode = blend_state;
+		buffered_shapes.push_back( state );
+	}
+
+	void drawPlane( glm::vec3 position, glm::vec3 normal, float radius )
+	{
+		PlaneState *state = new PlaneState;
+		state->color = colorState;
+		state->transform = glm::translate( glm::mat4( 1.0f ), position );
+		state->normal = normal;
+		state->radius = radius;
+		state->blend_mode = blend_state;
+		buffered_shapes.push_back( state );
+	}
+
+	void drawRoundedCube(float radius, float edge_radius)
+	{
+		float sc = radius;
+		glm::vec3 v0(-sc,-sc,-sc);
+		glm::vec3 v1(-sc,-sc,+sc);
+		glm::vec3 v2(-sc,+sc,-sc);
+		glm::vec3 v3(-sc,+sc,+sc);
+
+		glm::vec3 v4(+sc,-sc,-sc);
+		glm::vec3 v5(+sc,-sc,+sc);
+		glm::vec3 v6(+sc,+sc,-sc);
+		glm::vec3 v7(+sc,+sc,+sc);
+
+#define drawline(v1,v2) (drawCone(v1,edge_radius,v2,edge_radius))
+		// bottom quad
+		drawline(v0,v1);
+		drawline(v0,v4);
+		drawline(v4,v5);
+		drawline(v1,v5);
+		// top quad
+		drawline(v2,v3);
+		drawline(v2,v6);
+		drawline(v6,v7);
+		drawline(v7,v3);
+
+		// connectors top/bottom quad
+		drawline(v0,v2);
+		drawline(v4,v6);
+		drawline(v1,v3);
+		drawline(v7,v5);
+#undef drawline
+
+		drawSphere(v0, edge_radius);
+		drawSphere(v1, edge_radius);
+		drawSphere(v2, edge_radius);
+		drawSphere(v3, edge_radius);
+		drawSphere(v4, edge_radius);
+		drawSphere(v5, edge_radius);
+		drawSphere(v6, edge_radius);
+		drawSphere(v7, edge_radius);
+
+		glm::vec3 n0 ( 0.f, 0.f, -1.f);
+		glm::vec3 n1 ( 0.f, 0.f, +1.f);
+		glm::vec3 n2 ( 0.f, -1.f, 0.f);
+		glm::vec3 n3 ( 0.f, +1.f, 0.f);
+		glm::vec3 n4 ( -1.f, 0.f, 0.f);
+		glm::vec3 n5 ( +1.f, 0.f, 0.f);
+		
+		float radius2 = radius + edge_radius;
+		drawPlane(n0*radius2,n0, radius );
+		drawPlane(n1*radius2,n1, radius );
+		drawPlane(n2*radius2,n2, radius );
+		drawPlane(n3*radius2,n3, radius );
+		drawPlane(n4*radius2,n4, radius );
+		drawPlane(n5*radius2,n5, radius );
+
 	}
 
 
@@ -427,7 +522,7 @@ private:
 	{
 		instance->shutdown();
 		
-		return 0; // Do not close...
+		return 0; // Do not close OpenGL context yet...
 	}
 
 	void draw_buffered_lines()
@@ -436,7 +531,7 @@ private:
 		unsigned int loc = shader_lines2d.GetVariable("mvp");
 		glm::mat4 orthomat = glm::ortho(  0.f, (float)xres, (float)yres, 0.f );
 		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(orthomat) );
-		line.draw(buffered_lines);
+		geo_lib.line.draw(buffered_lines);
 		buffered_lines.clear();
 	}
 
@@ -464,7 +559,7 @@ private:
 			float y = buffered_circles[i].y;
 			float radius = buffered_circles[i].radius;
 
-			ColorRGBA color = buffered_circles[i].color;
+			glm::vec4 color = buffered_circles[i].color;
 			 // Todo. use float vector here? and direct pointer to &color.r
 			shader_2d.SetFloat4( colorLoc, color.r, color.g, color.b, color.a );
 
@@ -476,83 +571,59 @@ private:
 
 			vsml->matrixToUniform(VSML::MODELVIEW);
 
-			circle.draw();
+			geo_lib.circle.draw();
 		}
 		buffered_circles.clear();
 	}
 
-	void draw_buffered_spheres()
+	void _init_phong()
 	{
-		sphere_shader.begin();
+		unsigned int loc1 = phong_shader.GetVariable("lightIntensity");
+		unsigned int loc2 = phong_shader.GetVariable("ambientIntensity");
 
-		unsigned int colorLoc = sphere_shader.GetVariable("vColor");
-		unsigned int translateLoc = sphere_shader.GetVariable("translate");
-		unsigned int radiusLoc = sphere_shader.GetVariable("radius");
+		phong_shader.SetFloat4( loc1, 0.8f, 0.8f, 0.8f, 1.0f );
+		phong_shader.SetFloat4( loc2, 0.2f, 0.2f, 0.2f, 1.0f );
 
-		unsigned int projLoc = sphere_shader.GetVariable("projMatrix");
-		unsigned int mvLoc = sphere_shader.GetVariable("modelviewMatrix");
-
-		//////////////////////////////////////////////////////////////////////////
-		VSML *vsml = VSML::getInstance();
-		vsml->initUniformLocs(mvLoc, projLoc);
-		vsml->matrixToUniform(VSML::MODELVIEW);
-		vsml->matrixToUniform(VSML::PROJECTION);
-		//////////////////////////////////////////////////////////////////////////
-
-		for (unsigned int i=0; i<buffered_spheres.size(); i++)
-		{
-			ColorRGBA color = buffered_spheres[i].color;
-			sphere_shader.SetFloat4( colorLoc, color.r, color.g, color.b, color.a );
-			sphere_shader.SetFloat( radiusLoc, buffered_spheres[i].radius);
-			sphere_shader.SetFloat3( translateLoc, buffered_spheres[i].x, buffered_spheres[i].y, buffered_spheres[i].z );
-
-			sphere.draw();
-		}
-
-		buffered_spheres.clear();
+		phong_shader.SetVec3( phong_shader.GetVariable("cameraSpaceLightPos"), light_pos );
+		phong_shader.SetFloat( phong_shader.GetVariable("lightAttenuation"), 0.02f );
+		phong_shader.SetFloat( phong_shader.GetVariable("shininess"), 10.0f );
 	}
 
-	static bool sort_func( const CylinderState &a, const CylinderState &b )
-	{
-		glm::vec3 cam_pos = instance->getCamera().pos;
-		glm::vec3 a_center = a.p1 + 0.5f * (a.p2 - a.p1);
-		glm::vec3 b_center = b.p1 + 0.5f * (b.p2 - b.p1);
-		float z1 = glm::length( a_center - cam_pos );
-		float z2 = glm::length( b_center - cam_pos );
-		return z1 < z2;
-	}
 
-	void draw_buffered_cylinders()
+	void draw_buffered_shapes()
 	{
 		// TODO find out how expensive it is to sort opaque and translucent objects into buckets...
 		// probably better methods out there, also, these two buckets should only be allocated once
 		// instead of alloc/dealloc on each call to draw_buffered....
-		std::vector<CylinderState> opaque;
-		std::vector<CylinderState> translucent;
+		std::vector<BaseState3D*> opaque;
+		std::vector<BaseState3D*> translucent;
 
-		for (unsigned int i=0; i<buffered_cylinders.size(); i++)
+		for (unsigned int i=0; i<buffered_shapes.size(); i++)
 		{
-			if ( buffered_cylinders[i].blended )
+			if ( buffered_shapes[i]->blend_mode != blending::SOLID_BLEND )
 			{
-				translucent.push_back( buffered_cylinders[i] );
+				translucent.push_back( buffered_shapes[i] );
 			}else{
-				opaque.push_back( buffered_cylinders[i] );
+				opaque.push_back( buffered_shapes[i] );
 			}
 		}
 
-		cylinder_shader.begin();
-
-		unsigned int colorLoc = cylinder_shader.GetVariable("vColor");
-		unsigned int translateLoc = cylinder_shader.GetVariable("translate");
-
-		unsigned int projLoc = cylinder_shader.GetVariable("projMatrix");
-		unsigned int mvLoc = cylinder_shader.GetVariable("modelviewMatrix");
+		num_opaque = opaque.size();
+		num_blended = translucent.size();
 
 		//////////////////////////////////////////////////////////////////////////
+		phong_shader.begin();
+		_init_phong();
+
+		unsigned int projLoc = phong_shader.GetVariable("projMatrix");
+		unsigned int mvLoc = phong_shader.GetVariable("modelviewMatrix");
+		
 		VSML *vsml = VSML::getInstance();
 		vsml->initUniformLocs(mvLoc, projLoc);
-		vsml->matrixToUniform(VSML::MODELVIEW);
+		
 		vsml->matrixToUniform(VSML::PROJECTION);
+
+		unsigned int colorLoc = phong_shader.GetVariable("diffuseColor");
 		//////////////////////////////////////////////////////////////////////////
 
 
@@ -561,12 +632,28 @@ private:
 
 		for (unsigned int i=0; i<opaque.size(); i++)
 		{
-			ColorRGBA color = opaque[i].color;
-			cylinder_shader.SetFloat4( colorLoc, color.r, color.g, color.b, color.a );
-			cylinder.draw( opaque[i].p1, opaque[i].radius1, opaque[i].p2, opaque[i].radius2 );
+				BaseState3D *state = opaque[i];
+				phong_shader.SetVec4( colorLoc, state->color );
+				state->pre_draw( vsml, camera.getViewMatrix() );
+				state->draw(&geo_lib);	
 		}
 
-		std::sort( translucent.begin(), translucent.end(), &ProtoGraphics::sort_func );
+		struct SortFunctor : public std::binary_function<BaseState3D*,BaseState3D*,bool> 
+		{
+			SortFunctor( const FirstPersonCamera &cam ) : camera( cam )
+			{
+			}
+
+			// a < b ? 
+			bool operator() ( BaseState3D* a, BaseState3D* b )
+			{
+				return a->distance_from_camera(camera.pos) > b->distance_from_camera(camera.pos); // the one furthest away is to be drawn first.
+			}
+
+			const FirstPersonCamera &camera;
+		};
+
+		std::sort( translucent.begin(), translucent.end(), SortFunctor(camera) );
 
 		if ( translucent.size() > 0 )
 		{
@@ -576,9 +663,10 @@ private:
 		}
 		for (unsigned int i=0; i<translucent.size(); i++)
 		{
-			ColorRGBA color = translucent[i].color;
-			cylinder_shader.SetFloat4( colorLoc, color.r, color.g, color.b, color.a );
-			cylinder.draw( translucent[i].p1, translucent[i].radius1, translucent[i].p2, translucent[i].radius2 );
+			BaseState3D *state = translucent[i];
+			phong_shader.SetVec4( colorLoc, state->color );
+			state->pre_draw( vsml, camera.getViewMatrix() );
+			translucent[i]->draw( &geo_lib );
 		}
 		if ( translucent.size() > 0 )
 		{
@@ -586,39 +674,9 @@ private:
 			glDepthMask(GL_TRUE);
 		}
 
-		buffered_cylinders.clear();
-	}
-
-	void draw_buffered_cubes()
-	{
-		cube_shader.begin();
-
-		unsigned int colorLoc = cube_shader.GetVariable("vColor");
-		unsigned int translateLoc = cube_shader.GetVariable("translate");
-		unsigned int radiusLoc = cube_shader.GetVariable("radius");
-		unsigned int lightLoc = cube_shader.GetVariable("light_pos");
-		glUniform3f( lightLoc, light_pos.x, light_pos.y, light_pos.z );
-
-		unsigned int projLoc = cube_shader.GetVariable("projMatrix");
-		unsigned int mvLoc = cube_shader.GetVariable("modelviewMatrix");
-
-		//////////////////////////////////////////////////////////////////////////
-		VSML *vsml = VSML::getInstance();
-		vsml->initUniformLocs(mvLoc, projLoc);
-		vsml->matrixToUniform(VSML::MODELVIEW);
-		vsml->matrixToUniform(VSML::PROJECTION);
-		//////////////////////////////////////////////////////////////////////////
-
-		for (unsigned int i=0; i<buffered_cubes.size(); i++)
-		{
-			ColorRGBA color = buffered_cubes[i].color;
-			cube_shader.SetFloat4( colorLoc, color.r, color.g, color.b, color.a );
-			cube_shader.SetFloat( radiusLoc, buffered_cubes[i].radius);
-			cube_shader.SetFloat3( translateLoc, buffered_cubes[i].x, buffered_cubes[i].y, buffered_cubes[i].z );
-
-			cube.draw();
-		}
-		buffered_cubes.clear();
+		opaque.clear();
+		translucent.clear();
+		buffered_shapes.clear();
 	}
 
 	void draw_buffered_objects()
@@ -626,12 +684,10 @@ private:
 		// Draw 3D first, set up our matrices
 		VSML *vsml = VSML::getInstance();
 
-		vsml->loadIdentity(VSML::PROJECTION);
-		vsml->perspective(60.0f, xres/(float)yres, 1.0f, 1000.0f);
-
-		glm::mat4 view = camera.getViewMatrix();
-		//glm::mat4 view = mCam;
-		vsml->loadMatrix( VSML::MODELVIEW, glm::value_ptr(view) );
+		
+		glm::mat4 projection =
+			glm::perspective(60.0f, xres/(float)yres, 1.0f, 1000.f);
+		vsml->loadMatrix( VSML::PROJECTION, glm::value_ptr(projection) );
 
 		// We want depth test enabled for 3D
 		glEnable( GL_DEPTH_TEST );
@@ -641,17 +697,9 @@ private:
 
 		// http://www.opengl.org/sdk/docs/man/xhtml/glCullFace.xml
 		glCullFace( GL_BACK );
-		if ( buffered_spheres.size() > 0 ) 
-			draw_buffered_spheres();
 
-		if ( buffered_cubes.size() > 0 ) 
-			draw_buffered_cubes();
-
-		// we want to inside cylinders, so don't cull
-		glDisable( GL_CULL_FACE );
-
-		if ( buffered_cylinders.size() > 0 ) 
-			draw_buffered_cylinders();
+		if ( buffered_shapes.size() > 0 ) 
+			draw_buffered_shapes();
 
 		// for 2D we want overdraw in all cases, so turn depth test off
 		glDisable( GL_DEPTH_TEST );
@@ -681,32 +729,29 @@ private:
 	int mousx, mousy;
 	bool key_array[256];
 
-	ColorRGBA colorState;
+	glm::vec4 colorState;
 	glm::vec2 move_to_state;
-	bool blend_state;
+	int blend_state;
 
 	glm::vec3 light_pos;
 
 	FirstPersonCamera camera;
 	glm::mat4 mCam;
 
-	Line line;
-	Circle circle;
-	Cylinder cylinder;
-	Sphere sphere;
-	Cube cube;
+	GeometryLibrary geo_lib;
 	
 	Shader shader_2d;
 	Shader shader_lines2d;
 	Shader sphere_shader;
 	Shader cylinder_shader;
 	Shader cube_shader;
+	Shader plane_shader;
+	Shader phong_shader;
 	
 	std::vector< LineSegmentState > buffered_lines;
 	std::vector< CircleState > buffered_circles;
-	std::vector< SphereState > buffered_spheres;
-	std::vector< CylinderState > buffered_cylinders;
-	std::vector< CubeState > buffered_cubes;
+
+	std::vector< BaseState3D* > buffered_shapes;
 
 	std::vector< Shader* > shader_list;
 
@@ -715,4 +760,7 @@ private:
 	float old_time;
 
 	unsigned int numframes;
+
+	int num_opaque;
+	int num_blended;
 };

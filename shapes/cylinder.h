@@ -31,8 +31,10 @@ class Cylinder
 		old_radius1 = r1;
 		old_radius2 = r2;
 		// Methods:
-		// * draw a regular cone scaled and rotated by the lookAt from a to b
+		// * draw a regular cone from [0,0,0] to [0,1,0] then scaled and rotated by the lookAt from a to b, How do you calculate this transform matrix?
+
 		// * use shader raytracing to find intersection between the line with offset radius r1 & r2 from center line ab
+
 		// * use paul bourkes method:
 
 

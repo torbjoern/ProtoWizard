@@ -6,13 +6,87 @@
 #include "sphere.h"
 #include "cylinder.h"
 #include "cube.h"
+#include "plane.h"
 
 #include "../vertex_types.h"
+#include "../common.h"
 
-struct BaseState 
+class GeometryLibrary
 {
-	bool blended;
-	ColorRGBA color;
+
+public:
+	bool init()
+	{
+		// TODO.. remove this, make it so line is a static class that checks if it
+		// has a VBO on draw...
+		if ( !line.init() )
+		{
+			printf("failed to init Line VBO");
+			return false;
+		}
+
+		if ( !circle.init() )
+		{
+			printf("failed to init Circle VBO");
+			return false;
+		}
+
+		if ( !sphere.init() )
+		{
+			printf("failed to init Sphere VBO");
+			return false;
+		}
+
+		if ( !cylinder.init() )
+		{
+			printf("failed to init cylinder VBO");
+			return false;
+		}
+
+		if ( !cube.init() )
+		{
+			printf("failed to init cube VBO");
+			return false;
+		}
+
+		plane.init();
+		GetError();
+
+		return true;
+	}
+
+	void shutdown()
+	{
+		circle.shutdown();
+		line.shutdown();
+		sphere.shutdown();
+		cube.shutdown();
+		cylinder.shutdown();
+		plane.shutdown();
+	}
+
+	Line line;
+	Circle circle;
+	Cylinder cylinder;
+	Sphere sphere;
+	Cube cube;
+	Plane plane;
+};
+
+namespace blending
+{
+	enum BLEND_MODES
+	{
+		SOLID_BLEND = 1,
+		ALPHA_BLEND,
+		ADDITIVE_BLEND
+	};
+}
+
+struct BaseState
+{
+	int blend_mode;
+	glm::vec4 color;	
 };
 
 struct CircleState : public BaseState
@@ -20,22 +94,91 @@ struct CircleState : public BaseState
 	float x, y, radius;
 };
 
-struct SphereState : public BaseState
+struct BaseState3D : public BaseState
 {
-	float x, y, z, radius;
+	float distance_from_camera( glm::vec3 const& camera_pos )
+	{
+		return glm::distance( glm::vec3(transform[3]), camera_pos );
+	}
+
+	bool is_transparent()
+	{
+		return blend_mode != blending::SOLID_BLEND;
+	}
+
+	virtual void pre_draw(VSML *vsml, glm::mat4 &viewMatrix )
+	{
+		transform = glm::scale( transform, glm::vec3(radius) );
+		glm::mat4 model_view = viewMatrix * transform;
+		vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( model_view ) );
+		vsml->matrixToUniform(VSML::MODELVIEW);
+	}
+
+
+	virtual void draw( GeometryLibrary* geo_lib ) = 0;
+
+	BaseState3D()
+	{
+		transform = glm::mat4( 1.0f );
+	}
+
+	glm::mat4 transform;
+	float radius;
 };
 
-struct CylinderState : public BaseState
+
+struct SphereState : public BaseState3D
 {
+	virtual void draw( GeometryLibrary* geo_lib )
+	{
+		geo_lib->sphere.draw();
+	}
+};
+
+struct CylinderState : public BaseState3D
+{
+	virtual void pre_draw(VSML *vsml, glm::mat4 &viewMatrix )
+	{
+		vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( viewMatrix ) );
+		vsml->matrixToUniform(VSML::MODELVIEW);
+	}
+
+	virtual void draw( GeometryLibrary* geo_lib )
+	{
+		geo_lib->cylinder.draw(p1,radius1,p2,radius2);
+	}
+
+	float distance_from_camera( glm::vec3 const& camera_pos )
+	{
+		return std::min<float>( glm::distance( p1, camera_pos ), glm::distance( p2, camera_pos ) );
+	}
+
 	glm::vec3 p1;
 	glm::vec3 p2;
 	float radius1;
 	float radius2;
 };
 
-struct CubeState : public BaseState
+struct CubeState : public BaseState3D
 {
-	float x, y, z, radius;
+	void draw( GeometryLibrary* geo_lib )
+	{
+		geo_lib->cube.draw();
+	}
+};
+
+struct PlaneState : public BaseState3D
+{
+	virtual void draw( GeometryLibrary* geo_lib )
+	{
+		glm::vec3 pos = glm::vec3(transform[3]);
+		geo_lib->plane.createGeometry( pos, normal, 1.0 );
+		geo_lib->plane.draw();
+		geo_lib->plane.createGeometry( pos, -normal, 1.0);
+		geo_lib->plane.draw();
+	}
+
+	glm::vec3 normal;
 };
 
 
