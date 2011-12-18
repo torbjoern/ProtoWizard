@@ -12,6 +12,10 @@ include_directories(${GLEW_INCLUDE_DIR})
 find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_DIR})
 
+find_package(ANGELSCRIPT REQUIRED)
+include_directories(${ANGELSCRIPT_INCLUDE_DIR})
+include_directories(${ANGELSCRIPT_ADDON_INCLUDE_DIR})
+
 set(HDRS
 	camera.h
 	common.h
@@ -41,5 +45,5 @@ set(SRCS
 
 
 # add the executable
-add_executable ( ProtoWizard main.cpp ${GLEW_INCLUDE_DIR} ${HDRS} ${SRCS} )
-target_link_libraries (ProtoWizard  ${GLEW_LIB}  ${GLFW_LIB} )
+add_executable ( ProtoWizard main.cpp ${ANGELSCRIPT_INCLUDE} ${GLEW_INCLUDE_DIR} ${HDRS} ${SRCS} )
+target_link_libraries (ProtoWizard ${ANGELSCRIPT_LIB} ${GLEW_LIB}  ${GLFW_LIB}  )

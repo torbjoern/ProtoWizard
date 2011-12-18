@@ -245,11 +245,11 @@ public:
 		camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDown(), delta );
 
 
-		setColor(1.f, 1.f, 1.f);
-		light_pos = glm::vec3( cos(time) * 15.f, 3.0f , sin(time) * 15.f );
-		setEmissive( glm::vec3( 1.f ) );
-		drawSphere( light_pos, 1.0f );
-		setEmissive( glm::vec3( 0.f ) );
+		//setColor(1.f, 1.f, 1.f);
+		//light_pos = glm::vec3( cos(time) * 15.f, 3.0f , sin(time) * 15.f );
+		//setEmissive( glm::vec3( 1.f ) );
+		//drawSphere( light_pos, 1.0f );
+		//setEmissive( glm::vec3( 0.f ) );
 
 
 		if ( key_array['R'] )
@@ -279,9 +279,9 @@ public:
 		}
 		draw_buffered_objects();
 
-		char title_buf[256];
-		sprintf_s(title_buf, 256, "%i .... %.1f mspf alpha = %f", numframes, delta*1000.0f, colorState.a);
-		glfwSetWindowTitle(title_buf);
+		//char title_buf[256];
+		//sprintf_s(title_buf, 256, "%i .... %.1f mspf alpha = %f", numframes, delta*1000.0f, colorState.a);
+		//glfwSetWindowTitle(title_buf);
 
 		glfwGetMousePos(&mousx, &mousy);
 
@@ -368,6 +368,10 @@ public:
 	void setEmissive( glm::vec3 emissive )
 	{
 		emissiveColor = emissive;
+	}
+
+	void setTitle( const std::string &title ){
+		glfwSetWindowTitle( title.c_str() );
 	}
 
 	void setBlend( bool active )
