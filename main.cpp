@@ -1,8 +1,10 @@
+#pragma comment (linker, "/NODEFAULTLIB:LIBCMT.lib") 
 
 #include <angelscript.h>
 #include <scriptstdstring/scriptstdstring.h>
 #include <scriptbuilder/scriptbuilder.h>
 #include <scriptmath/scriptmath.h>
+#include <scriptarray/scriptarray.h>
 
 #include "protographics.h"
 
@@ -44,12 +46,69 @@ inline void lineTo(float x, float y) {
 inline void setcol(float r, float g, float b) {
 	protoGraphics.setColor(r,g,b);
 }
+inline void setalpha(float a) {
+	protoGraphics.setAlpha(a);
+}
+inline void enableLightblend() {
+	protoGraphics.setBlend(true);
+}
+inline void disableLightblend() {
+	protoGraphics.setBlend(false);
+}
+
+
 inline int getMouseX(){
 	return protoGraphics.getMouseX();
 }
 inline int getMouseY(){
 	return protoGraphics.getMouseY();
 }
+inline bool mouseDownLeft(){
+	return protoGraphics.mouseDownLeft();
+}
+inline bool mouseDownRight(){
+	return protoGraphics.mouseDownRight();
+}
+inline bool keystatus(int key){
+	return protoGraphics.keystatus(key);
+}
+inline bool keyhit(int key){
+	return protoGraphics.keyhit(key);
+}
+
+
+inline void drawsph(float x, float y, float z, float r){
+	protoGraphics.drawSphere( glm::vec3(x,y,z), r );
+}
+inline void drawcube(float x, float y, float z, float r){
+	protoGraphics.drawCube( glm::vec3(x,y,z), r );
+}
+inline void drawcone(float x1, float y1, float z1, 
+					 float x2, float y2, float z2,
+					 float r){
+	protoGraphics.drawCone( glm::vec3(x1,y1,z1), glm::vec3(x2,y2,z2), r  );
+}
+
+
+inline void setcam(float x, float y, float z, float hang, float vang){
+	protoGraphics.setCamera( x,y,z, hang, vang );
+}
+inline void wasdcam(bool leftkey, bool rightkey, bool backkey, bool fwdkey, int mousx, int mousy, bool mousedown, float delta){
+	FirstPersonCamera &cam = protoGraphics.getCamera();
+	cam.update( leftkey, rightkey, backkey, fwdkey, mousx, mousy, mousedown, delta );
+}
+inline void setRotation( float xx, float xy, float xz,
+						 float yx, float yy, float yz,
+						 float zx, float zy, float zz )
+{
+	glm::mat4 ori(0.0);
+	ori[0] = glm::vec4( xx, xy, xz, 0.0f );
+	ori[1] = glm::vec4( yx, yy, yz, 0.0f );
+	ori[2] = glm::vec4( zx, zy, zz, 0.0f );
+	ori[3] = glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f );
+	protoGraphics.setOrientation( ori );
+}
+
 
 // Implement a simple message callback function
 void MessageCallback(const asSMessageInfo *msg, void *param)
@@ -115,47 +174,104 @@ bool start_script_main(asIScriptEngine **engine, int &funcId){
 	return true;
 }
 
-bool init( asIScriptEngine **engine, asIScriptContext **ctx, int &funcId )
+bool init( asIScriptEngine *&engine, asIScriptContext *&ctx, int &funcId )
 {
 	// Create the script engine
-	*engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
+	engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
 
 	// Set the message callback to receive information on errors in human readable form.
-	int r = (*engine)->SetMessageCallback(asFUNCTION(MessageCallback), 0, asCALL_CDECL); assert( r >= 0 );
+	int r = (engine)->SetMessageCallback(asFUNCTION(MessageCallback), 0, asCALL_CDECL); assert( r >= 0 );
 
 	// AngelScript doesn't have a built-in string type, as there is no definite standard 
 	// string type for C++ applications. Every developer is free to register it's own string type.
 	// The SDK do however provide a standard add-on for registering a string type, so it's not
 	// necessary to implement the registration yourself if you don't want to.
-	RegisterStdString(*engine);
+	RegisterStdString(engine);
 
-	RegisterScriptMath(*engine);
+	RegisterScriptMath(engine);
+
+	RegisterScriptArray(engine, false);
 
 	// Register the function that we want the scripts to call 
-	r = (*engine)->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(print), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void cls(float r, float g, float b)", asFUNCTION(cls), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void circle(float x, float y, float r)", asFUNCTION(circle), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void moveto(float x, float y)", asFUNCTION(moveTo), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void lineto(float x, float y)", asFUNCTION(lineTo), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("void setcol(float r, float g, float b)", asFUNCTION(setcol), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void print(const string &in)", asFUNCTION(print), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void cls(float r, float g, float b)", asFUNCTION(cls), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void circle(float x, float y, float r)", asFUNCTION(circle), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void moveto(float x, float y)", asFUNCTION(moveTo), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void lineto(float x, float y)", asFUNCTION(lineTo), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void setcol(float r, float g, float b)", asFUNCTION(setcol), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void setalpha(float a)", asFUNCTION(setalpha), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void enableLightblend()", asFUNCTION(enableLightblend), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void disableLightblend()", asFUNCTION(disableLightblend), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void drawsph(float x, float y, float z, float r)", asFUNCTION(drawsph), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void drawcube(float x, float y, float z, float r)", asFUNCTION(drawcube), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void 	drawcone(float x1, float y1, float z1, float x2, float y2, float z2, float r)", asFUNCTION(drawcone), asCALL_CDECL); assert( r >= 0 );
+
+
+
+	r = (engine)->RegisterGlobalFunction("void setcam(float x, float y, float z, float hang, float vang)", asFUNCTION(setcam), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void wasdcam(bool leftkey, bool rightkey, bool backkey, bool fwdkey, int mousx, int mousy, bool mousedown, float delta)", asFUNCTION(wasdcam), asCALL_CDECL); assert( r >= 0 );
 	
-	r = (*engine)->RegisterGlobalFunction("int mousx()", asFUNCTION(getMouseX), asCALL_CDECL); assert( r >= 0 );
-	r = (*engine)->RegisterGlobalFunction("int mousy()", asFUNCTION(getMouseY), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("void setRotation( float xx, float xy, float xz, "
+															"float yx, float yy, float yz,"
+															"float zx, float zy, float zz )" , asFUNCTION(setRotation), asCALL_CDECL); assert( r >= 0 );
+	
+
+	r = (engine)->RegisterGlobalFunction("int getMouseX()", asFUNCTION(getMouseX), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("int getMouseY()", asFUNCTION(getMouseY), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("bool mouseLeft()", asFUNCTION(mouseDownLeft), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("bool mouseRight()", asFUNCTION(mouseDownRight), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("bool keystatus(int key)", asFUNCTION(keystatus), asCALL_CDECL); assert( r >= 0 );
+	r = (engine)->RegisterGlobalFunction("bool keyhit(int key)", asFUNCTION(keyhit), asCALL_CDECL); assert( r >= 0 );
 
 
 	// Create our context, prepare it, and then execute
-	*ctx = (*engine)->CreateContext();
+	ctx = (engine)->CreateContext();
 
 	return true;
 }
 
-bool reload_script(asIScriptEngine *&engine, int &funcId){
+bool reload_script(asIScriptEngine **engine, int &funcId){
+	if (load_and_compile(engine) == false ) return false;
 	
-	if (load_and_compile(&engine) == false ) return false;
-	
-	if (start_script_main(&engine, funcId) == false ) return false;
+	if (start_script_main(engine, funcId) == false ) return false;
 	
 	return true;
+}
+
+void cpp()
+{
+	cls(0,0,0);
+
+	setcol(255,255,255);
+
+	float xres = 600;
+	float a = float(getMouseX() / xres ) * TWO_PI;
+	float ca = cos(a);
+	float sa = sin(a);
+	float dist = -70.0;
+
+	setcam( sa*dist,0, ca*dist, -a, 0 );
+
+	//enableLightblend();
+	disableLightblend();
+	setalpha(0.7);
+
+	int num = 12;
+	float spacing = 4.0;
+
+	//setcol(0.8, 0.8, 0.8);
+
+	for(int i=0; i< num; i++){
+		for(int j=0; j< num; j++)
+			for(int k=0; k< num; k++)
+			{
+				setcol( i/float(num), j/float(num), k/float(num) );
+				drawsph(-spacing*(num-1)*0.5 + i*1*spacing, 
+					-spacing*(num-1)*0.5 + j*1*spacing, 
+					-spacing*(num-1)*0.5 + k*1*spacing, 1.5);
+			}
+	}
+
 }
 
 int main()
@@ -164,11 +280,12 @@ int main()
 	asIScriptContext *ctx = NULL;
 
 	int funcId = 0;
-	if ( init( &engine, &ctx, funcId ) == false )
+	if ( init( engine, ctx, funcId ) == false )
 	{
 		printf("failed to init angelscript\n");
 		return 0;
 	}
+
 
 	if ( protoGraphics.init(800,600) == false )
 	{
@@ -176,7 +293,9 @@ int main()
 		return 0;
 	}
 
-	bool script_compiled = reload_script(engine, funcId);
+	bool script_compiled = reload_script(&engine, funcId);
+
+	float script_mspf = 0.0f;
 
 	while( true )
 	{
@@ -184,14 +303,13 @@ int main()
 			protoGraphics.cls(1.f, 1.f, 1.f);
 			protoGraphics.setTitle("Script has errors");
 		} else {
-			protoGraphics.setTitle("Script running");
+			
 
-			// pass main(mousx, mousy) its parameters and then call it
+			double perf_start = protoGraphics.klock();
 			ctx->Prepare(funcId);
-			//ctx->SetArgDWord(0, protoGraphics.getMouseX());
-			//ctx->SetArgDWord(1, protoGraphics.getMouseY());
-
 			int r = ctx->Execute();
+			//cpp();
+			script_mspf = protoGraphics.klock() - perf_start;
 
 
 			if( r != asEXECUTION_FINISHED )
@@ -207,12 +325,18 @@ int main()
 
 		protoGraphics.frame();
 
+		float mspf = protoGraphics.getMSPF();
+		
+		char title_buf[256];
+		sprintf_s(title_buf, 256, "render mspf: %.1f mspf, script mspf: = %.f", mspf*1000.0f, script_mspf * 1000.0f);
+		protoGraphics.setTitle( std::string(title_buf) );
+
 		bool can_reload = true;
 		if ( protoGraphics.keystatus('S') && can_reload ){
 			can_reload = false;
 			printf("ScriptManager: Reloading from disk\n");
 
-			script_compiled = reload_script(engine, funcId);
+			script_compiled = reload_script(&engine, funcId);
 		}
 		if ( protoGraphics.keystatus('S') == false ){
 			can_reload = true;

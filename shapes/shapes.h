@@ -96,7 +96,7 @@ struct CircleState : public BaseState
 
 struct BaseState3D : public BaseState
 {
-	float distance_from_camera( glm::vec3 const& camera_pos )
+	virtual float distance_from_camera( glm::vec3 const& camera_pos )
 	{
 		return glm::distance( glm::vec3(transform[3]), camera_pos );
 	}
@@ -165,33 +165,46 @@ struct CylinderState : public BaseState3D
 {
 	virtual void pre_draw(Shader const& shader)
 	{
-		transform = glm::mat4(1.0f);
+		// Create a matrix that will orient cyl in desired direction
+		glm::vec3 normal = glm::normalize(p2 - p1);
+		glm::vec3 not_normal = normal;
 
+		glm::vec3 perp = normal;
+		float eps = 1e-7f;
+		if ( fabs(not_normal.x) < eps && fabs(not_normal.z) < eps){ // comparing to eps instead of bla == 0
+			not_normal.x += 1.0f;
+		}else{
+			not_normal.y += 1.0f;
+		}
+
+		glm::vec3 a = glm::normalize( glm::cross(perp,not_normal) );
+		glm::vec3 b = glm::cross(perp,a);
+
+		float length = glm::distance( p1, p2 );
+		transform = glm::mat4( glm::vec4(radius*a, 0.f), glm::vec4(length*normal, 0.f), glm::vec4(radius*b, 0.f), glm::vec4(p1,1.f) );
+		
 		int worldLoc = shader.GetVariable("worldMatrix");
-
 		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
+
+		int locEmissive = shader.GetVariable("emissiveColor");
+		shader.SetVec3(locEmissive, emissiveColor);
 
 		int isSphere = shader.GetVariable("isSphere");
 		shader.SetInt(isSphere, 0);
-
-		//vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( viewMatrix ) );
-		//vsml->matrixToUniform(VSML::MODELVIEW);
 	}
 
 	virtual void draw( GeometryLibrary* geo_lib )
 	{
-		geo_lib->cylinder.draw(p1,radius1,p2,radius2);
+		geo_lib->cylinder.draw();
 	}
 
-	float distance_from_camera( glm::vec3 const& camera_pos )
+	virtual float distance_from_camera( glm::vec3 const& camera_pos ) const
 	{
 		return std::min<float>( glm::distance( p1, camera_pos ), glm::distance( p2, camera_pos ) );
 	}
 
 	glm::vec3 p1;
 	glm::vec3 p2;
-	float radius1;
-	float radius2;
 };
 
 struct CubeState : public BaseState3D

@@ -1,6 +1,9 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#define TWO_PI     6.28318530717958647692f
+#define M_PI       3.14159265358979323846
+
 #define GLEW_STATIC
 #include <glew.h>
 #include <glfw.h>

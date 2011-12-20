@@ -1,7 +1,4 @@
 
-#pragma comment(lib, "opengl32.lib")
-
-
 
 #include "common.h"
 
@@ -15,8 +12,7 @@
 #include <functional>
 
 
-#define M_PI       3.14159265358979323846f
-#define TWO_PI     6.28318530717958647692f
+
 
 template <class T> T DEGREES_TO_RADIANS(T degrees)
 {
@@ -27,10 +23,6 @@ template <class T> T RADIANS_TO_DEGREES(T radians)
 {
 	return radians / T(M_PI) * T(180.f);
 }
-
-
-
-
 
 
 class ProtoGraphics
@@ -59,15 +51,18 @@ public:
 
 		light_pos = glm::vec3( 0.f, 0.f, 0.f );
 
-		for( int i = 0; i < 256; i++ )
+		for( int i = 0; i < NUM_KEYS; i++ )
 		{
 			key_array[i] = false;
+			key_hit_array[i] = 0;
 		}
 
 		blend_state = blending::SOLID_BLEND;
 		colorState = glm::vec4( 1.f );
 		emissiveColor = glm::vec3( 0.f );
 		move_to_state = glm::vec2(0.f, 0.f);
+
+		currentOrientation = glm::mat4( 1.0f );
 	}
 
 	~ProtoGraphics()
@@ -84,6 +79,10 @@ public:
 		a=(a&0x007fffff) | 0x40000000;  
 
 		return( *((float*)&a) - 3.0f );
+	}
+
+	float getMSPF(){
+		return delta;
 	}
 
 	void dump_stats()
@@ -106,15 +105,15 @@ public:
 		// TODO will fail if vidcard doesnt support gl 3.3... make a function that tries highest first, then steps down
 		// or just remove for release build
 		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
+		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
 		glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
-		ok = glfwOpenWindow(xres,yres,8,8,8,8,24,16,GLFW_WINDOW);
+		ok = glfwOpenWindow(xres,yres,8,8,8,8,24,8,GLFW_WINDOW); // Important to either use 32 bit depth, or 24d8s
 		if (ok == 0 ) return false;
 
 
 		glfwSetWindowTitle("ProtoWizard script server");
-		glfwSwapInterval(1);
+		glfwSwapInterval(0);
 		
 		glewExperimental = GL_TRUE;
 		int err = glewInit();
@@ -125,6 +124,7 @@ public:
 		}
 
 		glfwSetWindowCloseCallback( &_closeCallback );
+		glfwSetKeyCallback( &_key_callback );
 
 		// Clear error caused by GLEW using glGetString instead of glGetStringi( char*, int )
 		for ( GLenum Error = glGetError( ); ( GL_NO_ERROR != Error ); Error = glGetError( ) )
@@ -132,13 +132,7 @@ public:
 		}
 
 
-		camera.pos = glm::vec3( 0.0f, 0.0f, -50.0f );
-
-
-
 		geo_lib.init();
-
-		
 
 
 		if ( shader_lines2d.install("assets/line2d_shader.vert", "assets/line2d_shader.frag") == false )
@@ -154,33 +148,6 @@ public:
 		}
 		shader_list.push_back( &shader_2d );
 
-		if ( sphere_shader.install("assets/sphere_shader.vert", "assets/sphere_shader.frag") == false )
-		{
-			return false;
-		}
-		shader_list.push_back( &sphere_shader );
-
-		if (cylinder_shader.install("assets/drawcone.vert", "assets/drawcone.frag") == false)
-		{
-			return false;
-		}
-		shader_list.push_back( &cylinder_shader );
-
-		if (cube_shader.install("assets/pointlight.vert", "assets/pointlight.frag") == false)
-		//if (cube_shader.install("assets/cube_shader.vert", "assets/cube_shader.frag") == false)
-		{
-			return false;
-		}else{
-			shader_list.push_back( &cube_shader );
-		}
-
-		if (plane_shader.install("assets/drawcone.vert", "assets/drawcone.frag") == false)
-		{
-			return false;
-		}else{
-			shader_list.push_back( &plane_shader );
-		}
-
 		if ( phong_shader.install("assets/phong.vert", "assets/phong.frag") == false )
 		{
 			return false;
@@ -190,7 +157,6 @@ public:
 		
 
 		glEnable(GL_MULTISAMPLE);
-
 		GetError();
 			
 		isRunning = true;
@@ -199,15 +165,18 @@ public:
 
 
 	void setCamera( glm::vec3 pos, glm::vec3 target, glm::vec3 up )
-	//void setCamera( glm::vec3 pos, float horiz, float verti )
 	{
-		//glm::mat4 rmx = glm::rotate( glm::mat4(1.0), RADIANS_TO_DEGREES<float>(verti), glm::vec3(1.f, 0.f, 0.f)  );
-		//glm::mat4 rmy = glm::rotate( glm::mat4(1.0), RADIANS_TO_DEGREES<float>(horiz), glm::vec3(0.f, 1.f, 0.f)  );
-		//glm::mat4 rotmat = rmx * rmy;
-		//mCam = rotmat;
-		//mCam = glm::translate( mCam, pos );
+		throw char("not impl");
+		//mCam = glm::lookAt( pos, target, up );
+	}
 
-		mCam = glm::lookAt( pos, target, up );
+	void setCamera( float x, float y, float z, float hang, float vang )
+	{
+		camera.set( glm::vec3(x,y,z), hang, vang );
+	}
+
+	void setTitle( const std::string &str){
+		glfwSetWindowTitle(str.c_str() );
 	}
 
 	void shutdown()
@@ -238,23 +207,22 @@ public:
 
 		time = klock();
 		delta = time - old_time;
-		delta = std::min<float>( 0.01f, delta );
 
 		old_time = time;
 
-		camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDown(), delta );
+
+		//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
 
 
-		//setColor(1.f, 1.f, 1.f);
-		//light_pos = glm::vec3( cos(time) * 15.f, 3.0f , sin(time) * 15.f );
-		//setEmissive( glm::vec3( 1.f ) );
-		//drawSphere( light_pos, 1.0f );
-		//setEmissive( glm::vec3( 0.f ) );
+		setColor(1.f, 1.f, 1.f);
+		light_pos = glm::vec3( cos(time) * 15.f, 3.0f , sin(time) * 15.f );
+		setEmissive( glm::vec3( 1.f ) );
+		drawSphere( light_pos, 1.0f );
+		setEmissive( glm::vec3( 0.f ) );
 
 
-		if ( key_array['R'] )
+		if ( keyhit('R') )
 		{
-			key_array['R'] = false;
 			printf("/////////////////////////////R E L O A D I N G   S H A D E R S /////////////\n");
 			for(unsigned int i=0; i<shader_list.size(); i++)
 			{
@@ -262,15 +230,14 @@ public:
 				{
 					continue;
 				}else{
-					printf("could not relead shader\n");
+					printf("could not reload shader\n");
 					break;
 				}
 			}
 		}
 
-		if ( key_array['1'] == true )
+		if ( keyhit('1') )
 		{
-			key_array['1'] = false;
 			static bool wire_frame_mode = false;
 			wire_frame_mode = !wire_frame_mode;
 			
@@ -288,11 +255,6 @@ public:
 		numframes++;
 
 		glfwSwapBuffers();
-
-		for(int i=0; i<256; i++)
-		{
-			glfwGetKey(i) == 1 ? key_array[i]=true : key_array[i]=false;
-		}
 	}
 
 	bool isWindowOpen()
@@ -325,9 +287,14 @@ public:
 		return mousy;
 	}
 
-	bool mouseDown()
+	bool mouseDownLeft()
 	{
-		return glfwGetMouseButton( GLFW_MOUSE_BUTTON_1 ) == 1;
+		return glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT ) == 1;
+	}
+
+	bool mouseDownRight()
+	{
+		return glfwGetMouseButton( GLFW_MOUSE_BUTTON_RIGHT ) == 1;
 	}
 
 	bool keystatus(int key)
@@ -335,7 +302,14 @@ public:
 		return key_array[key];
 	}
 
-	FirstPersonCamera getCamera()
+	bool keyhit(int key)
+	{
+		int times_hit = key_hit_array[key];
+		key_hit_array[key] = 0;
+		return times_hit > 0;
+	}
+
+	FirstPersonCamera& getCamera()
 	{
 		return camera;
 	}
@@ -351,6 +325,13 @@ public:
 			value += noise3( vec );
 		}
 		return value;
+	}
+
+	void setColor( glm::vec3 c )
+	{
+		colorState.x = c.x;
+		colorState.y = c.y;
+		colorState.z = c.z;
 	}
 
 	void setColor( float r, float g, float b )
@@ -370,8 +351,8 @@ public:
 		emissiveColor = emissive;
 	}
 
-	void setTitle( const std::string &title ){
-		glfwSetWindowTitle( title.c_str() );
+	void setOrientation( const glm::mat4 &ori ){
+		currentOrientation = ori;
 	}
 
 	void setBlend( bool active )
@@ -433,15 +414,14 @@ public:
 		buffered_shapes.push_back( state );
 	}
 
-	void drawCone( glm::vec3 p1, float r1, glm::vec3 p2, float r2 ) 
+	void drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) 
 	{
 		CylinderState *state = new CylinderState;
 		state->color = colorState;
 		state->emissiveColor = emissiveColor;
 		state->p1 = p1;
 		state->p2 = p2;
-		state->radius1 = r1;
-		state->radius2 = r2;
+		state->radius = radius;
 		state->blend_mode = blend_state;
 		buffered_shapes.push_back( state );
 	}
@@ -451,7 +431,10 @@ public:
 		CubeState *state = new CubeState;
 		state->color = colorState;
 		state->emissiveColor = emissiveColor;
-		state->transform = glm::translate( glm::mat4( 1.0f ), position );
+		state->transform = glm::translate( glm::mat4(1.0), position );
+		state->transform *= currentOrientation;
+		
+		
 		state->radius = radius;
 		state->blend_mode = blend_state;
 		buffered_shapes.push_back( state );
@@ -482,7 +465,7 @@ public:
 		glm::vec3 v6(+sc,+sc,-sc);
 		glm::vec3 v7(+sc,+sc,+sc);
 
-#define drawline(v1,v2) (drawCone(v1,edge_radius,v2,edge_radius))
+#define drawline(v1,v2) (drawCone(v1,v2,edge_radius))
 		// bottom quad
 		drawline(v0,v1);
 		drawline(v0,v4);
@@ -530,6 +513,21 @@ public:
 
 private:
 
+	void handle_key(int key, int action)
+	{		
+		key_array[key] = (action == GLFW_PRESS);
+
+		if( (action == GLFW_PRESS) )
+		{
+			key_hit_array[key]++;
+		}
+	}
+
+
+	static void _key_callback(int key, int action)
+	{
+		instance->handle_key(key, action);
+	}
 
 	static int _closeCallback(void)
 	{
@@ -664,41 +662,52 @@ private:
 				state->draw(&geo_lib);	
 		}
 
-		struct SortFunctor : public std::binary_function<BaseState3D*,BaseState3D*,bool> 
+		struct SortFunctor 
 		{
 			SortFunctor( const FirstPersonCamera &cam ) : camera( cam )
 			{
 			}
 
-			// a < b ? 
+			// std::sort expects a test like a < b for ascending sort order
 			bool operator() ( BaseState3D* a, BaseState3D* b )
 			{
-				return a->distance_from_camera(camera.pos) > b->distance_from_camera(camera.pos); // the one furthest away is to be drawn first.
+				return a->distance_from_camera(camera.getPos() ) > b->distance_from_camera(camera.getPos() ); // the one furthest away is to be drawn first.
 			}
 
-			const FirstPersonCamera &camera;
+
+			FirstPersonCamera camera;
 		};
 
-		std::sort( translucent.begin(), translucent.end(), SortFunctor(camera) );
+		bool have_translucent_objs = translucent.size() > 0;
 
-		if ( translucent.size() > 0 )
+		if ( have_translucent_objs )
 		{
+			std::sort( translucent.begin(), translucent.end(), SortFunctor(camera) );
+
+			// http://www.opengl.org/sdk/docs/man/xhtml/glDepthMask.xml
 			glDepthMask(GL_FALSE);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+			//http://www.opengl.org/sdk/docs/man/xhtml/glBlendFunc.xml
+			//glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Don't care about alpha of what we write over
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending incoming and inversely what was there before
 			glEnable(GL_BLEND);
-		}
-		for (unsigned int i=0; i<translucent.size(); i++)
-		{
-			BaseState3D *state = translucent[i];
-			phong_shader.SetVec4( colorLoc, state->color );
-			state->pre_draw( phong_shader );
-			translucent[i]->draw( &geo_lib );
-		}
-		if ( translucent.size() > 0 )
-		{
+
+
+			int num_objs = translucent.size();
+			//for (int i=0; i<num_objs; i++)
+			for (unsigned int i=num_objs-1; i>0; i--)
+			{
+				BaseState3D *state = translucent[i];
+				phong_shader.SetVec4( colorLoc, state->color );
+				state->pre_draw( phong_shader );
+				translucent[i]->draw( &geo_lib );
+			}
+
 			glDisable(GL_BLEND);
 			glDepthMask(GL_TRUE);
 		}
+
+
 
 		opaque.clear();
 		translucent.clear();
@@ -755,26 +764,25 @@ private:
 
 	int xres, yres;
 	int mousx, mousy;
-	bool key_array[256];
+
+	static const int NUM_KEYS = 325;
+	bool key_array[NUM_KEYS];
+	int key_hit_array[NUM_KEYS];
 
 	glm::vec4 colorState;
 	glm::vec2 move_to_state;
 	int blend_state;
+	glm::mat4 currentOrientation;
 
 	glm::vec3 light_pos;
 	glm::vec3 emissiveColor;
 
 	FirstPersonCamera camera;
-	glm::mat4 mCam;
 
 	GeometryLibrary geo_lib;
 	
 	Shader shader_2d;
 	Shader shader_lines2d;
-	Shader sphere_shader;
-	Shader cylinder_shader;
-	Shader cube_shader;
-	Shader plane_shader;
 	Shader phong_shader;
 	
 	std::vector< LineSegmentState > buffered_lines;

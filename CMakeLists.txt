@@ -3,6 +3,8 @@ project (ProtoWizard)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
+find_package(OPENGL REQUIRED)
+
 find_package(GLM REQUIRED)
 include_directories(${GLM_INCLUDE_PATH})
 
@@ -29,6 +31,8 @@ set(HDRS
 	shapes/cube.h
 	shapes/plane.h
 	shapes/shapes.h
+	platform.h
+	color_utils.h
 	
 	depends/vsml.h
 	depends/noise/perlin.h
@@ -38,6 +42,9 @@ set(SRCS
 	main.cpp
 	protographics.cpp
 	shader.cpp
+	platform.cpp
+	color_utils.cpp
+	
 	depends/vsml.cpp
 	depends/noise/perlin.cpp
 )
@@ -46,4 +53,14 @@ set(SRCS
 
 # add the executable
 add_executable ( ProtoWizard main.cpp ${ANGELSCRIPT_INCLUDE} ${GLEW_INCLUDE_DIR} ${HDRS} ${SRCS} )
-target_link_libraries (ProtoWizard ${ANGELSCRIPT_LIB} ${GLEW_LIB}  ${GLFW_LIB}  )
+
+  
+  
+IF(CMAKE_CXX_FLAGS_DEBUG)
+	message("DEBUG version" ) 
+	target_link_libraries (ProtoWizard ${ANGELSCRIPT_SCRIPTARRAY_LIB} ${ANGELSCRIPT_SCRIPTMATH_LIB} ${ANGELSCRIPT_DEBUG_LIB} ${OPENGL_LIBRARIES} ${GLEW_LIB}  ${GLFW_LIB}  )
+ELSEIF(CMAKE_CXX_FLAGS_RELEASE)
+	#message("RELEASE version" ) 
+	target_link_libraries (ProtoWizard ${ANGELSCRIPT_SCRIPTMATH_LIB} ${ANGELSCRIPT_RELEASE_LIB} ${OPENGL_LIBRARIES} ${GLEW_LIB}  ${GLFW_LIB}  )
+ENDIF(CMAKE_CXX_FLAGS_DEBUG)
+

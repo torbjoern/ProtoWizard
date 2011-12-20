@@ -8,10 +8,8 @@ class Cylinder
 	public:
 	Cylinder()
 	{
-		num_vertices = 0;
-		is_dirty = true;
+		num_cylinder_vertices = num_topcap_vertices = num_bottomcap_vertices = 0;
 	}
-	
 	~Cylinder()
 	{
 
@@ -22,111 +20,140 @@ class Cylinder
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteBuffers.xml
 		glDeleteBuffers( 1, &cylinderBufferObject);	
 		glDeleteVertexArrays(1, &cylinderVAO);
+
+		glDeleteBuffers( 1, &topcapBufferObject);	
+		glDeleteVertexArrays(1, &topcapVAO);
+
+		glDeleteBuffers( 1, &bottomcapBufferObject);	
+		glDeleteVertexArrays(1, &bottomcapVAO);
 	}
 
-	void create_geometry( glm::vec3 p1, float r1, glm::vec3 p2, float r2 )
+	void wind_cap(std::vector< PNVertex > &vertices, float wind_dir, float radius, float yPos, int segments)
 	{
-		old_p1 = p1;
-		old_p2 = p2;
-		old_radius1 = r1;
-		old_radius2 = r2;
-		// Methods:
-		// * draw a regular cone from [0,0,0] to [0,1,0] then scaled and rotated by the lookAt from a to b, How do you calculate this transform matrix?
+		glm::vec3 normal = glm::normalize(glm::vec3(0.f, wind_dir, 0.f)) ;
 
-		// * use shader raytracing to find intersection between the line with offset radius r1 & r2 from center line ab
+		int j = 0;
+		for(int i=0; i<segments; i++){
 
-		// * use paul bourkes method:
+			int idx = 0;
+			if( i > 0 && i % 2 == 0 )
+			{
+				idx = segments-j+1;
+			}else{
 
+				idx = j; 
+				j++;
+			}  
 
-		glm::vec3 p1p2 = p2 - p1;
+			float a = wind_dir * idx*( TWO_PI/(segments-1.0f) );
 
-		// Create two perpendicular vectors perp and q on the plane of the disk
-		glm::vec3 perp = p1p2;
-		if (p1p2.x == 0 && p1p2.z == 0){
-			p1p2.x += 0.1f;
-		}else{
-			p1p2.y += 0.1f;
+			float ca = cos(a);
+			float sa = sin(a);
+			float x = ca*radius;
+			float z = sa*radius;      
+ 
+			PNVertex v1 ( glm::vec3(x, yPos, z), normal );
+			vertices.push_back( v1 );
 		}
 
-		glm::vec3 a = glm::cross( perp, p1p2 );
-		glm::vec3 b = glm::cross( p1p2, a );
-		a = glm::normalize(a);
-		b = glm::normalize(b);
+	}
 
-		std::vector< PNVertex > vertices;
+	void cylinder(std::vector< PNVertex > &vertices, float radius, float length, int segments)
+	{
+		float angInc = TWO_PI / (segments-1.f);
+		float a = 0.f;
+		for(int i=0; i<segments; i++){
+			float ca = cos(a);
+			float sa = sin(a);
+			float x = ca*radius;
+			float z = sa*radius;
 
-		float theta1 = 0.0f;
-		float theta2 = TWO_PI;
+			PNVertex v1 ( glm::vec3(x, 0.f, z), glm::vec3(-sa, 0.f, ca) );
+			PNVertex v2 ( glm::vec3(x, length, z), glm::vec3(-sa, 0.f, ca) );
+			vertices.push_back( v1 );
+			vertices.push_back( v2 );
 
-		int NFACETS = 32;
-
-		//for (int i=NFACETS;i>=0;i--)
-		for (int i=0;i<NFACETS+1;i++)
-		{
-			float theta = theta1 + i * (theta2 - theta1) / NFACETS;
-
-			float ct = cos(theta);
-			float st = sin(theta);
-			glm::vec3 normal( ct * a + st * b);
-			normal = glm::normalize(normal);
-
-			glm::vec3 v1( p2 + r2 * normal );
-			vertices.push_back( PNVertex(v1, normal) );
-
-			glm::vec3 v2( p1 + r1 * normal );
-			vertices.push_back( PNVertex(v2, normal) );
+			a -= angInc;
 		}
+	}
 
-		num_vertices = vertices.size();
-
-		glBindVertexArray(cylinderVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, cylinderBufferObject);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(PNVertex) * vertices.size(), &vertices[0], GL_DYNAMIC_DRAW);
+	void fill_vao( std::vector<PNVertex> &verts, unsigned int vao, unsigned int vbo )	
+	{
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(PNVertex) * verts.size(), &verts[0], GL_STATIC_DRAW);
 		glBindVertexArray(0);
+	}
+
+	void create_geometry()
+	{
+		std::vector< PNVertex > cylinder_wall;
+		std::vector< PNVertex > cylinder_top;
+		std::vector< PNVertex > cylinder_bottom;
+
+		float radius = 0.5f;
+		float length = 1.0f;
+		int segments = 16;
+
+		cylinder(cylinder_wall, radius, length, segments );
+		wind_cap(cylinder_top, 1.0f, radius, length, segments);
+		wind_cap(cylinder_bottom, -1.0f, radius, 0.f, segments);
+
+		num_cylinder_vertices = cylinder_wall.size();
+		num_topcap_vertices = cylinder_top.size();
+		num_bottomcap_vertices = cylinder_bottom.size();
+
+		fill_vao( cylinder_wall, cylinderVAO, cylinderBufferObject );
+		fill_vao( cylinder_top, topcapVAO, topcapBufferObject );
+		fill_vao( cylinder_bottom, bottomcapVAO, bottomcapBufferObject );
+
 		
 	}
 	
-	// TODO could have a check to see if geometry actually changes between calls
-	// and what about rotation & scaling? possibly faster than regenerating geometry for a given p1,p2,r1,r2
-	// is it possible to scale r1 and r2 independantly? Could make a fast function for r1=r2 that only uses translate+scale+rotate
-	// and keep this one when r1!=r2
-	// or do raytracing in a shader... but how fast is that?
-	void draw( glm::vec3 p1, float r1, glm::vec3 p2, float r2 )
+	void draw()
 	{
-		if ( p1 != old_p1 || p2 != old_p2 || r1 != old_radius1 || r2 != old_radius2 )
-		{
-			is_dirty = true;
-		}
-
-		if (is_dirty)
-		{
-			create_geometry(p1,r1,p2,r2);
-		}
-
 		glBindVertexArray(cylinderVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_vertices );
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_cylinder_vertices );
+		glBindVertexArray(0);
+
+		glBindVertexArray(topcapVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_topcap_vertices );
+		glBindVertexArray(0);
+
+		glBindVertexArray(bottomcapVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_bottomcap_vertices );
 		glBindVertexArray(0);
 	}
 	
 	// TODO can this function fail?
-	bool init()
-	{
-		cylinderBufferObject = 0;
-		glGenVertexArrays(1, &cylinderVAO);
-		glBindVertexArray(cylinderVAO);
-		glGenBuffers(1, &cylinderBufferObject);
 
-		glBindBuffer(GL_ARRAY_BUFFER, cylinderBufferObject);
-		glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_DYNAMIC_DRAW);
+	void init_vao( unsigned int &vao, unsigned int &vbo )
+	{
+		vbo = 0;
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
+		glGenBuffers(1, &vbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
-		#define BUFFER_OFFSET(p) ((char*)0 + (p))
+#define BUFFER_OFFSET(p) ((char*)0 + (p))
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
 
 		glBindVertexArray(0);
+	}
+
+	bool init()
+	{
+		init_vao( cylinderVAO, cylinderBufferObject );
+		init_vao( topcapVAO, topcapBufferObject );
+		init_vao( bottomcapVAO, bottomcapBufferObject );
+
+		create_geometry();
 
 		return true;
 	}
@@ -134,14 +161,18 @@ class Cylinder
 	private:
 		unsigned int cylinderBufferObject;
 		unsigned int cylinderVAO;
-		int num_vertices;
 
-		bool is_dirty;
-		glm::vec3 old_p1;
-		glm::vec3 old_p2;
-		float old_radius1;
-		float old_radius2;
-	
+		unsigned int topcapBufferObject;
+		unsigned int topcapVAO;
+
+		unsigned int bottomcapBufferObject;
+		unsigned int bottomcapVAO;
+
+		int num_cylinder_vertices;
+		int num_topcap_vertices;
+		int num_bottomcap_vertices;
+		
+
 };
 
 
