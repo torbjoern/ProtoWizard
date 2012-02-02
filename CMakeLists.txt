@@ -1,47 +1,20 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.6) 
+project (PROTOWIZARD) 
 
-set(HDRS
-	camera.h
-	color_utils.h
-	common.h
-	gfx_wrapper.h
-	platform.h
-	protographics.h
-	shader.h
-	vertex_types.h
-	
-	depends/vsml.h
-	depends/noise/perlin.h
-	
-	shapes/sphere.h
-	shapes/shapes.h
-	shapes/plane.h
-	shapes/line.h
-	shapes/cylinder.h
-	shapes/cube.h
-	shapes/circle.h
-	
-)
+#set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
-set(SRCS
-	camera.cpp
-	color_utils.cpp
-	gfx_wrapper.cpp
-	platform.cpp
-	protographics.cpp
-	shader.cpp
-	
-	depends/vsml.cpp
-	depends/noise/perlin.cpp
-	
-	shapes/shapes.cpp
-)
+set(CMAKE_MODULE_PATH F:/gitrepos/cmake/modules)
 
+find_package(OPENGL REQUIRED)
 
-add_library( ProtoWizard ${HDRS} ${SRCS} )
+find_package(GLM REQUIRED)
+include_directories(${GLM_INCLUDE_DIR})
 
-set_target_properties(ProtoWizard
-      PROPERTIES
-      target_link_libraries (ProtoWizard ${OPENGL_LIBRARIES} ${GLEW_LIB} ${GLFW_LIB} )
-  )
+find_package(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIR})
 
+find_package(GLFW REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR})
+
+add_subdirectory (protowizard) 
+add_subdirectory (demos/simple_3d_shapes)

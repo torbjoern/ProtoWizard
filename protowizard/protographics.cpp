@@ -22,9 +22,11 @@ ProtoGraphics::ProtoGraphics()
 
 	isRunning = false;
 
-	time = 0.f;
-	old_time = 0.f;
-	delta = 0.f;
+	time = 0.0;
+	old_time = 0.0;
+	delta_time = 0.0;
+
+	max_millis_per_frame = 1.0 / 1000.0; // cap framerate at 1000 fps
 
 	numframes = 0;
 
@@ -89,7 +91,7 @@ double ProtoGraphics::noise(double x, double y, double z)
 
 
 float ProtoGraphics::getMSPF(){
-	return delta;
+	return (float)delta_time;
 }
 
 void ProtoGraphics::dump_stats()
@@ -118,7 +120,7 @@ bool ProtoGraphics::init(int xres, int yres)
 
 
 	glfwSetWindowTitle("ProtoWizard script server");
-	glfwSwapInterval(0);
+	glfwSwapInterval(0); // vsync on/off
 		
 	glewExperimental = GL_TRUE;
 	int err = glewInit();
@@ -217,12 +219,6 @@ void ProtoGraphics::frame()
 {	
 	assert( isRunning );
 	GetError();
-
-	time = klock();
-	delta = time - old_time;
-
-	old_time = time;
-
 	
 	//camera.update( keystatus(GLFW_KEY_LEFT), keystatus(GLFW_KEY_RIGHT), keystatus(GLFW_KEY_UP), keystatus(GLFW_KEY_DOWN), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
 	//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
@@ -268,14 +264,30 @@ void ProtoGraphics::frame()
 		//glQuad();
 	}
 
-	char title_buf[256];
-	sprintf_s(title_buf, 256, "%i .... %.1f mspf numObjs = %i, max = %i", numframes, delta*1000.0f, num_objs, max_objs);
-	glfwSetWindowTitle(title_buf);
 
 	glfwGetMousePos(&mousx, &mousy);
 
-	numframes++;
+	double time_since_program_started = glfwGetTime();
+	delta_time = time_since_program_started - old_time;
+	old_time = time_since_program_started;
 
+	time += delta_time;
+
+	double time_to_sleep = 0.0;
+	if ( delta_time < max_millis_per_frame ) {
+		time_to_sleep = max_millis_per_frame - delta_time;
+		if ( time_to_sleep > 0.0 ) {
+			glfwSleep( time_to_sleep );
+		}
+	}
+
+	//printf("slep %d percent of available frametime\n", (int) (100.0 * delta_time / max_millis_per_frame) );
+
+	char title_buf[256];
+	sprintf_s(title_buf, 256, " %2.2f mspf, %2.2f mspf with sleep,  numObjs = %i, max = %i", delta_time*1000.0, (delta_time+time_to_sleep)*1000.0, num_objs, max_objs);
+	glfwSetWindowTitle(title_buf);
+
+	numframes++;
 	glfwSwapBuffers();
 }
 
@@ -296,7 +308,7 @@ int ProtoGraphics::getWindowHeight()
 
 float ProtoGraphics::klock()
 {
-	return (float) glfwGetTime();
+	return (float) time;
 }
 
 int ProtoGraphics::getMouseX() 
@@ -398,6 +410,14 @@ void ProtoGraphics::setBlend( bool active )
 		blend_state = blending::SOLID_BLEND;
 	}
 		
+}
+
+void ProtoGraphics::setFrameRate( int frames_per_second )
+{
+	if ( frames_per_second >= 1 )
+	{
+		max_millis_per_frame = 1.0 / double(frames_per_second);
+	}
 }
 
 void ProtoGraphics::moveTo( float x, float y )

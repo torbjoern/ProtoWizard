@@ -99,6 +99,8 @@ public:
 
 	void setBlend( bool active );
 
+	void setFrameRate( int frames_per_second );
+
 	void moveTo( float x, float y );
 
 	void lineTo( float to_x, float to_y );
@@ -186,9 +188,10 @@ private:
 
 	std::vector< Shader* > shader_list;
 
-	float delta;
-	float time;
-	float old_time;
+	double delta_time;
+	double time;
+	double old_time;
+	double max_millis_per_frame;
 
 	unsigned int numframes;
 
