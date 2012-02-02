@@ -1,26 +1,12 @@
 #ifndef _CAMERA_H
 #define _CAMERA_H
 
-#include "common.h"
+#include <glm/glm.hpp>
 
 class FirstPersonCamera
 {
 public:
-	FirstPersonCamera()
-	{
-		mCam = glm::mat4(1.0);
-
-
-		glm::vec3 zero(0.0f);
-		pos = zero;
-		dirvec = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-
-		hang = 0.0f;
-		vang = 0.0f;
-
-		oldmousx = 0.0f;
-		oldmousy = 0.0f;
-	}
+	FirstPersonCamera();
 
 	/* converts horizontal and vertical angles to a 3x3 rotation matrix */
 	static glm::mat3 ang2mat(float hang, float vang )
@@ -35,50 +21,27 @@ public:
 		return glm::mat3( side, up, fwd );
 	}
 
-	void set( glm::vec3 const& new_pos, float horiz_degrees, float verti_degrees ) {
-		pos = new_pos;
-		hang = horiz_degrees;
-		vang = verti_degrees;
-	}
+	void lookAt( const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up );
+
+	void set( glm::vec3 const& new_pos, float horiz_degrees, float verti_degrees ) ;
 
 	void update(bool left_key, bool right_key, bool back_key, bool forwards_key,
-		float mouse_x, float mouse_y, bool mouse_is_down, float delta )
-	{
-		float mouse_speed_x = mouse_x - oldmousx;
-		float mouse_speed_y = mouse_y - oldmousy;
-		oldmousx = mouse_x;
-		oldmousy = mouse_y;
+		float mouse_x, float mouse_y, bool mouse_is_down, float delta );
 
-		if ( mouse_is_down )
-		{	
-			hang += mouse_speed_x * 0.5f;
-			vang += mouse_speed_y * 0.5f;
-		}
-		float speed = 50.0; // meters per second
+	glm::mat4 getViewMatrix();
 
-		dirvec = glm::vec4(  delta * speed * (left_key-right_key), 0.0f,  delta * speed * (back_key - forwards_key), 1.0f );
-		
-		glm::mat4 rmx = glm::rotate( glm::mat4(1.0), vang, glm::vec3(1.f, 0.f, 0.f)  );
-		glm::mat4 rmy = glm::rotate( glm::mat4(1.0), hang, glm::vec3(0.f, 1.f, 0.f)  );
-		glm::mat4 rotmat = rmx * rmy;
+	glm::vec3 getPos();
 
-		mCam = rotmat;
-		glm::vec4 newdir = dirvec*rotmat;
-		pos += glm::vec3( newdir.x, newdir.y, newdir.z );
-		mCam = glm::translate( mCam, pos );
+	float getHorizontalAngle(){
+		return hang;
 	}
 
-	glm::mat4 getViewMatrix()
-	{
-		glm::mat4 rmx = glm::rotate( glm::mat4(1.0), vang, glm::vec3(1.f, 0.f, 0.f)  );
-		glm::mat4 rmy = glm::rotate( glm::mat4(1.0), hang, glm::vec3(0.f, 1.f, 0.f)  );
-		mCam = glm::translate( rmx * rmy, pos );
-		return mCam;
+	float getVerticalAngle(){
+		return vang;
 	}
 
-	glm::vec3 getPos(){
-		return pos;
-	}
+private:
+	void calcViewMatrix();
 
 private:
 	float hang, vang;

@@ -3,11 +3,11 @@
 
 #include "../common.h"
 
-class Plane
+class PlaneGeometry
 {
 	public:
 
-	Plane()
+	PlaneGeometry()
 	{
 		planeVAO = 0;
 		planeBufferObject = 0;
@@ -36,16 +36,11 @@ class Plane
 		glm::vec3 a = glm::normalize( glm::cross(perp,not_normal) );
 		glm::vec3 b = glm::cross(perp,a);
 
-		float half_size = radius * 0.5f;
+		float half_size = radius;
 		glm::vec3 u0( -a*half_size-b*half_size );
 		glm::vec3 u1( -a*half_size+b*half_size );
 		glm::vec3 u2( a*half_size+b*half_size );
 		glm::vec3 u3( a*half_size-b*half_size );
-
-		u0 += pos;
-		u1 += pos;
-		u2 += pos;
-		u3 += pos;
 
 		// TODO store in class, not here... better memory behaviour
 		std::vector< PNVertex > vertices;

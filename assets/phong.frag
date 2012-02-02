@@ -5,13 +5,7 @@ out vec4 outputColor;
 
 uniform vec4 diffuseColor;
 uniform vec3 emissiveColor;
-uniform vec4 lightIntensity;
-uniform vec4 ambientIntensity;
-uniform vec3 cameraSpaceLightPos;
-uniform float lightAttenuation;
 uniform float shininess;
-
-
 
 in vec3 fNormal, lightDir, eyeVec;
 
@@ -34,7 +28,7 @@ void main (void)
 	}
 	
 	
-	vec4 final_color = diffuseColor * 0.5 + ambientIntensity;
+	vec4 final_color = diffuseColor * 0.5;
 	
 	float lambertTerm = dot(N,L);
 	

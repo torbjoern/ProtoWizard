@@ -4,16 +4,16 @@
 #include "../common.h"
 
 
-class Circle
+class CircleGeometry
 {
 public:
-	Circle()
+	CircleGeometry()
 	{
 		vbo_handle = 0;
 		vao_handle = 0;
 		num_vertices = 0;
 	}
-	~Circle()
+	~CircleGeometry()
 	{
 
 	}
@@ -25,11 +25,19 @@ public:
 		glDeleteVertexArrays(1, &vao_handle);
 	}
 
-	void draw()
+	void draw_fill()
 	{
 		glBindVertexArray( vao_handle );
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDrawArrays.xml
 		glDrawArrays(GL_TRIANGLE_FAN, 0, num_vertices);
+		glBindVertexArray(0);
+	}
+
+	void draw_open()
+	{
+		glBindVertexArray( vao_handle );
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDrawArrays.xml
+		glDrawArrays(GL_LINE_LOOP, 1, num_vertices-1);
 		glBindVertexArray(0);
 	}
 

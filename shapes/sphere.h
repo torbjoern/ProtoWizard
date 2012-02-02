@@ -3,11 +3,11 @@
 
 #include "../common.h"
 
-class Sphere
+class SphereGeometry
 {
 	public:
-	Sphere(){}
-	~Sphere()
+	SphereGeometry(){}
+	~SphereGeometry()
 	{
 
 	}

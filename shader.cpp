@@ -18,102 +18,80 @@ Shader::~Shader()
 void Shader::begin() { glUseProgram(program); }
 void Shader::end() { glUseProgram(0); }
 
-bool Shader::installFromCString( const char * vertShader, const char * fragShader )
-{
-	_loadedFromFile = false;
-
-	// TODO should copy source bytes into its own buffer... as they may dissapear
-	_vs_string = std::string(vertShader);
-	_fs_string = std::string(fragShader);
-
-	return compileSources();
-}
 
 bool Shader::install(const char* VSPath, const char* FSPath)
 {
-	_loadedFromFile = true;
 	name = std::string(VSPath);
 
-	this->strVSPath = std::string(VSPath);
-	this->strFSPath = std::string(FSPath);
-	char* temp = LoadShaderText(VSPath);
-	if( temp == NULL)
-	{
-		std::cout << "error, cant find shader file: " << VSPath << "\n\n";
-		return false;
-	}
+	shaderList.push_back( ShaderSource(VSPath, VERTEX_SHADER ) );
+	shaderList.push_back( ShaderSource(FSPath, FRAGMENT_SHADER ) );
 
-	_vs_string = std::string(temp);
-	free( temp );
-
-	temp = LoadShaderText(FSPath);
-	if( temp == NULL)
-	{
-		std::cout << "error, cant find shader file: " << FSPath << "\n\n";
-		return false;
-	}
-
-	_fs_string = std::string(temp);
-	free( temp );
-	temp = 0;
-
-	if ( compileSources() == false )
-	{
+	if ( compileSources() == false ) {
 		return false;
 	}
 
 	return true;
 }
 
-bool Shader::compileSources()
+bool Shader::install(const char* VSPath, const char* GSPath, const char* FSPath)
 {
-	GLuint VS, FS;
-	GLint VSCompiled, FSCompiled, linked;
+	name = std::string(VSPath);
 
-	VS = glCreateShader(GL_VERTEX_SHADER);
-	FS = glCreateShader(GL_FRAGMENT_SHADER);
+	shaderList.push_back( ShaderSource(VSPath, VERTEX_SHADER ) );
+	shaderList.push_back( ShaderSource(GSPath, GEOMETRY_SHADER ) );
+	shaderList.push_back( ShaderSource(FSPath, FRAGMENT_SHADER ) );
 
-	const char *vs_src = _vs_string.c_str();
-	const char *fs_src = _fs_string.c_str();
-	glShaderSource(VS, 1, &vs_src, NULL);
-	glShaderSource(FS, 1, &fs_src, NULL);
-
-	glCompileShader(VS);
-	glGetShaderiv(VS, GL_COMPILE_STATUS, &VSCompiled);
-	if ( !VSCompiled )
-	{
-		std::cout << "error when compiling vertex shader: " << strVSPath << "\n\n";
-		printShaderInfoLog(VS);
-	}
-	//else{
-	//	std::cout << "vertex shader compiled: " << strVSPath << "\n";
-	//}
-	glCompileShader(FS);
-	glGetShaderiv(FS, GL_COMPILE_STATUS, &FSCompiled);
-	if ( !FSCompiled )
-	{
-		std::cout << "error when compiling fragment shader: " << strFSPath << "\n\n";
-		printShaderInfoLog(FS);
-	}
-	//else 
-	//	std::cout << "Fragment shader compiled: " << strFSPath << "\n";
-
-	if (!VSCompiled || !FSCompiled)
-	{
-		std::cout << "*** Using fixed function pipeline ***\n";
-		std::cout << "--------------------------------\n";
+	if ( compileSources() == false ) {
 		return false;
 	}
 
-	program = glCreateProgram();
-	glAttachShader(program, VS);
-	glAttachShader(program, FS);
+	return true;
+}
 
+
+bool Shader::compileSources()
+{
+	ShaderSourceList::iterator it;
+	for(it=shaderList.begin(); it!=shaderList.end(); ++it){
+		ShaderSource &shader= (*it);
+		
+		bool compiled = shader.compile();
+		if ( !compiled ){
+			std::cout << "*** Using fixed function pipeline ***\n";
+			std::cout << "--------------------------------\n";
+			return false;
+		}
+	}
+
+	program = glCreateProgram();
+	for(it=shaderList.begin(); it!=shaderList.end(); ++it){
+		ShaderSource &shader= (*it);
+		glAttachShader(program, shader.program);
+	}
+
+
+	for(it=shaderList.begin(); it!=shaderList.end(); ++it){
+		ShaderSource &shader= (*it);
+		if ( shader.shader_type == GEOMETRY_SHADER ){
+			// Expected to be set before linking, src: https://wiki.engr.illinois.edu/display/graphics/Geometry+Shader+Hello+World
+			//glProgramParameteriEXT( program, GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES); //GL_POINTS/GL_LINES/GL_LINES_ADJACENCY_EXT/GL_TRIANGLES/GL_TRIANGLES_ADJACENCY_EXT
+			//glProgramParameteriEXT( program, GL_GEOMETRY_OUTPUT_TYPE_EXT,GL_LINE_STRIP); //GL_POINTS/GL_LINE_STRIP/GL_TRIANGLE_STRIP
+			//glProgramParameteriEXT( program, GL_GEOMETRY_VERTICES_OUT_EXT,6); //min max=1024 ?
+
+			glProgramParameteri( program, GL_GEOMETRY_INPUT_TYPE, GL_TRIANGLES); //GL_POINTS/GL_LINES/GL_LINES_ADJACENCY_EXT/GL_TRIANGLES/GL_TRIANGLES_ADJACENCY_EXT
+			glProgramParameteri( program, GL_GEOMETRY_OUTPUT_TYPE, GL_LINE_STRIP); //GL_POINTS/GL_LINE_STRIP/GL_TRIANGLE_STRIP
+			glProgramParameteri( program, GL_GEOMETRY_VERTICES_OUT, 8); //min max=1024 ?
+		}
+	}
+
+	
+	
 	glLinkProgram(program);
+	GLint linked;
 	glGetProgramiv(program, GL_LINK_STATUS, &linked);
 	if (!linked)
 	{
-		printProgramInfoLog();
+		printShaderInfoLog(program);
 		std::cout << "linking of shader failed...\n";
 		std::cout << "*** Using fixed function pipeline ***\n";
 		std::cout << "--------------------------------\n";
@@ -123,47 +101,38 @@ bool Shader::compileSources()
 	//std::cout << "Link success...\n";
 	//printProgramInfoLog();
 	//std::cout << "--------------------------------\n";
+
+	GLenum err = glGetError();
+	if ( err == GL_NO_ERROR ){
+		const char *status = ":)";
+	}else{
+		const char *status = ":(";
+	}
+
+
 	return true;
 }
 
 bool Shader::reload()
 {
-	if( _loadedFromFile )
-	{
-		this->install( strVSPath.c_str(), strFSPath.c_str() );
-	}else
-	{
-		printf("Shader source is in memory and cannot be reloaded from disk.\n");
+	// TODO for_each ShaderSource, re-read from filepath & compile
+	ShaderSourceList::iterator it;
+	for(it=shaderList.begin(); it!=shaderList.end(); ++it){
+		ShaderSource &shader= (*it);
+		
+		if ( shader.load_sourcefile() == false ){
+			return false;
+		}
 	}
+
+	if ( compileSources() == false ){
+		return false;
+	}
+
 
 	bool validation_status = validate();
 	return validation_status;
 }
-
-char* Shader::LoadShaderText(const char *fileName)
-{
-    char* shaderText = NULL;
-    GLint shaderLength = 0;
-    FILE* fp;
-    fopen_s(&fp, fileName, "r"); // old fopen returns fileptr, fp = fopen(filename,"r")
-    if (fp != NULL)
-    {
-        while (fgetc(fp) != EOF)
-        {
-            shaderLength++;
-        }
-        rewind(fp);
-        shaderText = (char*)malloc(shaderLength+1);
-        if (shaderText != NULL)
-        {
-			fread(shaderText, 1, shaderLength, fp);
-        }
-        shaderText[shaderLength] = '\0';
-        fclose(fp);
-    }
-    return shaderText;
-}
-
 
 void Shader::printShaderInfoLog(unsigned int shader)
 {
@@ -184,28 +153,6 @@ void Shader::printShaderInfoLog(unsigned int shader)
 		glGetShaderInfoLog(shader, infologLen, &charsWritten, infoLog);
 		printf("InfoLog shader:\n%s\n", infoLog);
 		free( infoLog );
-	}
-}
-
-void Shader::printProgramInfoLog()
-{
-	int infologLen = 0;
-	int charsWritten = 0;
-	GLchar* infoLog;
-
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infologLen);
-
-	if (infologLen > 1)
-	{
-		infoLog = (GLchar*) malloc(infologLen);
-		if (infoLog == NULL)
-		{
-			std::cout << "ERROR: Could not allocate infolog buffer" << std::endl;
-			exit(1);
-		}
-		glGetProgramInfoLog(program, infologLen, &charsWritten, infoLog);
-		printf("InfoLog program:\n%s\n", infoLog);
-		free ( infoLog );
 	}
 }
 
@@ -236,5 +183,84 @@ bool Shader::validate()
 
 int Shader::GetVariable( char* strVariable ) const 
 {
-	return glGetUniformLocation(program, strVariable);
+	int loc = glGetUniformLocation(program, strVariable);
+	if ( loc == -1 ){
+		// drivers might optimize away uniforms, causing GetUniformLoc to return -1
+		fprintf( stderr, "cant find loc for %s in shader %s\n", strVariable, this->name.c_str() ); 
+
+	}
+	return loc;
+}
+
+char* _loadShaderText(const char *fileName)
+{
+    char* shaderText = NULL;
+    GLint shaderLength = 0;
+    FILE* fp;
+    fopen_s(&fp, fileName, "r"); // old fopen returns fileptr, fp = fopen(filename,"r")
+    if (fp != NULL)
+    {
+        while (fgetc(fp) != EOF)
+        {
+            shaderLength++;
+        }
+        rewind(fp);
+        shaderText = (char*)malloc(shaderLength+1);
+        if (shaderText != NULL)
+        {
+			fread(shaderText, 1, shaderLength, fp);
+        }
+        shaderText[shaderLength] = '\0';
+        fclose(fp);
+    }
+    return shaderText;
+}
+
+ShaderSource::ShaderSource(std::string _sourcefile, int _shader_type){
+	sourcefile = _sourcefile;
+	shader_type = _shader_type;
+
+	load_sourcefile();
+	
+
+	if ( shader_type == VERTEX_SHADER )
+	{
+		program = glCreateShader(GL_VERTEX_SHADER);
+	}else if( shader_type == GEOMETRY_SHADER ){
+		program = glCreateShader(GL_GEOMETRY_SHADER);
+	}
+	else if( shader_type == FRAGMENT_SHADER ){
+		program = glCreateShader(GL_FRAGMENT_SHADER);
+	}
+}
+
+bool ShaderSource::load_sourcefile()
+{
+	char* temp = _loadShaderText( sourcefile.c_str() );
+	if( temp == NULL)
+	{
+		std::cerr << "error, cant find shader file: " << sourcefile << std::endl;
+		return false;
+	}
+	sourcecode = std::string(temp);
+	free( temp );
+	return true;
+}
+
+bool ShaderSource::compile()
+{	
+	const char *src = sourcecode.c_str();
+	glShaderSource(program, 1, &src, NULL);
+
+	glCompileShader(program);
+	GLint compile_status;
+	glGetShaderiv(program, GL_COMPILE_STATUS, &compile_status);
+	if ( !compile_status )
+	{
+		std::cout << "error when compiling shader: " << sourcefile << "\n\n";
+		Shader::printShaderInfoLog(program);
+		return false;
+	}
+
+	return true;
 }

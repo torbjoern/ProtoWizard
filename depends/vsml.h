@@ -30,7 +30,7 @@
 
 #include <vector>
 #define GLEW_STATIC
-#include <glew.h>
+#include <GL/glew.h>
 
 class VSML {
 

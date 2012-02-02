@@ -15,45 +15,7 @@ class GeometryLibrary
 {
 
 public:
-	bool init()
-	{
-		// TODO.. remove this, make it so line is a static class that checks if it
-		// has a VBO on draw...
-		if ( !line.init() )
-		{
-			printf("failed to init Line VBO");
-			return false;
-		}
-
-		if ( !circle.init() )
-		{
-			printf("failed to init Circle VBO");
-			return false;
-		}
-
-		if ( !sphere.init() )
-		{
-			printf("failed to init Sphere VBO");
-			return false;
-		}
-
-		if ( !cylinder.init() )
-		{
-			printf("failed to init cylinder VBO");
-			return false;
-		}
-
-		if ( !cube.init() )
-		{
-			printf("failed to init cube VBO");
-			return false;
-		}
-
-		plane.init();
-		GetError();
-
-		return true;
-	}
+	bool init();
 
 	void shutdown()
 	{
@@ -65,12 +27,12 @@ public:
 		plane.shutdown();
 	}
 
-	Line line;
-	Circle circle;
-	Cylinder cylinder;
-	Sphere sphere;
-	Cube cube;
-	Plane plane;
+	LineGeometry line;
+	CircleGeometry circle;
+	CylinderGeometry cylinder;
+	SphereGeometry sphere;
+	CubeGeometry cube;
+	PlaneGeometry plane;
 };
 
 namespace blending
@@ -141,95 +103,72 @@ struct BaseState3D : public BaseState
 
 struct SphereState : public BaseState3D
 {
-	virtual void pre_draw(Shader const& shader)
-	{
-		transform = glm::scale( transform, glm::vec3(radius) );
+	void *operator new(size_t size);
+    void operator delete(void *memory);
 
-		int worldLoc = shader.GetVariable("worldMatrix");
-		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
+	virtual void pre_draw(Shader const& shader);
 
-		int locEmissive = shader.GetVariable("emissiveColor");
-		shader.SetVec3(locEmissive, emissiveColor);
+	virtual void draw( GeometryLibrary* geo_lib );
 
-		int isSphere = shader.GetVariable("isSphere");
-		shader.SetInt(isSphere, 1);
-	}
+private:
+	static std::vector<SphereState*> pool;
 
-	virtual void draw( GeometryLibrary* geo_lib )
-	{
-		geo_lib->sphere.draw();
-	}
 };
 
 struct CylinderState : public BaseState3D
 {
-	virtual void pre_draw(Shader const& shader)
-	{
-		// Create a matrix that will orient cyl in desired direction
-		glm::vec3 normal = glm::normalize(p2 - p1);
-		glm::vec3 not_normal = normal;
+	void *operator new(size_t size);
+	void operator delete(void *memory);
 
-		glm::vec3 perp = normal;
-		float eps = 1e-7f;
-		if ( fabs(not_normal.x) < eps && fabs(not_normal.z) < eps){ // comparing to eps instead of bla == 0
-			not_normal.x += 1.0f;
-		}else{
-			not_normal.y += 1.0f;
-		}
 
-		glm::vec3 a = glm::normalize( glm::cross(perp,not_normal) );
-		glm::vec3 b = glm::cross(perp,a);
+	virtual void pre_draw(Shader const& shader);
 
-		float length = glm::distance( p1, p2 );
-		transform = glm::mat4( glm::vec4(radius*a, 0.f), glm::vec4(length*normal, 0.f), glm::vec4(radius*b, 0.f), glm::vec4(p1,1.f) );
-		
-		int worldLoc = shader.GetVariable("worldMatrix");
-		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
+	virtual void draw( GeometryLibrary* geo_lib );
 
-		int locEmissive = shader.GetVariable("emissiveColor");
-		shader.SetVec3(locEmissive, emissiveColor);
-
-		int isSphere = shader.GetVariable("isSphere");
-		shader.SetInt(isSphere, 0);
-	}
-
-	virtual void draw( GeometryLibrary* geo_lib )
-	{
-		geo_lib->cylinder.draw();
-	}
-
-	virtual float distance_from_camera( glm::vec3 const& camera_pos ) const
-	{
-		return std::min<float>( glm::distance( p1, camera_pos ), glm::distance( p2, camera_pos ) );
-	}
+	virtual float distance_from_camera( glm::vec3 const& camera_pos ) const;
 
 	glm::vec3 p1;
 	glm::vec3 p2;
+
+private:
+	static std::vector<CylinderState*> pool;
 };
 
 struct CubeState : public BaseState3D
 {
+	void *operator new(size_t size);
+
+    void operator delete(void *memory);
+
 	void draw( GeometryLibrary* geo_lib )
 	{
 		geo_lib->cube.draw();
 	}
+
+private:
+	static std::vector<CubeState*> pool;
 };
 
 struct PlaneState : public BaseState3D
 {
+	void *operator new(size_t size);
+
+	void operator delete(void *memory);
+
 	virtual void draw( GeometryLibrary* geo_lib )
 	{
 		glm::vec3 pos = glm::vec3(transform[3]);
 		glDisable(GL_CULL_FACE);
 		geo_lib->plane.createGeometry( pos, normal, 1.0 );
 		geo_lib->plane.draw();
-		//geo_lib->plane.createGeometry( pos + normal*0.01f, -normal, 1.0);
-		//geo_lib->plane.draw();
 
 		glEnable(GL_CULL_FACE);
 	}
 
 	glm::vec3 normal;
+
+private:
+	static std::vector<PlaneState*> pool;
 };
 
 

@@ -2,13 +2,14 @@
 #define _COMMON_H
 
 #define TWO_PI     6.28318530717958647692f
-#define M_PI       3.14159265358979323846
+#define M_PI       3.14159265358979323846f
 
 #define GLEW_STATIC
-#include <glew.h>
-#include <glfw.h>
+#include <GL/glew.h>
+#include <GL/glfw.h>
 #include <cmath>
 
+#define GLM_SWIZZLE 
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
@@ -18,11 +19,13 @@
 #include "depends/vsml.h"
 
 
-inline void GetError()
+inline void GetError(const char *functionName = "unknown")
 {
-	for ( GLenum Error = glGetError( ); ( GL_NO_ERROR != Error ); Error = glGetError( ) )
+	for ( GLenum error = glGetError( ); ( GL_NO_ERROR != error ); error = glGetError( ) )
 	{
-		switch ( Error )
+		fprintf (stderr, "GL error 0x%X detected in %s\n", error, functionName);
+
+		switch ( error )
 		{
 		case GL_INVALID_ENUM:      printf( "\n%s\n\n", "GL_INVALID_ENUM"      ); assert( 0 ); break; // need to use glGetStringi instead of glGetString(GL_EXTENSIONS) in GLEW
 		case GL_INVALID_VALUE:     printf( "\n%s\n\n", "GL_INVALID_VALUE"     ); assert( 0 ); break;
@@ -36,3 +39,6 @@ inline void GetError()
 }
 
 #endif
+
+
+#define lerp(t, a, b) ( a + t * (b - a) )

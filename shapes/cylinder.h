@@ -3,14 +3,14 @@
 
 #include "../common.h"
 
-class Cylinder
+class CylinderGeometry
 {
 	public:
-	Cylinder()
+	CylinderGeometry()
 	{
 		num_cylinder_vertices = num_topcap_vertices = num_bottomcap_vertices = 0;
 	}
-	~Cylinder()
+	~CylinderGeometry()
 	{
 
 	}
@@ -60,6 +60,7 @@ class Cylinder
 
 	void cylinder(std::vector< PNVertex > &vertices, float radius, float length, int segments)
 	{
+		using glm::vec3;
 		float angInc = TWO_PI / (segments-1.f);
 		float a = 0.f;
 		for(int i=0; i<segments; i++){
@@ -68,8 +69,10 @@ class Cylinder
 			float x = ca*radius;
 			float z = sa*radius;
 
-			PNVertex v1 ( glm::vec3(x, 0.f, z), glm::vec3(-sa, 0.f, ca) );
-			PNVertex v2 ( glm::vec3(x, length, z), glm::vec3(-sa, 0.f, ca) );
+			vec3 p1 = vec3(x, 0.f, z);
+			vec3 p2 = vec3(x, length, z);
+			PNVertex v1 ( p1, glm::normalize(p1 - vec3(0.f, 0.f, 0.f)  ) );
+			PNVertex v2 ( p2, glm::normalize(p2 - vec3(0.f, length, 0.f)  ) );
 			vertices.push_back( v1 );
 			vertices.push_back( v2 );
 
@@ -91,7 +94,7 @@ class Cylinder
 		std::vector< PNVertex > cylinder_top;
 		std::vector< PNVertex > cylinder_bottom;
 
-		float radius = 0.5f;
+		float radius = 1.0f;
 		float length = 1.0f;
 		int segments = 16;
 
@@ -110,19 +113,29 @@ class Cylinder
 		
 	}
 	
-	void draw()
+	void draw( bool draw_cap )
 	{
+		if ( !draw_cap ){
+			glDisable(GL_CULL_FACE);
+		}
+
 		glBindVertexArray(cylinderVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_cylinder_vertices );
 		glBindVertexArray(0);
 
-		glBindVertexArray(topcapVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_topcap_vertices );
-		glBindVertexArray(0);
+		if ( !draw_cap ){
+			glEnable(GL_CULL_FACE);
+		}
 
-		glBindVertexArray(bottomcapVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_bottomcap_vertices );
-		glBindVertexArray(0);
+		if ( draw_cap ){
+			glBindVertexArray(topcapVAO);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, num_topcap_vertices );
+			glBindVertexArray(0);
+
+			glBindVertexArray(bottomcapVAO);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, num_bottomcap_vertices );
+			glBindVertexArray(0);
+		}
 	}
 	
 	// TODO can this function fail?

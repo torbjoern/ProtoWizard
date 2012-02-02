@@ -2,9 +2,31 @@
 
 #include <string>
 #define GLEW_STATIC
-#include <glew.h> // for setters funcs in header
+#include <GL/glew.h> // for setters funcs in header
 
 #include <glm/glm.hpp>
+
+#include <vector>
+
+enum eShaderTypes { VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER };
+
+
+class ShaderSource
+{
+public:
+	explicit ShaderSource(std::string _sourcefile, int _shader_type);
+
+
+	bool compile();
+	bool load_sourcefile();
+
+public:
+	int program;
+	int shader_type;
+private:
+	std::string sourcefile;
+	std::string sourcecode;
+};
 
 class Shader
 {
@@ -19,11 +41,11 @@ public:
 	}
 
 	bool install(const char* VSPath, const char* FSPath);
-	bool installFromCString( const char * vertShader, const char * fragShader );
+	bool install(const char* VSPath, const char* GSPath, const char* FSPath);
+	//bool install_vert_and_geo( const char* VSPath, const char* GSPath );
 	bool reload();
-	char* LoadShaderText(const char *fileName);
-	void printShaderInfoLog(unsigned int shader);
-	void printProgramInfoLog();
+
+	static void printShaderInfoLog(unsigned int shader);
 
 	int GetVariable(char* strVariable) const;
 	unsigned int getProgram() { return program; }
@@ -42,14 +64,10 @@ public:
 private:
 	bool compileSources();
 	bool validate();
-	
+
+private:	
 	unsigned int program;
-	std::string strVSPath;
-	std::string strFSPath;
-	bool _loadedFromFile;
-
-
-
-	std::string _vs_string;
-	std::string _fs_string;
+	typedef std::vector< ShaderSource > ShaderSourceList;
+	ShaderSourceList shaderList;
+	
 };

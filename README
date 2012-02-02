@@ -1,0 +1,10 @@
+ideas
+
+add obj loader. use .objs for primitives instead of coded geo
+
+TODO 2021:
+-physlib for gpu, optimized for spheres & cubes only. static & dynamic.
+
+-torbjoerns voxel editor
+
+-marble madness like game

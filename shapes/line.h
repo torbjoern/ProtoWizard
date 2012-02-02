@@ -3,14 +3,14 @@
 
 #include "../common.h"
 
-class Line
+class LineGeometry
 {
 	public:
-	Line()
+	LineGeometry()
 	{
 	}
 	
-	~Line()
+	~LineGeometry()
 	{
 
 	}

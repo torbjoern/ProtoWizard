@@ -3,7 +3,7 @@
 
 #include "../common.h"
 
-class Cube
+class CubeGeometry
 {
 	public:
 
@@ -32,12 +32,12 @@ class Cube
 
 		glm::vec3 v[8];  // Will be filled in with X,Y,Z vertexes.
 		float size = 1.0f;
-		v[0].x = v[1].x = v[2].x = v[3].x = -size * 0.5f;
-		v[4].x = v[5].x = v[6].x = v[7].x = +size * 0.5f;
-		v[0].y = v[1].y = v[4].y = v[5].y = -size * 0.5f;
-		v[2].y = v[3].y = v[6].y = v[7].y = +size * 0.5f;
-		v[0].z = v[3].z = v[4].z = v[7].z = +size * 0.5f;
-		v[1].z = v[2].z = v[5].z = v[6].z = -size * 0.5f;
+		v[0].x = v[1].x = v[2].x = v[3].x = -size;
+		v[4].x = v[5].x = v[6].x = v[7].x = +size;
+		v[0].y = v[1].y = v[4].y = v[5].y = -size;
+		v[2].y = v[3].y = v[6].y = v[7].y = +size;
+		v[0].z = v[3].z = v[4].z = v[7].z = +size;
+		v[1].z = v[2].z = v[5].z = v[6].z = -size;
 
 		std::vector< PNVertex > cube_vertices;
 		
