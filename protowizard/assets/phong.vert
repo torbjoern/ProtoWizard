@@ -13,6 +13,7 @@ uniform mat4 projMatrix;
 
 uniform int isSphere;
 
+
 uniform vec3 cameraSpaceLightPos;
 
 out vec3 fNormal, lightDir, eyeVec;
