@@ -8,24 +8,15 @@
 
 
 #include "common.h"
-#include "camera.h"
-#include "shapes/shapes.h"
+
 #include "depends/noise/perlin.h"
-
-#include "texture_manager.h"
-
-
 
 //using namespace Proto;
 
 ProtoGraphics* ProtoGraphics::instance = 0x0; // C++ hack, static variables must be instantiated in a cpp
 
-FirstPersonCamera NULL_CAMERA = FirstPersonCamera();
-GeometryLibrary NULL_GEO_LIB = GeometryLibrary();
 
-const glm::mat4 identityMatrix(1.f);
-
-ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), geo_lib(NULL_GEO_LIB)
+ProtoGraphics::ProtoGraphics()
 {
 	instance = this;
 
@@ -52,9 +43,10 @@ ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), geo_lib(NULL_GEO_LIB)
 
 	blend_state = blending::SOLID_BLEND;
 	colorState = glm::vec4( 1.f );
+	emissiveColor = glm::vec3( 0.f );
 	move_to_state = glm::vec2(0.f, 0.f);
 
-	currentOrientation = identityMatrix;
+	currentOrientation = glm::mat4( 1.0f );
 	scale = glm::vec3( 1.0f );
 }
 
@@ -109,51 +101,6 @@ void ProtoGraphics::dump_stats()
 	printf("num blended: %d\n", num_blended);
 }
 
-bool ProtoGraphics::install_shaders()
-{
-	shader_lines2d = new Shader;
-	shader_2d = new Shader;
-	phong_shader = new Shader;
-	geo_shader_normals = new Shader;
-
-	if ( shader_lines2d->install("assets/line2d_shader.vert", "assets/line2d_shader.frag") == false )
-	{
-		return false;
-	}else{
-		shader_list.push_back( shader_lines2d );
-	}
-
-	if ( shader_2d->install("assets/shader2d.vert", "assets/shader2d.frag") == false )
-	{
-		return false;
-	}
-	shader_list.push_back( shader_2d );
-
-	if ( phong_shader->install("assets/phong.vert", "assets/phong.frag") == false )
-	{
-		return false;
-	}else{
-		shader_list.push_back( phong_shader );
-	}
-	
-	if ( geo_shader_normals->install("assets/passthru.vert", "assets/normals.gs", "assets/normals.frag") == false )
-	{
-		return false;
-	}else{
-		shader_list.push_back( geo_shader_normals );
-	}
-
-	GetError("install_shaders"); // __FUNCTION__ 
-
-	int tex0 = glGetUniformLocation( phong_shader->getProgram() , "tex0");
-	phong_shader->begin();
-	glUniform1i(tex0, 0); // sampler "tex0" refers to texture unit 0
-
-	GetError("install_shaders end");
-
-	return true;
-}
-
 bool ProtoGraphics::init(int xres, int yres)
 {
 	int ok = glfwInit();
@@ -164,14 +111,15 @@ bool ProtoGraphics::init(int xres, int yres)
 	// TODO: use GL 3.3 and core profile that wont run any deprecated stuff
 	// TODO will fail if vidcard doesnt support gl 3.3... make a function that tries highest first, then steps down
 	// or just remove for release build
-	//glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-	//glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-	//glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
+	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 	ok = glfwOpenWindow(xres,yres,8,8,8,8,24,8,GLFW_WINDOW); // Important to either use 32 bit depth, or 24d8s
 	if (ok == 0 ) return false;
 
-	glfwSetWindowTitle("ProtoWizard project");
+
+	glfwSetWindowTitle("ProtoWizard script server");
 	glfwSwapInterval(0); // vsync on/off
 		
 	glewExperimental = GL_TRUE;
@@ -193,10 +141,36 @@ bool ProtoGraphics::init(int xres, int yres)
 
 	geo_lib.init();
 
-	if ( !install_shaders() ) return false;
+
+	if ( shader_lines2d.install("assets/line2d_shader.vert", "assets/line2d_shader.frag") == false )
+	{
+		return false;
+	}else{
+		shader_list.push_back( &shader_lines2d );
+	}
+
+	if ( shader_2d.install("assets/shader2d.vert", "assets/shader2d.frag") == false )
+	{
+		return false;
+	}
+	shader_list.push_back( &shader_2d );
+
+	if ( phong_shader.install("assets/phong.vert", "assets/phong.frag") == false )
+	{
+		return false;
+	}else{
+		shader_list.push_back( &phong_shader );
+	}
+	
+	if ( geo_shader_normals.install("assets/passthru.vert", "assets/normals.gs", "assets/normals.frag") == false )
+	{
+		return false;
+	}else{
+		shader_list.push_back( &geo_shader_normals );
+	}
 		
 
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 	GetError();
 			
 	isRunning = true;
@@ -214,19 +188,10 @@ void ProtoGraphics::setCamera( float x, float y, float z, float hang, float vang
 	camera.set( glm::vec3(x,y,z), hang, vang );
 }
 
+
 void ProtoGraphics::setCamera( glm::vec3 pos, float hang, float vang )
 {
 	camera.set( pos, hang, vang );
-}
-
-void ProtoGraphics::setTitle( const std::string &str)
-{
-	glfwSetWindowTitle( str.c_str() );
-}
-
-void ProtoGraphics::setTexture( const std::string& path )
-{
-	TextureManager::setTexture( path );
 }
 
 void ProtoGraphics::shutdown()
@@ -236,7 +201,6 @@ void ProtoGraphics::shutdown()
 	for(unsigned int i=0; i<shader_list.size(); i++){
 		shader_list[i]->shutdown();
 	}
-
 
 	isRunning = false;
 
@@ -260,10 +224,12 @@ void ProtoGraphics::frame()
 	//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
 
 	light_pos = glm::vec3(5.f, 5.f, 5.f );
+	//setEmissive( glm::vec3( 1.f ) );
 	//drawSphere( light_pos, 1.0f );
+	//setEmissive( glm::vec3( 0.f ) );
 
 
-	if ( keyhit('R') )
+	if ( false ) //keyhit('R') )
 	{
 		printf("/////////////////////////////R E L O A D I N G   S H A D E R S /////////////\n");
 		for(unsigned int i=0; i<shader_list.size(); i++)
@@ -315,11 +281,9 @@ void ProtoGraphics::frame()
 		}
 	}
 
-	//printf("slep %d percent of available frametime\n", (int) (100.0 * delta_time / max_millis_per_frame) );
-
-	//char title_buf[256];
-	//sprintf_s(title_buf, 256, " %2.2f mspf, %2.2f mspf with sleep,  numObjs = %i, max = %i", delta_time*1000.0, (delta_time+time_to_sleep)*1000.0, num_objs, max_objs);
-	//glfwSetWindowTitle(title_buf);
+	char title_buf[256];
+	sprintf_s(title_buf, 256, " %2.2f mspf, %2.2f mspf with sleep,  numObjs = %i, max = %i", delta_time*1000.0, (delta_time+time_to_sleep)*1000.0, num_objs, max_objs);
+	glfwSetWindowTitle(title_buf);
 
 	numframes++;
 	glfwSwapBuffers();
@@ -377,6 +341,12 @@ bool ProtoGraphics::keyhit(int key)
 	return times_hit > 0;
 }
 
+FirstPersonCamera& ProtoGraphics::getCamera()
+{
+	return camera;
+}
+
+
 double ProtoGraphics::octaves_of_noise(int octaves, double x, double y, double z){
 	double value = 0.0;
 	double vec[3];
@@ -408,6 +378,11 @@ void ProtoGraphics::setAlpha( float a )
 	colorState.a = a;
 }
 
+void ProtoGraphics::setEmissive( glm::vec3 emissive )
+{
+	emissiveColor = emissive;
+}
+
 void ProtoGraphics::setOrientation( const glm::mat4 &ori ){
 	currentOrientation = ori;
 }
@@ -415,11 +390,6 @@ void ProtoGraphics::setOrientation( const glm::mat4 &ori ){
 void ProtoGraphics::setScale( float x, float y, float z )
 {
 	scale = glm::vec3(x,y,z);
-}
-
-void ProtoGraphics::setScale( float uniform_scale )
-{
-	scale = glm::vec3( uniform_scale );
 }
 
 void ProtoGraphics::setBlend( bool active )
@@ -468,21 +438,6 @@ void ProtoGraphics::lineTo( float to_x, float to_y )
 	move_to_state = glm::vec2(to_x,to_y); 
 }
 
-void ProtoGraphics::save_state( BaseState3D* state )
-{
-	state->color = this->colorState;
-	state->blend_mode = this->blend_state;
-	state->tex_handle = TextureManager::getActiveTexture();
-
-	if( state->blend_mode == blending::SOLID_BLEND )
-	{
-		opaque.push_back( state );
-	}else{
-		translucent.push_back(state);
-	}
-	
-}
-
 void ProtoGraphics::drawCircle( float x, float y, float radius )
 {
 	CircleState state;
@@ -496,38 +451,42 @@ void ProtoGraphics::drawCircle( float x, float y, float radius )
 void ProtoGraphics::drawSphere( glm::vec3 position, float radius ) 
 {
 	SphereState *state = new SphereState;
-	currentPosition = position;
-	save_state( state );
-
-	state->transform = glm::scale( glm::translate( this->currentOrientation, this->currentPosition ), glm::vec3(radius) );
-
+	state->color = colorState;
+	state->emissiveColor = emissiveColor;
+	state->transform = glm::translate( glm::mat4( 1.0f ), position );
+	state->radius = radius;
+	state->blend_mode = blend_state;
 	buffered_shapes.push_back( state );
+
 	sphereList.push_back( state );
 }
 
 void ProtoGraphics::drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) 
 {
 	CylinderState *state = new CylinderState;
-	currentPosition = glm::vec3(0.f);
-	save_state( state );
-
+	state->color = colorState;
+	state->emissiveColor = emissiveColor;
 	state->p1 = p1;
 	state->p2 = p2;
 	state->radius = radius;
+	state->blend_mode = blend_state;
 	buffered_shapes.push_back( state );
 
 	cylinderList.push_back( state );
 }
 
-void ProtoGraphics::drawCube( glm::vec3 position  )
+void ProtoGraphics::drawCube( glm::vec3 position, float radius )
 {
 	CubeState *state = new CubeState;
-	save_state( state );
-
-	state->transform = glm::translate( identityMatrix, position );
+	state->color = colorState;
+	state->emissiveColor = emissiveColor;
+	state->transform = glm::translate( glm::mat4(1.0), position );
 	state->transform *= currentOrientation;
 	state->transform = glm::scale( state->transform, scale );
 		
+		
+	state->radius = radius;
+	state->blend_mode = blend_state;
 	buffered_shapes.push_back( state );
 
 	cubeList.push_back( state );
@@ -536,45 +495,82 @@ void ProtoGraphics::drawCube( glm::vec3 position  )
 void ProtoGraphics::drawPlane( glm::vec3 position, glm::vec3 normal, float radius )
 {
 	PlaneState *state = new PlaneState;
-	save_state( state );
-
-	state->transform = glm::scale( glm::translate( glm::mat4( 1.0f ), position ), glm::vec3(radius) );
+	state->color = colorState;
+	state->emissiveColor = emissiveColor;
+	state->transform = glm::translate( glm::mat4( 1.0f ), position );
 	state->normal = normal;
+	state->radius = radius;
+	state->blend_mode = blend_state;
 	buffered_shapes.push_back( state );
 
 	planeList.push_back( state );
 }
 
-void ProtoGraphics::drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path )
+void ProtoGraphics::drawRoundedCube(glm::vec3 pos, float radius, float edge_radius)
 {
-	// backup current tfrom matrix state
-	glm::mat4 backup = currentOrientation;
-	
-	// create a rotation matrix given horiz- and verti angles
-	//currentOrientation = glm::rotate( glm::rotate( identityMatrix, verti_ang, glm::vec3(1.f, 0.f, 0.f) ), horiz_ang, glm::vec3(0.f, 1.f, 0.f) );
-	//currentOrientation = glm::rotate( glm::rotate( identityMatrix, horiz_ang, glm::vec3(0.f, 1.f, 0.f) ), verti_ang, glm::vec3(1.f, 0.f, 0.f) );
+	float sc = radius;
+	glm::vec3 v0(-sc,-sc,-sc);
+	glm::vec3 v1(-sc,-sc,+sc);
+	glm::vec3 v2(-sc,+sc,-sc);
+	glm::vec3 v3(-sc,+sc,+sc);
 
-	glm::mat4 xrot = glm::rotate( identityMatrix, verti_ang, glm::vec3(1.f, 0.f, 0.f) );
-	glm::mat4 yrot = glm::rotate( identityMatrix, horiz_ang, glm::vec3(0.f, 1.f, 0.f) );
-	currentOrientation = glm::transpose(xrot * yrot);
+	glm::vec3 v4(+sc,-sc,-sc);
+	glm::vec3 v5(+sc,-sc,+sc);
+	glm::vec3 v6(+sc,+sc,-sc);
+	glm::vec3 v7(+sc,+sc,+sc);
 
-	// draw, and restore current tform
-	drawMesh( position, path );
-	currentOrientation = backup;
-}
+	v0 += pos;
+	v1 += pos;
+	v2 += pos;
+	v3 += pos;
+	v4 += pos;
+	v5 += pos;
+	v6 += pos;
+	v7 += pos;
 
-void ProtoGraphics::drawMesh( glm::vec3 position, std::string path )
-{
-	MeshState *state = new MeshState;
-	save_state( state );
-	state->mesh_path = path;
+#define drawline(v1,v2) (drawCone(v1,v2,edge_radius))
+	// bottom quad
+	drawline(v0,v1);
+	drawline(v0,v4);
+	drawline(v4,v5);
+	drawline(v1,v5);
+	// top quad
+	drawline(v2,v3);
+	drawline(v2,v6);
+	drawline(v6,v7);
+	drawline(v7,v3);
 
-	state->transform = glm::translate( identityMatrix , position ) * currentOrientation;
-	state->transform = glm::scale( state->transform, scale );
+	// connectors top/bottom quad
+	drawline(v0,v2);
+	drawline(v4,v6);
+	drawline(v1,v3);
+	drawline(v7,v5);
+#undef drawline
 
-	buffered_shapes.push_back( state );
+	drawSphere(v0, edge_radius);
+	drawSphere(v1, edge_radius);
+	drawSphere(v2, edge_radius);
+	drawSphere(v3, edge_radius);
+	drawSphere(v4, edge_radius);
+	drawSphere(v5, edge_radius);
+	drawSphere(v6, edge_radius);
+	drawSphere(v7, edge_radius);
 
-	meshList.push_back( state );
+	glm::vec3 n0 ( 0.f, 0.f, -1.f );
+	glm::vec3 n1 ( 0.f, 0.f, +1.f );
+	glm::vec3 n2 ( 0.f, -1.f, 0.f );
+	glm::vec3 n3 ( 0.f, +1.f, 0.f );
+	glm::vec3 n4 ( -1.f, 0.f, 0.f );
+	glm::vec3 n5 ( +1.f, 0.f, 0.f );
+		
+	float radius2 = (radius + edge_radius);
+	drawPlane(pos + n0*radius2, n0, radius );
+	drawPlane(pos + n1*radius2, n1, radius );
+	drawPlane(pos + n2*radius2, n2, radius );
+	drawPlane(pos + n3*radius2, n3, radius );
+	drawPlane(pos + n4*radius2, n4, radius );
+	drawPlane(pos + n5*radius2, n5, radius );
+
 }
 
 void ProtoGraphics::handle_key(int key, int action)
@@ -589,8 +585,8 @@ void ProtoGraphics::handle_key(int key, int action)
 
 void ProtoGraphics::draw_buffered_lines()
 {		
-	shader_lines2d->begin();
-	unsigned int loc = shader_lines2d->GetVariable("mvp");
+	shader_lines2d.begin();
+	unsigned int loc = shader_lines2d.GetVariable("mvp");
 	glm::mat4 orthomat = glm::ortho(  0.f, (float)xres, (float)yres, 0.f );
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(orthomat) );
 	geo_lib.line.draw(buffered_lines);
@@ -599,16 +595,16 @@ void ProtoGraphics::draw_buffered_lines()
 
 void ProtoGraphics::draw_buffered_circles()
 {		
-	shader_2d->begin();
+	shader_2d.begin();
 
 	// TODO, uniform locs could be moved to init code, so they are only set once, 
 	// but since its convenient to modify them, they stay for now.
 	unsigned int mvLoc;
 	unsigned int projLoc;
 	unsigned int colorLoc;
-	mvLoc    = shader_2d->GetVariable("modelviewMatrix");
-	projLoc  = shader_2d->GetVariable("projMatrix");
-	colorLoc = shader_2d->GetVariable("vColor");
+	mvLoc    = shader_2d.GetVariable("modelviewMatrix");
+	projLoc  = shader_2d.GetVariable("projMatrix");
+	colorLoc = shader_2d.GetVariable("vColor");
 
 	VSML *vsml = VSML::getInstance();
 	vsml->initUniformLocs(mvLoc, projLoc);
@@ -622,7 +618,7 @@ void ProtoGraphics::draw_buffered_circles()
 		float radius = fabs(buffered_circles[i].radius);
 
 		glm::vec4 color = buffered_circles[i].color;
-		shader_2d->SetVec4( colorLoc, color );
+		shader_2d.SetVec4( colorLoc, color );
 
 		vsml->loadIdentity(VSML::MODELVIEW);
 		vsml->translate(x, y, 0.0f);
@@ -649,18 +645,33 @@ void ProtoGraphics::init_phong( Shader& active_shader )
 {
 	active_shader.SetVec3( active_shader.GetVariable("cameraSpaceLightPos"), light_pos );
 	active_shader.SetFloat( active_shader.GetVariable("shininess"), 10.0f );
-
-	int tex0 = glGetUniformLocation( active_shader.getProgram() , "tex0");
-	glUniform1i(tex0, 0); // sampler "tex0" refers to texture unit 0
 }
 
 void ProtoGraphics::draw_buffered_shapes()
 {
+	// TODO find out how expensive it is to sort opaque and translucent objects into buckets...
+	// probably better methods out there, also, these two buckets should only be allocated once
+	// instead of alloc/dealloc on each call to draw_buffered....
+	std::vector<BaseState3D*> opaque;
+	std::vector<BaseState3D*> translucent;
+
+	for (unsigned int i=0; i<buffered_shapes.size(); i++)
+	{
+		if ( buffered_shapes[i]->blend_mode != blending::SOLID_BLEND )
+		{
+			translucent.push_back( buffered_shapes[i] );
+		}else{
+			opaque.push_back( buffered_shapes[i] );
+		}
+	}
+
 	num_opaque = opaque.size();
 	num_blended = translucent.size();
 
 	//////////////////////////////////////////////////////////////////////////
-	Shader& active_shader_ref = (*phong_shader); //  phong_shader geo_shader_normals
+	
+
+	Shader& active_shader_ref = phong_shader; //  phong_shader geo_shader_normals
 	active_shader_ref.begin();
 	init_phong( active_shader_ref );
 
@@ -669,7 +680,7 @@ void ProtoGraphics::draw_buffered_shapes()
 	unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
 		
 	glm::mat4 projection =
-		glm::perspective(75.0f, xres/(float)yres, 0.5f, 1000.f);
+		glm::perspective(75.0f, xres/(float)yres, 1.0f, 1000.f);
 	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 	glm::mat4 viewMatrix = camera.getViewMatrix();
@@ -763,17 +774,10 @@ void ProtoGraphics::draw_buffered_shapes()
 		delete cubeList[i];
 	}
 
-	for(unsigned i=0; i<meshList.size(); i++)
-	{
-		delete meshList[i];
-	}
-
 	sphereList.clear();
 	cylinderList.clear();
 	planeList.clear();
 	cubeList.clear();
-	meshList.clear();
-
 
 	for(unsigned i=0; i<buffered_shapes.size(); i++)
 	{

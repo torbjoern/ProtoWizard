@@ -55,9 +55,9 @@ void FirstPersonCamera::update(bool left_key, bool right_key, bool back_key, boo
 		hang += mouse_speed_x * 0.5f;
 		vang += mouse_speed_y * 0.5f;
 	}
-	float speed = 50.0; // meters per second
+	float speed = delta * 50.0f; // meters per second
 
-	dirvec = glm::vec4(  delta * speed * (left_key-right_key), 0.0f,  delta * speed * (back_key - forwards_key), 1.0f );
+	dirvec = glm::vec4(  speed * (left_key-right_key), 0.0f, speed * (back_key - forwards_key), 1.0f );
 		
 	glm::mat4 rmx = glm::rotate( glm::mat4(1.0), vang, glm::vec3(1.f, 0.f, 0.f)  );
 	glm::mat4 rmy = glm::rotate( glm::mat4(1.0), hang, glm::vec3(0.f, 1.f, 0.f)  );

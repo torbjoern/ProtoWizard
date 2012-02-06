@@ -26,7 +26,7 @@ class PlaneGeometry
 		glm::vec3 not_normal = normal;
 
 		glm::vec3 perp = normal;
-		float eps = 1e-7f;
+		float eps = 1e-6f;
 		if ( fabs(not_normal.x) < eps && fabs(not_normal.z) < eps){ // comparing to eps instead of bla == 0
 			not_normal.x += 1.0f;
 		}else{
@@ -42,22 +42,27 @@ class PlaneGeometry
 		glm::vec3 u2( a*half_size+b*half_size );
 		glm::vec3 u3( a*half_size-b*half_size );
 
-		// TODO store in class, not here... better memory behaviour
-		std::vector< PNVertex > vertices;
+		glm::vec2 tex_coord0( 0.f, 0.f );
+		glm::vec2 tex_coord1( 0.f, 1.f );
+		glm::vec2 tex_coord2( 1.f, 1.f );
+		glm::vec2 tex_coord3( 1.f, 0.f );
 
-		vertices.push_back( PNVertex(u0,normal) );
-		vertices.push_back( PNVertex(u1,normal) );
-		vertices.push_back( PNVertex(u2,normal) );
-
-		vertices.push_back( PNVertex(u3,normal) );
-		vertices.push_back( PNVertex(u0,normal) );
-		vertices.push_back( PNVertex(u2,normal) );
+		// Make two triangles
+		std::vector< Vertex_VNT > vertices;
+		// Triangle 1
+		vertices.push_back( Vertex_VNT(u0,normal,tex_coord0) );
+		vertices.push_back( Vertex_VNT(u1,normal,tex_coord1) );
+		vertices.push_back( Vertex_VNT(u2,normal,tex_coord2) );
+		// Triangle 2
+		vertices.push_back( Vertex_VNT(u3,normal,tex_coord3) );
+		vertices.push_back( Vertex_VNT(u0,normal,tex_coord0) );
+		vertices.push_back( Vertex_VNT(u2,normal,tex_coord2) );
 		
 		num_vertices = vertices.size();
 
 		glBindVertexArray(planeVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, planeBufferObject);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(PNVertex) * vertices.size(), &vertices[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNT) * vertices.size(), &vertices[0], GL_DYNAMIC_DRAW);
 		glBindVertexArray(0);
 	}
 	
@@ -75,15 +80,21 @@ class PlaneGeometry
 		glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_DYNAMIC_DRAW);
 
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
-
 #define BUFFER_OFFSET(p) ((char*)0 + (p))
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
-#undef BUFFER_OFFSET
+		// http://www.opengl.org/sdk/docs/man3/xhtml/glVertexAttribPointer.xml
+		// vertex offset
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), 0);
 
+		// normal offset
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), BUFFER_OFFSET(3*4) ); 
+
+		// texcoord offset
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), BUFFER_OFFSET( (3+3)*4) ); 
+#undef BUFFER_OFFSET
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
 
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

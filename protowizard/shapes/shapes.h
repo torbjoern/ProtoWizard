@@ -70,7 +70,15 @@ struct BaseState3D : public BaseState
 
 	virtual void pre_draw(Shader const& shader)
 	{
-		transform = glm::scale( transform, glm::vec3(radius) );
+		if ( tex_handle != 0 )
+		{
+			// http://www.opengl.org/wiki/GLSL_Samplers#Binding_textures_to_samplers
+			// TODO sort by material/texture to avoid unneccessary swappign and binds?
+			int loc = shader.GetVariable("tex0");
+			shader.SetInt( loc, 0 );
+			glActiveTexture(GL_TEXTURE0 + 0); // Texture Unit to use
+			glBindTexture(GL_TEXTURE_2D, tex_handle); // texture_handle to bind to currently active unit
+		}
 
 		int worldLoc = shader.GetVariable("worldMatrix");
 		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
@@ -78,13 +86,8 @@ struct BaseState3D : public BaseState
 		int isSphere = shader.GetVariable("isSphere");
 		shader.SetInt(isSphere, 0);
 
-		int locEmissive = shader.GetVariable("emissiveColor");
-		shader.SetVec3(locEmissive, emissiveColor);
-		
-
-		//glm::mat4 model_view = viewMatrix * transform;
-		//vsml->loadMatrix(VSML::MODELVIEW, glm::value_ptr( model_view ) );
-		//vsml->matrixToUniform(VSML::MODELVIEW);
+		// would be most effective to send readily calculated MVP directly to GL
+		//glm::mat4 model_view_projection = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
 
@@ -93,11 +96,18 @@ struct BaseState3D : public BaseState
 	BaseState3D()
 	{
 		transform = glm::mat4( 1.0f );
+		tex_handle = 0;
 	}
 
 	glm::mat4 transform;
-	float radius;
-	glm::vec3 emissiveColor;
+	unsigned int tex_handle;
+};
+
+struct MeshState : public BaseState3D
+{
+	virtual void draw( GeometryLibrary* geo_lib );
+
+	std::string mesh_path;
 };
 
 
@@ -129,6 +139,7 @@ struct CylinderState : public BaseState3D
 
 	glm::vec3 p1;
 	glm::vec3 p2;
+	float radius;
 
 private:
 	static std::vector<CylinderState*> pool;

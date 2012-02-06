@@ -16,5 +16,9 @@ include_directories(${GLEW_INCLUDE_DIR})
 find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_DIR})
 
+find_package(SOIL REQUIRED)
+include_directories(${SOIL_INCLUDE_DIR})
+
 add_subdirectory (protowizard) 
+add_subdirectory (depends/obj_loader)
 add_subdirectory (demos/simple_3d_shapes)

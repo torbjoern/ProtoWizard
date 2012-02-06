@@ -1,11 +1,17 @@
 #include "shapes.h"
 
+#include "mesh.h"
+
 std::vector<SphereState*> SphereState::pool;
 std::vector<CylinderState*> CylinderState::pool;
 std::vector<PlaneState*> PlaneState::pool;
 std::vector<CubeState*> CubeState::pool;
 
 
+void MeshState::draw( GeometryLibrary* geo_lib )
+{
+	MeshManager::draw( this->mesh_path );
+}
 
 void *SphereState::operator new(size_t size)
 {
@@ -26,13 +32,8 @@ void SphereState::operator delete(void *memory)
 
 void SphereState::pre_draw(Shader const& shader)
 {
-	transform = glm::scale( transform, glm::vec3(radius) );
-
 	int worldLoc = shader.GetVariable("worldMatrix");
 	glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
-
-	int locEmissive = shader.GetVariable("emissiveColor");
-	shader.SetVec3(locEmissive, emissiveColor);
 
 	int isSphere = shader.GetVariable("isSphere");
 	shader.SetInt(isSphere, 1);
@@ -85,9 +86,6 @@ void CylinderState::pre_draw(Shader const& shader)
 		
 	int worldLoc = shader.GetVariable("worldMatrix");
 	glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
-
-	int locEmissive = shader.GetVariable("emissiveColor");
-	shader.SetVec3(locEmissive, emissiveColor);
 
 	int isSphere = shader.GetVariable("isSphere");
 	shader.SetInt(isSphere, 0);

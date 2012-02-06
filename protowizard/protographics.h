@@ -1,24 +1,27 @@
 
+// Forward decls
+class FirstPersonCamera;
 
+class GeometryLibrary;
 
+struct LineSegmentState;
+struct CircleState;
 
-#include "camera.h"
+struct BaseState3D;
+struct SphereState;
+struct CylinderState;
+struct PlaneState;
+struct CubeState;
+struct MeshState;
 
-#include "shapes/shapes.h"
+class Shader;
 
+#include <vector>
 
-template <class T> T DEGREES_TO_RADIANS(T degrees)
-{
-	return degrees * T(M_PI) / T(180.f);
-}
-
-template <class T> T RADIANS_TO_DEGREES(T radians)
-{
-	return radians / T(M_PI) * T(180.f);
-}
-
-
-//namespace Proto{
+#define GLM_SWIZZLE 
+#include <glm/glm.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
 
 class ProtoGraphics
 {
@@ -57,6 +60,8 @@ public:
 
 	void setTitle( const std::string &str);
 
+	void setTexture( const std::string& path );
+
 	void shutdown();
 
 	void cls( float r, float g, float b );
@@ -75,8 +80,6 @@ public:
 
 	int getMouseY();
 
-	FirstPersonCamera& getCamera();
-
 	bool mouseDownLeft();
 
 	bool mouseDownRight();
@@ -91,11 +94,11 @@ public:
 
 	void setAlpha( float a );
 
-	void setEmissive( glm::vec3 emissive );
-
 	void setOrientation( const glm::mat4 &ori );
 
 	void setScale( float x, float y, float z );
+
+	void setScale( float uniform_scale );
 
 	void setBlend( bool active );
 
@@ -111,11 +114,15 @@ public:
 
 	void drawCone( glm::vec3 p1, glm::vec3 p2, float radius );
 
-	void drawCube( glm::vec3 position, float radius );
+	void drawCube( glm::vec3 position );
 
 	void drawPlane( glm::vec3 position, glm::vec3 normal, float radius );
 
-	void drawRoundedCube(glm::vec3 pos, float radius, float edge_radius);
+	// Draw mesh, create transformation from two angles, horizontal and vertical rotation
+	void drawMesh( glm::vec3 pos, float hang, float vang, std::string path );
+
+	// Draw mesh using current transformation matrix
+	void drawMesh( glm::vec3 pos, std::string path );
 
 	void frame();
 private:
@@ -144,6 +151,9 @@ private:
 
 	void init_phong( Shader& active_shader );
 
+	bool install_shaders();
+
+	void save_state( BaseState3D* state );
 	
 private:
 	static ProtoGraphics *instance;
@@ -160,19 +170,21 @@ private:
 	glm::vec2 move_to_state;
 	int blend_state;
 	glm::mat4 currentOrientation;
+	glm::vec3 currentPosition; // TODO. basically moveTo in 3D
 	glm::vec3 scale;
 
 	glm::vec3 light_pos;
-	glm::vec3 emissiveColor;
 
-	FirstPersonCamera camera;
+	FirstPersonCamera& camera;
 
-	GeometryLibrary geo_lib;
+	GeometryLibrary &geo_lib;
 	
-	Shader shader_2d;
-	Shader shader_lines2d;
-	Shader phong_shader;
-	Shader geo_shader_normals;
+	Shader *shader_2d;
+	Shader *shader_lines2d;
+	Shader *phong_shader;
+	Shader *geo_shader_normals;
+
+	std::vector< Shader* > shader_list;
 	
 	std::vector< LineSegmentState > buffered_lines;
 	std::vector< CircleState > buffered_circles;
@@ -184,9 +196,10 @@ private:
 	std::vector< CylinderState* > cylinderList;
 	std::vector< PlaneState* > planeList;
 	std::vector< CubeState* > cubeList;
+	std::vector< MeshState* > meshList;
 	
-
-	std::vector< Shader* > shader_list;
+	std::vector<BaseState3D*> opaque;
+	std::vector<BaseState3D*> translucent;
 
 	double delta_time;
 	double time;

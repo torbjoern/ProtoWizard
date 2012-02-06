@@ -4,6 +4,7 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
+layout(location = 2) in vec2 texcoord;
 
 uniform mat4 worldMatrix;
 uniform mat4 viewMatrix;
@@ -15,7 +16,7 @@ uniform int isSphere;
 uniform vec3 cameraSpaceLightPos;
 
 out vec3 fNormal, lightDir, eyeVec;
-
+out vec2 fTexcoord;
 
 
 void main()
@@ -44,6 +45,8 @@ void main()
     // explaination of why normals must be transformed with a normal matrix: www.lighthouse3d.com/.../the-normal-matrix/
 	//mat4 my_NormalMatrix = transpose(inverse(mv)); //modelview inverse;
 	//fNormal = normalize(my_NormalMatrix * vec4(fNormal,1.0)).xyz;  
+
+	fTexcoord = texcoord;
 }
 
 

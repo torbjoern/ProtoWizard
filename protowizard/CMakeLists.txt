@@ -1,18 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
-
-set(CMAKE_MODULE_PATH F:/gitrepos/cmake/modules/)
-
-find_package(OPENGL REQUIRED)
-
-find_package(GLM REQUIRED)
-include_directories(${GLM_INCLUDE_DIR})
-
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIR})
-
-find_package(GLFW REQUIRED)
-include_directories(${GLFW_INCLUDE_DIR})
+include_directories (${KIXXOR_OBJ_LOADER_SOURCE_DIR}/KIXXOR_OBJ_LOADER ) 
+link_directories (${KIXXOR_OBJ_LOADER_BINARY_DIR}/KIXXOR_OBJ_LOADER ) 
 
 set(HDRS
 	camera.h
@@ -33,7 +22,9 @@ set(HDRS
 	shapes/cylinder.h
 	shapes/cube.h
 	shapes/circle.h
-	
+	shapes/mesh.h
+
+	texture_manager.h
 )
 
 set(SRCS
@@ -47,6 +38,24 @@ set(SRCS
 	depends/noise/perlin.cpp
 	
 	shapes/shapes.cpp
+	shapes/mesh.cpp
+
+	texture_manager.cpp
+)
+
+set(SHADERS
+	shader2d.frag
+	shader2d.vert
+
+	line2d_shader.frag
+	line2d_shader.vert
+
+	phong.frag
+	phong.vert
+
+	passthru.vert
+	normals.gs
+	normals.frag
 )
 
 
@@ -54,6 +63,6 @@ add_library( ProtoWizard ${HDRS} ${SRCS} )
 
 set_target_properties(ProtoWizard
       PROPERTIES
-      target_link_libraries (ProtoWizard ${OPENGL_LIBRARIES} ${GLEW_LIB} ${GLFW_LIB} )
+      target_link_libraries (ProtoWizard ${KIXXOR_OBJ_LOADER} ${OPENGL_LIBRARIES} ${GLEW_LIB} ${GLFW_LIB}  )
   )
 
