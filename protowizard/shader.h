@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include <vector>
+#include <algorithm>
 
 enum eShaderTypes { VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER };
 
@@ -15,7 +16,6 @@ class ShaderSource
 {
 public:
 	explicit ShaderSource(std::string _sourcefile, int _shader_type);
-
 
 	bool compile();
 	bool load_sourcefile();
@@ -38,6 +38,11 @@ public:
 	{
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteProgram.xml
 		glDeleteProgram( program );
+
+		// http://www.opengl.org/sdk/docs/man/xhtml/glDeleteShader.xml
+		for(auto it=shaderList.begin(); it!=shaderList.end(); ++it){
+			glDeleteShader( (*it).program );
+		}
 	}
 
 	bool install(const char* VSPath, const char* FSPath);

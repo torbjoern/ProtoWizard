@@ -22,9 +22,12 @@ public:
 class TextureManager
 {
 public:
-	static void setTexture( const std::string& file_path );
-	static unsigned int getActiveTexture(){ return active_texture->tex_handle; }
+	TextureManager();
+	void shutdown();
+	void disableTextures() { active_texture.tex_handle = 0; }
+	void setTexture( const std::string& file_path );
+	unsigned int getActiveTexture(){ return active_texture.tex_handle; }
 private:
-	static std::map<std::string, TextureHandle*> texture_handle_map;
-	static TextureHandle *active_texture;
+	std::map<std::string, TextureHandle*> texture_handle_map;
+	TextureHandle active_texture;
 };

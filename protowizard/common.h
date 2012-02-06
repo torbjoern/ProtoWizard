@@ -19,6 +19,8 @@
 #include "depends/vsml.h"
 
 
+
+
 inline void GetError(const char *functionName = "unknown")
 {
 	for ( GLenum error = glGetError( ); ( GL_NO_ERROR != error ); error = glGetError( ) )

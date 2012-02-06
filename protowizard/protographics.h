@@ -2,6 +2,7 @@
 // Forward decls
 class FirstPersonCamera;
 
+class TextureManager;
 class GeometryLibrary;
 
 struct LineSegmentState;
@@ -62,6 +63,8 @@ public:
 
 	void setTexture( const std::string& path );
 
+	void disableTexture();
+
 	void shutdown();
 
 	void cls( float r, float g, float b );
@@ -102,6 +105,8 @@ public:
 
 	void setBlend( bool active );
 
+	void setLightBlend();
+
 	void setFrameRate( int frames_per_second );
 
 	void moveTo( float x, float y );
@@ -136,7 +141,8 @@ private:
 
 	static int _closeCallback(void)
 	{
-		instance->shutdown();
+		// dont shut down ProtoGraphics yet. Allow its dtor to run
+		instance->isRunning = false;
 		
 		return 0; // Do not close OpenGL context yet...
 	}
@@ -177,6 +183,7 @@ private:
 
 	FirstPersonCamera& camera;
 
+	TextureManager &texture_manager;
 	GeometryLibrary &geo_lib;
 	
 	Shader *shader_2d;

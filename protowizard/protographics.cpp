@@ -21,11 +21,12 @@
 ProtoGraphics* ProtoGraphics::instance = 0x0; // C++ hack, static variables must be instantiated in a cpp
 
 FirstPersonCamera NULL_CAMERA = FirstPersonCamera();
+TextureManager NULL_TEX_MGR = TextureManager();
 GeometryLibrary NULL_GEO_LIB = GeometryLibrary();
 
 const glm::mat4 identityMatrix(1.f);
 
-ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), geo_lib(NULL_GEO_LIB)
+ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), texture_manager(NULL_TEX_MGR), geo_lib(NULL_GEO_LIB)
 {
 	instance = this;
 
@@ -164,9 +165,9 @@ bool ProtoGraphics::init(int xres, int yres)
 	// TODO: use GL 3.3 and core profile that wont run any deprecated stuff
 	// TODO will fail if vidcard doesnt support gl 3.3... make a function that tries highest first, then steps down
 	// or just remove for release build
-	//glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+	//glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3); // was using 3.2, but soil isn't compatible
 	//glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-	//glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // requires gl 3.2?
 	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
 	ok = glfwOpenWindow(xres,yres,8,8,8,8,24,8,GLFW_WINDOW); // Important to either use 32 bit depth, or 24d8s
 	if (ok == 0 ) return false;
@@ -226,19 +227,27 @@ void ProtoGraphics::setTitle( const std::string &str)
 
 void ProtoGraphics::setTexture( const std::string& path )
 {
-	TextureManager::setTexture( path );
+	texture_manager.setTexture( path );
 }
 
+void ProtoGraphics::disableTexture()
+{
+	texture_manager.disableTextures();
+}
+
+// shutdown is called by the class destructor
+// C++ classes call their own dtor first, then dtors of their members
+// this means we can't rely on dtors freeing opengl resources, not that it matters really
+// the graphics drivers will clean up any un-released objects anyway once the program has shut down
+// cleaning up as an exercise.
 void ProtoGraphics::shutdown()
 {	
+	texture_manager.shutdown();
 	geo_lib.shutdown();
 
 	for(unsigned int i=0; i<shader_list.size(); i++){
 		shader_list[i]->shutdown();
 	}
-
-
-	isRunning = false;
 
 	glfwCloseWindow();
 	glfwTerminate();
@@ -440,6 +449,11 @@ void ProtoGraphics::setBlend( bool active )
 		
 }
 
+void ProtoGraphics::setLightBlend()
+{
+	blend_state = blending::ADDITIVE_BLEND;
+}
+
 void ProtoGraphics::setFrameRate( int frames_per_second )
 {
 	if ( frames_per_second >= 1 )
@@ -472,7 +486,7 @@ void ProtoGraphics::save_state( BaseState3D* state )
 {
 	state->color = this->colorState;
 	state->blend_mode = this->blend_state;
-	state->tex_handle = TextureManager::getActiveTexture();
+	state->tex_handle = texture_manager.getActiveTexture();
 
 	if( state->blend_mode == blending::SOLID_BLEND )
 	{
@@ -717,12 +731,7 @@ void ProtoGraphics::draw_buffered_shapes()
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDepthMask.xml
 		glDepthMask(GL_FALSE);
 
-		//http://www.opengl.org/sdk/docs/man/xhtml/glBlendFunc.xml
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Don't care about alpha of what we write over
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending incoming and inversely what was there before
 		glEnable(GL_BLEND);
-
-
 		int num_objs = translucent.size();
 		//for (int i=0; i<num_objs; i++)
 		//for (unsigned int i=num_objs-1; i>0; i--)

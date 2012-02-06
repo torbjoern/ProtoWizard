@@ -11,37 +11,43 @@
 #include "../vertex_types.h"
 #include "../common.h"
 
+#include <map>
+
+
+class Mesh;
+
 class GeometryLibrary
 {
 
 public:
+
 	bool init();
 
-	void shutdown()
-	{
-		circle.shutdown();
-		line.shutdown();
-		sphere.shutdown();
-		cube.shutdown();
-		cylinder.shutdown();
-		plane.shutdown();
-	}
+	void shutdown();
 
+	// if the mesh couldn't be found, it draws a placeholder... some error register should indicate this
+	void drawMesh( const std::string& file_path );
+
+	Mesh* createMesh(const std::string& fileName);
+
+public:
 	LineGeometry line;
 	CircleGeometry circle;
 	CylinderGeometry cylinder;
 	SphereGeometry sphere;
 	CubeGeometry cube;
 	PlaneGeometry plane;
+private:
+	std::map<std::string, Mesh*> mesh_map;
 };
 
 namespace blending
 {
 	enum BLEND_MODES
 	{
-		SOLID_BLEND = 1,
-		ALPHA_BLEND,
-		ADDITIVE_BLEND
+		SOLID_BLEND = 1, // no blending
+		ALPHA_BLEND, // GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA
+		ADDITIVE_BLEND, // GL_SRC_ALPHA,GL_ONE
 	};
 }
 
@@ -68,17 +74,37 @@ struct BaseState3D : public BaseState
 		return blend_mode != blending::SOLID_BLEND;
 	}
 
+	void setBlendMode()
+	{
+		//http://www.opengl.org/sdk/docs/man/xhtml/glBlendFunc.xml
+		switch ( blend_mode )
+		{
+		case blending::ADDITIVE_BLEND:
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Don't care about alpha of what we write over
+			break;
+		case blending::ALPHA_BLEND:
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // blending incoming and inversely what was there before
+			break;
+		}
+	}
+
 	virtual void pre_draw(Shader const& shader)
 	{
 		if ( tex_handle != 0 )
 		{
+			shader.SetInt( shader.GetVariable("use_textures"), 1 );
+
 			// http://www.opengl.org/wiki/GLSL_Samplers#Binding_textures_to_samplers
 			// TODO sort by material/texture to avoid unneccessary swappign and binds?
 			int loc = shader.GetVariable("tex0");
 			shader.SetInt( loc, 0 );
 			glActiveTexture(GL_TEXTURE0 + 0); // Texture Unit to use
 			glBindTexture(GL_TEXTURE_2D, tex_handle); // texture_handle to bind to currently active unit
+		} else {
+			shader.SetInt( shader.GetVariable("use_textures"), 0 );
 		}
+
+		setBlendMode();
 
 		int worldLoc = shader.GetVariable("worldMatrix");
 		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );

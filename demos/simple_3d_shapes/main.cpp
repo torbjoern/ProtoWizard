@@ -60,11 +60,31 @@ int main()
 		proto.drawCone( glm::vec3( 0.f, -5.f, 0.f), glm::vec3(0.f, 5.f, 0.f), 0.5f );
 
 		proto.setColor(1.f, 1.f, 1.f);
-		proto.setTexture("assets/textures/hello.tga");
+		proto.setTexture("assets/textures/lightcycle.png");
 		proto.drawPlane( glm::vec3(5.0f, -1.f, 0.f), glm::vec3( 0.f, 0.f, 1.f ), 2.f );
 
-		proto.setTexture("assets/textures/test_rect.tga");
-		proto.drawPlane( glm::vec3(5.0f, 5.f, 0.f), glm::vec3( 0.f, 0.f, 1.f ), 2.f );
+
+		proto.setTexture("assets/textures/alpha_particle.png");
+		proto.setLightBlend();
+		proto.setAlpha( 0.125 );
+		for( int i=0; i<100; i++ )
+		{
+			proto.drawPlane( glm::vec3(5.0f, 5.f, 0.f - i*0.05f), glm::vec3( 0.f, 0.f, 1.f ), 2.f );
+
+			proto.drawPlane( glm::vec3(10.0f, 5.f + i*0.05f, -5.f ), glm::vec3( 0.f, 1.f, 0.f ), 2.f );
+		}
+		proto.setBlend( false );
+		proto.setAlpha( 1.f );
+
+		proto.setTexture("assets/textures/whitehen.tga");
+		proto.setBlend( true );
+		//proto.setLightBlend();
+		for( int i=0; i<10; i++ )
+		{
+			proto.setColor( protowizard::hsv2rgb( i/10.f * 360.f, 1,1 ) ); 
+			proto.drawMesh( glm::vec3(0.f + i*0.5f, -2.f, -1.f - i * 0.5f) , "assets/models/googley_chicken.obj");
+		}
+		proto.setBlend( false );
 
 		float t1 = proto.klock();
 		float t2 = t1 + 3.14f;

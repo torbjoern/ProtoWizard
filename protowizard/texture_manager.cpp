@@ -4,12 +4,25 @@
 
 #include "common.h"
 
-std::map<std::string, TextureHandle*> TextureManager::texture_handle_map; // init static var
-TextureHandle* TextureManager::active_texture = new TextureHandle(0);
 
 TextureHandle::~TextureHandle()
 {
 	glDeleteTextures( 1, &tex_handle );
+}
+
+
+
+TextureManager::TextureManager() : active_texture(0)
+{
+}
+
+void TextureManager::shutdown()
+{
+	size_t num_items = texture_handle_map.size();
+	for( auto it=begin(texture_handle_map); it!=end(texture_handle_map); ++it)
+	{
+		delete it->second;
+	}
 }
 
 void TextureManager::setTexture( const std::string& file_path )
@@ -28,7 +41,7 @@ void TextureManager::setTexture( const std::string& file_path )
 
 		GLuint texture_handle = 0;
 		glGenTextures( 1, &texture_handle );
-		texture_handle = SOIL_load_OGL_texture(cstr_path, 3, texture_handle, SOIL_FLAG_MIPMAPS|SOIL_FLAG_POWER_OF_TWO ); // SOIL_FLAG_INVERT_Y kan være nyttig 
+		texture_handle = SOIL_load_OGL_texture(cstr_path, SOIL_LOAD_AUTO, texture_handle, SOIL_FLAG_MIPMAPS|SOIL_FLAG_MULTIPLY_ALPHA ); // SOIL_FLAG_INVERT_Y kan være nyttig 
 		//glActiveTexture(GL_TEXTURE0 + 0); // Texture Unit to use
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 		
@@ -48,7 +61,7 @@ void TextureManager::setTexture( const std::string& file_path )
 		GetError( "TextureManager::setTexture" );
 	} 
 
-	active_texture = texture_handle_map[file_path];
+	active_texture = (*texture_handle_map[file_path]);
 }
 
 
