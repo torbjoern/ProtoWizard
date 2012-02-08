@@ -54,6 +54,11 @@ bool Shader::compileSources()
 	ShaderSourceList::iterator it;
 	for(it=shaderList.begin(); it!=shaderList.end(); ++it){
 		ShaderSource &shader= (*it);
+
+		if ( !shader.hasSourcecode() ) {
+			std::cout << "could not compile shader: " << this->name << " missing source" << std::endl;
+			return false;
+		}
 		
 		bool compiled = shader.compile();
 		if ( !compiled ){
@@ -220,18 +225,19 @@ ShaderSource::ShaderSource(std::string _sourcefile, int _shader_type){
 	sourcefile = _sourcefile;
 	shader_type = _shader_type;
 
-	load_sourcefile();
-	
-
-	if ( shader_type == VERTEX_SHADER )
+	if ( load_sourcefile() )
 	{
-		program = glCreateShader(GL_VERTEX_SHADER);
-	}else if( shader_type == GEOMETRY_SHADER ){
-		program = glCreateShader(GL_GEOMETRY_SHADER);
+		if ( shader_type == VERTEX_SHADER )
+		{
+			program = glCreateShader(GL_VERTEX_SHADER);
+		}else if( shader_type == GEOMETRY_SHADER ){
+			program = glCreateShader(GL_GEOMETRY_SHADER);
+		}
+		else if( shader_type == FRAGMENT_SHADER ){
+			program = glCreateShader(GL_FRAGMENT_SHADER);
+		}
 	}
-	else if( shader_type == FRAGMENT_SHADER ){
-		program = glCreateShader(GL_FRAGMENT_SHADER);
-	}
+	
 }
 
 bool ShaderSource::load_sourcefile()

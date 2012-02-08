@@ -44,7 +44,7 @@ int main()
 	size_t numframes = 0;
 
 	glm::vec3 cam_pos(0.f, 2.f, -15.f);
-	glm::vec3 cam_target = cam_pos + glm::vec3(0.f, 0.f, 1.f);
+	glm::vec3 cam_target = glm::vec3(0.f, 0.f, 1.f);
 
 
 	proto.setTitle( "your friendly example project" );
@@ -98,21 +98,12 @@ int main()
 		}
 		proto.setScale(1.f);
 
+		float revolutions_per_second = TWO_PI / 10.f;
+		float spin = revolutions_per_second * proto.klock();
+
+		cam_pos = 10.f * glm::vec3( sin(spin), 0.f, cos(spin) );
 		proto.setCamera( cam_pos, cam_target, glm::vec3(0.f, 1.f, 0.f) );
 		
-		glm::vec3 to_target = -cam_target;
-		float vel_x = (float) ( proto.keystatus('A') - proto.keystatus('D') );
-		float vel_z = (float) ( proto.keystatus('W') - proto.keystatus('S') );
-
-		if ( fabs(vel_x) > 0.0f || fabs(vel_z) > 0.0f ) {
-			float dt = proto.getMSPF();
-			float vel_per_sec = 10.0f;
-			if ( proto.keystatus('M') ) vel_per_sec *= 2.f;
-
-			glm::vec3 cam_delta( vel_x * vel_per_sec * dt, 0.f, vel_z * vel_per_sec * dt );
-			cam_pos += cam_delta;
-			cam_target += cam_delta;
-		}
 
 		proto.frame();
 		numframes++;

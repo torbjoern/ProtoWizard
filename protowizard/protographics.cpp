@@ -314,6 +314,7 @@ void ProtoGraphics::frame()
 	delta_time = time_since_program_started - old_time;
 	old_time = time_since_program_started;
 
+	// time program har spent running. minimized state not counted
 	time += delta_time;
 
 	double time_to_sleep = 0.0;
@@ -349,9 +350,9 @@ int ProtoGraphics::getWindowHeight()
 	return yres;
 }
 
-float ProtoGraphics::klock()
+double ProtoGraphics::klock()
 {
-	return (float) time;
+	return glfwGetTime();
 }
 
 int ProtoGraphics::getMouseX() 
@@ -494,13 +495,13 @@ void ProtoGraphics::save_state( BaseState3D* state )
 	}else{
 		translucent.push_back(state);
 	}
-	
 }
 
 void ProtoGraphics::drawCircle( float x, float y, float radius )
 {
 	CircleState state;
 	state.color = colorState;
+	state.blend_mode = blend_state;
 	state.x = x;
 	state.y = y;
 	state.radius = radius;
@@ -631,6 +632,15 @@ void ProtoGraphics::draw_buffered_circles()
 
 	for (unsigned int i=0; i<buffered_circles.size(); i++)
 	{
+		CircleState& circle = buffered_circles[i];
+		if ( circle.blend_mode != blending::SOLID_BLEND )
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE); // GL_ONE dont care, or GL_ONE_MINUS_SRC_ALPHA
+		} else {
+			glDisable(GL_BLEND);
+		}
+
 		float x = buffered_circles[i].x;
 		float y = buffered_circles[i].y;
 		float radius = fabs(buffered_circles[i].radius);
@@ -683,7 +693,7 @@ void ProtoGraphics::draw_buffered_shapes()
 	unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
 		
 	glm::mat4 projection =
-		glm::perspective(75.0f, xres/(float)yres, 0.5f, 1000.f);
+		glm::perspective(90.0f, xres/(float)yres, 0.5f, 1000.f);
 	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 	glm::mat4 viewMatrix = camera.getViewMatrix();

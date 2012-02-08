@@ -19,7 +19,13 @@ include_directories(${GLFW_INCLUDE_DIR})
 find_package(SOIL REQUIRED)
 include_directories(${SOIL_INCLUDE_DIR})
 
+find_package(BASS REQUIRED)
+include_directories(${BASS_INCLUDE_DIR})
+
 add_subdirectory (protowizard) 
 add_subdirectory (depends/obj_loader)
+add_subdirectory (depends/bass_wrapper)
 add_subdirectory (demos/simple_3d_shapes)
 add_subdirectory (demos/blending)
+add_subdirectory (demos/fractal2d)
+add_subdirectory (demos/stress_test)

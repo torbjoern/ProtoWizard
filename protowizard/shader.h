@@ -20,6 +20,8 @@ public:
 	bool compile();
 	bool load_sourcefile();
 
+	bool hasSourcecode() { return sourcecode.length() > 0; }
+
 public:
 	int program;
 	int shader_type;

@@ -77,7 +77,7 @@ public:
 
 	static ProtoGraphics* getInstance() { return instance; }
 	
-	float klock();
+	double klock();
 
 	int getMouseX();
 

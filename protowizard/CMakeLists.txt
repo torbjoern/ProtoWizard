@@ -60,9 +60,3 @@ set(SHADERS
 
 
 add_library( ProtoWizard ${HDRS} ${SRCS} )
-
-set_target_properties(ProtoWizard
-      PROPERTIES
-      target_link_libraries (ProtoWizard ${KIXXOR_OBJ_LOADER} ${OPENGL_LIBRARIES} ${GLEW_LIB} ${GLFW_LIB}  )
-  )
-
