@@ -1,13 +1,11 @@
 #include <protographics.h>
-#include "color_utils.h"
+#include <color_utils.h>
+#include <math/math_common.h>
 
 glm::vec2 pointOnCicle( float u )
 {
 	return glm::vec2( cos(u), sin(u) );
 }
-
-const float PI = 3.141592f;
-const float TWO_PI = 2.f * 3.141592f;
 
 void circle_of_things( ProtoGraphics& proto )
 {
@@ -18,9 +16,9 @@ void circle_of_things( ProtoGraphics& proto )
 	int num_things = 12;
 	for ( int i=0; i<num_things; i++ ){
 		float param = i / float(num_things);
-		float ang =  param * (2.f * PI);
+		float ang =  param * (TWO_PI);
 		glm::vec2 point = 10.f * pointOnCicle( ang ); 
-		float normalized = ang/(2.f * PI);
+		float normalized = ang/(TWO_PI);
 		float hang = normalized * 360.f;
 
 		proto.setColor( protowizard::hsv2rgb( hang, 1,1 ) ); 
@@ -99,7 +97,7 @@ int main()
 		proto.setScale(1.f);
 
 		float revolutions_per_second = TWO_PI / 10.f;
-		float spin = revolutions_per_second * proto.klock();
+		float spin = revolutions_per_second * (float)proto.klock();
 
 		cam_pos = 10.f * glm::vec3( sin(spin), 0.f, cos(spin) );
 		proto.setCamera( cam_pos, cam_target, glm::vec3(0.f, 1.f, 0.f) );

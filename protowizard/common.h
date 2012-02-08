@@ -1,9 +1,6 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#define TWO_PI     6.28318530717958647692f
-#define M_PI       3.14159265358979323846f
-
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GL/glfw.h>
@@ -17,8 +14,7 @@
 #include "vertex_types.h"
 #include "shader.h"
 #include "depends/vsml.h"
-
-
+#include "math/math_common.h"
 
 
 inline void GetError(const char *functionName = "unknown")
@@ -40,20 +36,5 @@ inline void GetError(const char *functionName = "unknown")
 	}
 }
 
-template <class T> T DEGREES_TO_RADIANS(T degrees)
-{
-	return degrees * T(M_PI) / T(180.f);
-}
-
-template <class T> T RADIANS_TO_DEGREES(T radians)
-{
-	return radians / T(M_PI) * T(180.f);
-}
-
-#define lerp(t, a, b) ( a + t * (b - a) )
-
-
 #endif
-
-
 

@@ -1,5 +1,6 @@
 #include <protographics.h>
 #include "color_utils.h"
+#include "math/math_common.h"
 
 #include "../../depends/bass_wrapper/bass_wrapper.h"
 
@@ -10,8 +11,6 @@ glm::vec2 pointOnCicle( float u )
 	return glm::vec2( cos(u), sin(u) );
 }
 
-const float PI = 3.141592f;
-const float TWO_PI = 2.f * 3.141592f;
 const glm::mat4 identityMatrix(1.f);
 
 struct SpectrumViz
@@ -142,7 +141,7 @@ void tunnel( ProtoGraphics& proto, BassWrapper &bassWrapper )
 	proto.setColor(1.f, 0.f, 0.f);
 	float block_size = 1.f;
 
-	float time = proto.klock();
+	float time = (float)proto.klock();
 
 	proto.setScale(0.75f);
 
@@ -153,7 +152,7 @@ void tunnel( ProtoGraphics& proto, BassWrapper &bassWrapper )
 		
 		proto.setColor( protowizard::hsv2rgb( fmod( (time + normalized_i) * 180.f, 360.f), 1,1 ) ); 
 
-		float beat_scale = 5.f * sin(time + PI * normalized_i);
+		float beat_scale = 5.f * sin(time + M_PI * normalized_i);
 		float scale = 10.f + beat_scale;
 
 		//float sk = 0.75f + std::max(0.f, 0.5f*beat_scale);
@@ -178,9 +177,9 @@ void circle_of_birds( ProtoGraphics& proto )
 	int num_birds = 18;
 	for ( int i=0; i<num_birds; i++ ){
 		float param = i / float(num_birds);
-		float ang =  param * (2.f * PI);
+		float ang =  param * (TWO_PI);
 		glm::vec2 point = 5.f * pointOnCicle( ang ); 
-		float normalized = ang/(2.f * PI);
+		float normalized = ang/(TWO_PI);
 		float hang = normalized * 360.f;
 		proto.setColor( hang, 1,1 ); 
 		proto.setTexture("assets/textures/whitehen.tga");
