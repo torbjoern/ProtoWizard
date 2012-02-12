@@ -4,3 +4,19 @@ aims to be a useful library for creating:
 -games
 -sound/music visualizations
 
+uses the following libs:
+
+GL3W for OpenGL defines and function grabbing 
+https://github.com/skaslev/gl3w/
+
+GLFW for window handling
+https://github.com/elmindreda/glfw
+
+GLM math lib
+glm.g-truc.net/
+
+SOIL for texture loading
+http://lonesock.net/soil.html
+
+BASS for sound playback and analysis (FFT)
+http://www.un4seen.com/

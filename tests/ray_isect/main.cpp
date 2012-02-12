@@ -1,10 +1,11 @@
-#define GLM_SWIZZLE 
-#include <glm/glm.hpp>
 
 #include "protographics.h"
+#include "math/math_common.h"
 
+#include <iostream>
 #include <functional>
 #include <cassert>
+
 
 
 
@@ -52,7 +53,9 @@ struct chunk {
 				{
 					if ( blk[x][y][z] )
 					{
-						protoGraphics.drawCube( parent_pos + glm::vec3(x,y,z) , 0.5f );
+						protoGraphics.setScale( 0.5f );
+						protoGraphics.drawCube( parent_pos + glm::vec3(x,y,z) );
+						protoGraphics.setScale( 1.0f );
 					}
 					
 				}
@@ -134,13 +137,15 @@ public:
 	}
 
 	void draw(ProtoGraphics &proto){
-		proto.drawCube( glm::vec3(x,y,z), half_size);
+		proto.setScale( half_size );
+		proto.drawCube( glm::vec3(x,y,z) );
+		proto.setScale( 1.f );
 	}
 
 
-	int x;
-	int y;
-	int z;
+	float x;
+	float y;
+	float z;
 	float half_size;
 };
 
@@ -236,24 +241,19 @@ bool isect_ray_box( Ray ray, glm::vec3 box_pos, glm::vec3 box_dim, glm::vec3 &no
 
 void scene(ProtoGraphics &proto)
 {
-	
-
-	
-
 	int mousx = proto.getMouseX();
 	int mousy = proto.getMouseY();
 
-	float ma = 3.14f + mousx / (float)proto.getWindowWidth() * TWO_PI;
+	float ma = M_PI + mousx / (float)proto.getWindowWidth() * TWO_PI;
 	
 	proto.setColor(1,1,1);
 	
 	Ray charles( glm::vec3(-5,2.0,4.0), glm::vec3(15.0 * cos(ma), 0.0, 18.0 * sin(ma) ) );
 	charles.draw(proto);
 
-	ma += 3.14f;
+	ma += M_PI;
 	Ray man( glm::vec3(15,4.0,4.0), glm::vec3(15.0 * cos(ma), 0.0, 18.0 * sin(ma) ) );
 	man.draw(proto);
-
 
 
 	int x = 0;
@@ -263,7 +263,7 @@ void scene(ProtoGraphics &proto)
 	int tot = (int)pow( (float)side_by_side, 3.f );
 	for(int i=0; i<tot; i++){
 		float scale = 0.5f;
-		Cube c( (int)scale*x, (int)scale*y, (int)scale*z, scale);
+		Cube c( scale*x, scale*y, scale*z, scale);
 
 		x++;
 		if ( x >= side_by_side ){
@@ -300,11 +300,11 @@ void scene(ProtoGraphics &proto)
 		else
 		{
 			proto.setColor(1,1,1);
-			proto.setAlpha(0.1f);
+			proto.setAlpha(0.25f);
 			proto.setBlend(true);
 		}
 		
-
+		proto.disableTexture();
 		c.draw( proto );
 
 	}
@@ -386,49 +386,32 @@ int main()
 	using glm::vec3;
 
 	ProtoGraphics proto;
-	assert( proto.init(640,480) );
+	if (proto.init(640,480) == false )
+	{
+		std::cerr << "proto failed to init" << std::endl;
+		return 1;
+	}
 
-	proto.setCamera( vec3(-30.f, -20.f, -60.f), 0,0 );
-
-
-	superchunk universe;
+	
 
 	double seconds = 0.0;
 	IncFunctor my_functor( seconds );
 
 	Timer secTimer( my_functor , 1.0 / 4.0  );
 
-	while( proto.isWindowOpen() )
+	do
 	{
 		secTimer.update();
 
 		proto.cls(0,0,0);
 
-	double world_scale = SCX * CX;
-
-	for (int x=0; x<SCX * CX; x++)
-	{
-		for (int y=0; y<SCY * CY; y++)
-		{
-			for (int z=0; z<SCZ * CZ; z++)
-			{
-				//if ( proto.octaves_of_noise(16, -0.5 + x/15.0 , -0.5 + y/15.0, -0.5 + z/15.0 ) < 0.0 )
-				if ( proto.octaves_of_noise(1, 1.0* x/world_scale + seconds * 0.1,   1.0* y/world_scale, 1.0 * z/world_scale  ) > 0.2 )
-				{
-					universe.set( x, y, z, 1 );
-				} 
-				else
-				{
-					universe.set( x, y, z, 0 );
-				}
-					
-
-			}
-		}
-	}
+		float normalized_mx = proto.getMouseX() / (float) proto.getWindowWidth();
+		float normalized_my = proto.getMouseY() / (float) proto.getWindowHeight();
+		proto.setCamera( vec3(-0.f, 3.f, -10.f -normalized_my * 15.f), vec3(0.f, 0.f, 0.f), vec3(0.f, 1.f, 0.f) );
 
 
-	draw_line_cube( proto, glm::vec3( world_scale*0.5f ), world_scale );
+
+	//draw_line_cube( proto, glm::vec3( world_scale*0.5f ), world_scale );
 
 		
 		//for (int i=0; i<20; i++)
@@ -443,9 +426,9 @@ int main()
 		//	}
 		//}
 
-		//scene(proto);
+		scene(proto);
 		proto.setColor( 1, 1, 1);
-		universe.render(proto);
+		//universe.render(proto);
 
 		proto.setColor( 1, 1, 0 );
 		proto.moveTo( 0.f, 0.f );
@@ -461,6 +444,6 @@ int main()
 
 
 		proto.frame();
-	}
+	}while( proto.isWindowOpen() );
 	return 0;
 }

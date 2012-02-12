@@ -197,7 +197,7 @@ int obj_parse_mtl_file(char *filename, list *material_list)
 	FILE *mtl_file_stream;
 	
 	// open scene
-	mtl_file_stream = fopen( filename, "r");
+	fopen_s( &mtl_file_stream, filename, "r");
 	if(mtl_file_stream == 0)
 	{
 		fprintf(stderr, "Error reading file: %s\n", filename);

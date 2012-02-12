@@ -144,13 +144,13 @@ bool ProtoGraphics::install_shaders()
 		shader_list.push_back( geo_shader_normals );
 	}
 
-	GetError("install_shaders"); // __FUNCTION__ 
-
 	int tex0 = glGetUniformLocation( phong_shader->getProgram() , "tex0");
 	phong_shader->begin();
 	glUniform1i(tex0, 0); // sampler "tex0" refers to texture unit 0
 
-	GetError("install_shaders end");
+#ifdef _DEBUG
+	 GetError("ProtoGraphics::install_shaders end"); 
+#endif
 
 	return true;
 }
@@ -207,11 +207,12 @@ bool ProtoGraphics::init(int xres, int yres)
 
 	if ( !install_shaders() ) return false;
 		
-
-	glEnable(GL_MULTISAMPLE);
-	GetError();
-			
+	glEnable(GL_MULTISAMPLE);			
 	isRunning = true;
+
+#ifdef _DEBUG
+	 GetError("ProtoGraphics::init"); 
+#endif
 	return true;
 }
 
@@ -271,12 +272,17 @@ void ProtoGraphics::cls( float r, float g, float b )
 	assert( isRunning );
 	glClearColor( r,  g,  b, 1.0f );
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+#ifdef _DEBUG
+	GetError("ProtoGraphics::cls");
+#endif
 }
 
 void ProtoGraphics::frame()
 {	
 	assert( isRunning );
-	GetError();
+#ifdef _DEBUG
+	GetError("ProtoGraphics::frame begin");
+#endif
 	
 	//camera.update( keystatus(GLFW_KEY_LEFT), keystatus(GLFW_KEY_RIGHT), keystatus(GLFW_KEY_UP), keystatus(GLFW_KEY_DOWN), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
 	//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
@@ -312,6 +318,7 @@ void ProtoGraphics::frame()
 	size_t num_objs = buffered_shapes.size();
 	if ( num_objs > max_objs ){ max_objs = num_objs; }
 
+
 	draw_buffered_objects();
 
 	if ( keyhit('2') )
@@ -344,8 +351,13 @@ void ProtoGraphics::frame()
 	//sprintf_s(title_buf, 256, " %2.2f mspf, %2.2f mspf with sleep,  numObjs = %i, max = %i", delta_time*1000.0, (delta_time+time_to_sleep)*1000.0, num_objs, max_objs);
 	//glfwSetWindowTitle(title_buf);
 
+#ifdef _DEBUG
+	GetError("ProtoGraphics::frame end");
+#endif
+
 	numframes++;
 	glfwSwapBuffers();
+
 }
 
 bool ProtoGraphics::isWindowOpen()
@@ -804,7 +816,9 @@ void ProtoGraphics::draw_buffered_shapes()
 
 	buffered_shapes.clear();
 
-	GetError( __FUNCSIG__ );
+#ifdef _DEBUG
+	 GetError("ProtoGraphics::draw_buffered_shapes 3D end"); 
+#endif
 }
 
 void ProtoGraphics::draw_buffered_objects()
@@ -826,6 +840,10 @@ void ProtoGraphics::draw_buffered_objects()
 	// for 2D we want overdraw in all cases, so turn depth test off
 	glDisable( GL_DEPTH_TEST );
 
+
+	if ( buffered_lines.size() > 0 ) 
+		draw_buffered_lines();
+
 	shader_2d->begin();
 
 	// TODO, uniform locs could be moved to init code, so they are only set once, 
@@ -840,9 +858,10 @@ void ProtoGraphics::draw_buffered_objects()
 	glm::mat4 ortho_perspective_matrix = glm::ortho(0.0f, (float)xres, (float)yres, 0.f, -1.f , 1.f);
 	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(ortho_perspective_matrix) );
 
-	if ( buffered_lines.size() > 0 ) 
-		draw_buffered_lines();
-
 	if ( buffered_circles.size() > 0 ) 
 		draw_buffered_circles();
+
+#ifdef _DEBUG
+	 GetError("ProtoGraphics::draw_buffered_shapes 2D end"); 
+#endif
 }

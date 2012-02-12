@@ -27,3 +27,4 @@ add_subdirectory (demos/game_tron)
 add_subdirectory (demos/voxel)
 
 add_subdirectory (tests/obj_model)
+add_subdirectory (tests/ray_isect)
