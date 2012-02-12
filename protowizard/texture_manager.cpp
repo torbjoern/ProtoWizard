@@ -1,6 +1,6 @@
 #include "texture_manager.h"
 
-#include <SOIL.h>
+#include "../depends/soil/SOIL.h"
 
 #include "common.h"
 

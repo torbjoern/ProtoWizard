@@ -10,14 +10,8 @@ find_package(OPENGL REQUIRED)
 find_package(GLM REQUIRED)
 include_directories(${GLM_INCLUDE_DIR})
 
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIR})
-
 find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_DIR})
-
-find_package(SOIL REQUIRED)
-include_directories(${SOIL_INCLUDE_DIR})
 
 find_package(BASS REQUIRED)
 include_directories(${BASS_INCLUDE_DIR})

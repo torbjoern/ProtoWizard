@@ -15,16 +15,13 @@ set(kixxor_obj_loader_SRCS
 	../depends/obj_loader/string_extra.cpp
 )
 SOURCE_GROUP("Header Files\\Dependency\\kixxor_obj_loader" FILES ${kixxor_obj_loader_HDRS})
+SOURCE_GROUP("Source Files\\Dependency\\kixxor_obj_loader" FILES ${kixxor_obj_loader_SRCS})
 
 
-set(noise_HDRS
-  ../depends/noise/perlin.h
-)
+set(noise_HDRS ../depends/noise/perlin.h )
+set(noise_SRCS ../depends/noise/perlin.cpp )
 SOURCE_GROUP("Header Files\\Dependency\\noise" FILES ${noise_HDRS})
-
-set(noise_SRCS
-  ../depends/noise/perlin.cpp
-)
+SOURCE_GROUP("Source Files\\Dependency\\noise" FILES ${noise_SRCS})
 
 set(gl3w_HDRS 
   ../depends/gl3w/gl3.h
@@ -32,18 +29,38 @@ set(gl3w_HDRS
 )
 set(gl3w_SRCS ../depends/gl3w/gl3w.c )
 SOURCE_GROUP("Header Files\\Dependency\\gl3w" FILES ${gl3w_HDRS})
+SOURCE_GROUP("Source Files\\Dependency\\gl3w" FILES ${gl3w_SRCS})
+
+set(soil_HDRS
+	../depends/soil/image_DXT.h
+	../depends/soil/image_helper.h
+	../depends/soil/SOIL.h
+	../depends/soil/stbi_DDS_aug.h
+	../depends/soil/stb_image_aug.h
+	../depends/soil/stbi_DDS_aug_c.h
+)
+set(soil_SRCS
+	../depends/soil/image_DXT.c
+	../depends/soil/image_helper.c
+	../depends/soil/SOIL.c
+	../depends/soil/stb_image_aug.c
+)
+SOURCE_GROUP("Header Files\\Dependency\\soil" FILES ${soil_HDRS})
+SOURCE_GROUP("Source Files\\Dependency\\soil" FILES ${soil_SRCS})
 
 ######################## finally, put all dependency .h and sources into a couple of handy variables:
 set(Dependency_HDRS
   ${kixxor_obj_loader_HDRS}
   ${noise_HDRS}
   ${gl3w_HDRS}
+  ${soil_HDRS}
 )
 
 set(Dependency_SRCS
   ${kixxor_obj_loader_SRCS}
   ${noise_SRCS}
   ${gl3w_SRCS}
+  ${soil_SRCS}
 )
 
 ######################## OK, now for ProtoWizard headers and sources:

@@ -79,13 +79,10 @@ bool Shader::compileSources()
 		ShaderSource &shader= (*it);
 		if ( shader.shader_type == GEOMETRY_SHADER ){
 			// Expected to be set before linking, src: https://wiki.engr.illinois.edu/display/graphics/Geometry+Shader+Hello+World
-			//glProgramParameteriEXT( program, GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES); //GL_POINTS/GL_LINES/GL_LINES_ADJACENCY_EXT/GL_TRIANGLES/GL_TRIANGLES_ADJACENCY_EXT
-			//glProgramParameteriEXT( program, GL_GEOMETRY_OUTPUT_TYPE_EXT,GL_LINE_STRIP); //GL_POINTS/GL_LINE_STRIP/GL_TRIANGLE_STRIP
-			//glProgramParameteriEXT( program, GL_GEOMETRY_VERTICES_OUT_EXT,6); //min max=1024 ?
-
-			glProgramParameteri( program, GL_GEOMETRY_INPUT_TYPE, GL_TRIANGLES); //GL_POINTS/GL_LINES/GL_LINES_ADJACENCY_EXT/GL_TRIANGLES/GL_TRIANGLES_ADJACENCY_EXT
-			glProgramParameteri( program, GL_GEOMETRY_OUTPUT_TYPE, GL_LINE_STRIP); //GL_POINTS/GL_LINE_STRIP/GL_TRIANGLE_STRIP
-			glProgramParameteri( program, GL_GEOMETRY_VERTICES_OUT, 8); //min max=1024 ?
+			// These are needed if the geo shader doesnt specify input/out itself
+			//glProgramParameteri( program, GL_GEOMETRY_INPUT_TYPE, GL_TRIANGLES); //GL_POINTS/GL_LINES/GL_LINES_ADJACENCY_EXT/GL_TRIANGLES/GL_TRIANGLES_ADJACENCY_EXT
+			//glProgramParameteri( program, GL_GEOMETRY_OUTPUT_TYPE, GL_LINE_STRIP); //GL_POINTS/GL_LINE_STRIP/GL_TRIANGLE_STRIP
+			//glProgramParameteri( program, GL_GEOMETRY_VERTICES_OUT, 8); //min max=1024 ?
 		}
 	}
 

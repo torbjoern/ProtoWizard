@@ -7,14 +7,16 @@ void draw_models( ProtoGraphics &proto )
 {
 	proto.setScale( 1.f );
 	static float horiz = 0.f;
-	horiz += proto.getMSPF() * 100.f;
+	horiz += proto.getMSPF() * 45.f;
 
 	proto.disableTexture();
-	proto.drawMesh( glm::vec3(0.f), horiz, 0.f, "assets/models/googley_chicken.obj");
+	
+	proto.setTexture( "assets/textures/googley_hen.jpg");
+	proto.drawMesh( glm::vec3(0.f, 0.5f, 0.f), horiz, 90.f, "assets/models/googley_chicken.obj");
 
 
 	proto.setTexture( "assets/textures/cube.png");
-	proto.drawMesh( glm::vec3(-2.f, 0.f, 0.f), horiz, 0, "assets/models/cube.obj");
+	proto.drawMesh( glm::vec3(0.f, 0.f, 0.f), horiz, 0, "assets/models/cube.obj");
 }
 
 
@@ -31,7 +33,7 @@ int main()
 	proto.setFrameRate( 60 );
 	
 
-	proto.setCamera( glm::vec3(0.f, 0.f, -5.f), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f) );
+	
 	
 	char title_buf[256];
 	do
@@ -46,6 +48,8 @@ int main()
 		float normalized_my = proto.getMouseY() / (float)proto.getWindowHeight();
 		glm::vec2 normalized_mouse(normalized_mx, normalized_my);
 
+		float zoom = normalized_my * 5.f;
+		proto.setCamera( glm::vec3(0.f, zoom, -zoom), glm::vec3(0.f, 1.0f, 0.f), glm::vec3(0.f, 1.f, 0.f) );
 		draw_models( proto );
 
 		//float ang = normalized_mouse.x*6.28f;
