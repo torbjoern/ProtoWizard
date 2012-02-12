@@ -1,8 +1,7 @@
 #pragma once 
 
 #include <string>
-#define GLEW_STATIC
-#include <GL/glew.h> // for setters funcs in header
+#include "opengl_stuff.h"
 
 #include <glm/glm.hpp>
 

@@ -41,7 +41,7 @@ void TextureManager::setTexture( const std::string& file_path )
 
 		GLuint texture_handle = 0;
 		glGenTextures( 1, &texture_handle );
-		texture_handle = SOIL_load_OGL_texture(cstr_path, SOIL_LOAD_AUTO, texture_handle, SOIL_FLAG_MIPMAPS|SOIL_FLAG_MULTIPLY_ALPHA ); // SOIL_FLAG_INVERT_Y kan være nyttig 
+		texture_handle = SOIL_load_OGL_texture(cstr_path, SOIL_LOAD_AUTO, texture_handle, SOIL_FLAG_MIPMAPS|SOIL_FLAG_MULTIPLY_ALPHA|SOIL_FLAG_INVERT_Y ); // SOIL_FLAG_INVERT_Y kan være nyttig 
 		//glActiveTexture(GL_TEXTURE0 + 0); // Texture Unit to use
 		glBindTexture(GL_TEXTURE_2D, texture_handle);
 		

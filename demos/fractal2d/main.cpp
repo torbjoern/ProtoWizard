@@ -6,42 +6,38 @@
 void do_fractal( ProtoGraphics &proto )
 {
 	// Attractor position
-	float x,y,z;
+	double x,y,z;
 	x = 0.0f;
 	y = 0.0f;
 	z = 0.0f;
 
 	// Attractor coefficients
-	float a,b,c,d,e,f;
+	double a,b,c,d,e,f;
 
-	//a = 1.4;
-	//b = -2.3;
-	//c = 2.4;
-	//d = -2.1;
-
+	//a = 1.4, b = -2.3, c = 2.4, d = -2.1;
 	a = 1.78125, b = -0.78125, c = 1.90625, d = 2.65625, e = 0.7, f = -1.1;
 
 	float xres = (float)proto.getWindowWidth();
 	float yres = (float)proto.getWindowHeight();
 
-	int itersMax = 1e4;
+	int itersMax = 1000;
 	for(int i=0; i<itersMax; i++){
 
-		float la = a; 
-		float lb = b; 
-		float lc = c; 
-		float ld = d;
+		double la = a; 
+		double lb = b; 
+		double lc = c; 
+		double ld = d;
 		//Add Noise to Coefficients for Smoothness
 		{
-			la += proto.random(-0.001, 0.001);  lb += proto.random(-0.001, 0.001);
-			lc += proto.random(-0.001, 0.001);  ld += proto.random(-0.001, 0.001);
+			la += (double)proto.random(-0.001f, 0.001f);  lb += (double)proto.random(-0.001f, 0.001f);
+			lc += (double)proto.random(-0.001f, 0.001f);  ld += (double)proto.random(-0.001f, 0.001f);
 			//le += proto.random(-0.001, 0.001);  lf += proto.random(-0.001, 0.001);
 		}
 
 		// calc next position
-		float xn = sin( la*y ) - cos( lb*x );
-		float yn = sin( lc*x ) - cos( ld*y );
-		float zn = sin( e*x ) - cos( f*z );
+		double xn = sin( la*y ) - cos( lb*x );
+		double yn = sin( lc*x ) - cos( ld*y );
+		double zn = sin( e*x ) - cos( f*z );
 		// update
 		x = xn;
 		y = yn;
@@ -49,12 +45,12 @@ void do_fractal( ProtoGraphics &proto )
 
 		float scale = 100.f;
 
-		float plotx = 0.5f * xres + x*scale;
-		float ploty = 0.5f * yres - y*scale;
+		float plotx = 0.5f * xres + (float)x*scale;
+		float ploty = 0.5f * yres - (float)y*scale;
    
-		float red = z * 0.9 + (1.0f-z) * 0.6f;
-		float gre = z * 0.2 + (1.0f-z) * 0.4f;
-		float blu = z * 0.5 + (1.0f-z) * 0.9f;
+		float red = (float)z * 0.9f + (1.0f-(float)z) * 0.6f;
+		float gre = (float)z * 0.2f + (1.0f-(float)z) * 0.4f;
+		float blu = (float)z * 0.5f + (1.0f-(float)z) * 0.9f;
 		proto.setColor( red, gre, blu );
 
 		proto.drawCircle( plotx, ploty, 0.5f );

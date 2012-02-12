@@ -3,4 +3,4 @@ link_directories (${PROTOWIZARD_BINARY_DIR}/PROTOWIZARD)
 
 add_executable (game_tron main.cpp ) 
 
-target_link_libraries (game_tron PROTOWIZARD kixxor_obj_loader ${OPENGL_LIBRARIES} ${GLEW_LIB}  ${GLFW_LIB} ${SOIL_LIB} )
+target_link_libraries (game_tron PROTOWIZARD ${OPENGL_LIBRARIES} ${GLFW_LIB} ${SOIL_LIB} )

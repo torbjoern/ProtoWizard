@@ -10,8 +10,8 @@ glm::vec2 pointOnCicle( float u )
 void circle_of_things( ProtoGraphics& proto )
 {
 	//proto.setLightBlend();
-	proto.setBlend(true);
-	proto.setAlpha(0.5f);
+	proto.setLightBlend();
+	proto.setAlpha(1.0f);
 
 	int num_things = 12;
 	for ( int i=0; i<num_things; i++ ){

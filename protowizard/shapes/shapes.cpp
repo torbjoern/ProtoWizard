@@ -2,6 +2,7 @@
 
 #include "mesh.h"
 
+
 #include "../../depends/obj_loader/objLoader.h"
 #include <algorithm>
 
@@ -342,8 +343,7 @@ Mesh* GeometryLibrary::createMesh(const std::string& fileName)
 
 			if (hasUvs )
 			{
-				obj_vector *uv3 = NULL;
-				objData->textureList[ facePtr->texture_index[3] ];
+				obj_vector *uv3 = objData->textureList[ facePtr->texture_index[3] ];
 
 				obj_texture_coords.push_back( glm::vec2(uv0->e[0], uv0->e[1]) );
 				obj_texture_coords.push_back( glm::vec2(uv2->e[0], uv2->e[1]) );

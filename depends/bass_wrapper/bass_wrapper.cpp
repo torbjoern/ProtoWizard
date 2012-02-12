@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #define BASS_CONFIG_REC_LOOPBACK	28
-#define BASS_DEVICE_LOOPBACK		8
+//#define BASS_DEVICE_LOOPBACK		8
 
 BassWrapper::BassWrapper()
 {
@@ -19,7 +19,6 @@ BassWrapper::BassWrapper()
 		throw("Bass Wrap fail\n");
 	}
 
-	SPECWIDTH = 400;
 	channel = NULL;
 
 	// Clear stuff
@@ -31,7 +30,7 @@ BassWrapper::BassWrapper()
 	memset( fft, 0, sizeof(float)*1024 );
 
 	// gets system volume
-	float vol = BASS_GetVolume();
+	//float vol = BASS_GetVolume();
 	//BASS_SetVolume( vol );
 }
 
@@ -47,7 +46,14 @@ BassWrapper::~BassWrapper()
 	BASS_Free();
 }
 
-void BassWrapper::update()
+int BassWrapper::getChannelCount()
+{
+	BASS_CHANNELINFO ci;
+	BASS_ChannelGetInfo(channel,&ci); // get number of channels
+	return ci.chans;
+}
+
+void BassWrapper::update_fft_capture()
 {
 	if( !channel ) throw("channel not init?");
 
@@ -58,7 +64,7 @@ void BassWrapper::update()
 	// The idea is to save many previous fft reads so we get an average over time. This
 	// may result in a more visually pleasing effect. Trying to smooth out short jitters. Also. It
 	// accumulates volume over time. so high peaks stay higher longer.
-
+/*
 	for(int i=0; i<1024; i++)
 		previous_fft[0][i] = fft[i] * dampening;
 
@@ -67,27 +73,28 @@ void BassWrapper::update()
 	{
 		previous_fft[NUM_SMOOTHING_BUFS-i][j] = previous_fft[NUM_SMOOTHING_BUFS-i-1][j] * dampening;
 	}
+*/
+	
+	BASS_ChannelGetData(channel,fft,BASS_DATA_FFT2048); // 2048 sample FFT gives 1024 floating-point values
+}
 
-	BASS_ChannelGetData(channel,fft,BASS_DATA_FFT2048); // get the FFT data
+bool BassWrapper::init_fft_storage(int num_bands)
+{
+	return false;
+}
+
+void BassWrapper::init_sample_capture( std::vector<float>& buf )
+{
+		//BASS_CHANNELINFO ci;
+		//BASS_ChannelGetInfo(channel,&ci); // get number of channels
+		//buf=alloca(ci.chans*SPECWIDTH*sizeof(float)); // allocate buffer for data
+		BASS_ChannelGetData(channel,&buf[0],(buf.size()*sizeof(float))|BASS_DATA_FLOAT); // get the sample data (floating-point to avoid 8 & 16 bit processing)
 }
 
 
 void BassWrapper::play(std::string musicFilePath)
 {
 	HWND win = NULL;
-
-	//char filename[] = "tune.xm";
-
-	//FILE * pFile;
-	//pFile = fopen (filename,"rb");
-	//if (pFile==NULL)
-	//{
-	//	puts ("fopen fail");
-	//	fclose (pFile);
-	//}
-	//
-
-
 
 	if (!(channel=BASS_StreamCreateFile(FALSE,"",0,0,BASS_SAMPLE_LOOP))
 		&& !(channel=BASS_MusicLoad(FALSE,musicFilePath.c_str(),0,0,BASS_MUSIC_RAMP|BASS_SAMPLE_LOOP,0))) {
@@ -176,6 +183,8 @@ bool BassWrapper::init_loopback( int recording_device )
 
 	return true;
 }
+
+
 
 void BassWrapper::list_playback_devices()
 {

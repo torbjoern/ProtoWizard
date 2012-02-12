@@ -10,7 +10,7 @@
 #include "common.h"
 #include "camera.h"
 #include "shapes/shapes.h"
-#include "depends/noise/perlin.h"
+#include "../depends/noise/perlin.h"
 
 #include "texture_manager.h"
 
@@ -175,13 +175,24 @@ bool ProtoGraphics::init(int xres, int yres)
 	glfwSetWindowTitle("ProtoWizard project");
 	glfwSwapInterval(0); // vsync on/off
 		
-	glewExperimental = GL_TRUE;
-	int err = glewInit();
-	if ( GLEW_OK != err )
-	{
-		printf("Failed to init GLEW\n");
+	//glewExperimental = GL_TRUE;
+	//int err = glewInit();
+	//if ( GLEW_OK != err )
+	//{
+	//	printf("Failed to init GLEW\n");
+	//	return false;
+	//}
+
+	if ( gl3wInit() ) {
+		fprintf(stderr, "failed to initialize OpenGL\n");
 		return false;
 	}
+	if (!gl3wIsSupported(3, 0)) {
+		fprintf(stderr, "OpenGL 3.0 not supported\n");
+		return false;
+	}
+	//printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
+	//       glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	glfwSetWindowCloseCallback( &_closeCallback );
 	glfwSetKeyCallback( &_key_callback );
@@ -251,6 +262,8 @@ void ProtoGraphics::shutdown()
 
 	glfwCloseWindow();
 	glfwTerminate();
+
+	isRunning = false;
 }
 
 void ProtoGraphics::cls( float r, float g, float b )
@@ -443,7 +456,7 @@ void ProtoGraphics::setBlend( bool active )
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	if ( active )
 	{
-		blend_state = blending::ADDITIVE_BLEND;
+		blend_state = blending::ALPHA_BLEND;
 	}else{
 		blend_state = blending::SOLID_BLEND;
 	}
@@ -614,21 +627,13 @@ void ProtoGraphics::draw_buffered_lines()
 
 void ProtoGraphics::draw_buffered_circles()
 {		
-	shader_2d->begin();
+	glm::mat4 modelview_2d_matrix;
 
-	// TODO, uniform locs could be moved to init code, so they are only set once, 
-	// but since its convenient to modify them, they stay for now.
-	unsigned int mvLoc;
-	unsigned int projLoc;
+	unsigned int mvLoc; 
+	mvLoc = shader_2d->GetVariable("modelviewMatrix");
+
 	unsigned int colorLoc;
-	mvLoc    = shader_2d->GetVariable("modelviewMatrix");
-	projLoc  = shader_2d->GetVariable("projMatrix");
 	colorLoc = shader_2d->GetVariable("vColor");
-
-	VSML *vsml = VSML::getInstance();
-	vsml->initUniformLocs(mvLoc, projLoc);
-	// send already init-ed ortho to shader
-	vsml->matrixToUniform(VSML::PROJECTION); 
 
 	for (unsigned int i=0; i<buffered_circles.size(); i++)
 	{
@@ -648,13 +653,11 @@ void ProtoGraphics::draw_buffered_circles()
 		glm::vec4 color = buffered_circles[i].color;
 		shader_2d->SetVec4( colorLoc, color );
 
-		vsml->loadIdentity(VSML::MODELVIEW);
-		vsml->translate(x, y, 0.0f);
-		// Get the scaling factor
-		float scale_factor = radius; 
-		vsml->scale(scale_factor,scale_factor,scale_factor);
+		modelview_2d_matrix = glm::translate( identityMatrix, glm::vec3(x, y, 0.0f) );
 
-		vsml->matrixToUniform(VSML::MODELVIEW);
+		// Scale unit circle geometry by desired radius
+		modelview_2d_matrix = glm::scale( modelview_2d_matrix, glm::vec3(radius) );
+		glUniformMatrix4fv( mvLoc, 1, GL_FALSE, glm::value_ptr(modelview_2d_matrix) );
 
 		if ( buffered_circles[i].radius < 0.f )
 		{
@@ -823,11 +826,19 @@ void ProtoGraphics::draw_buffered_objects()
 	// for 2D we want overdraw in all cases, so turn depth test off
 	glDisable( GL_DEPTH_TEST );
 
+	shader_2d->begin();
+
+	// TODO, uniform locs could be moved to init code, so they are only set once, 
+	// but since its convenient to modify them, they stay for now.
+	unsigned int mvLoc;
+	unsigned int projLoc;
+	mvLoc    = shader_2d->GetVariable("modelviewMatrix");
+	projLoc  = shader_2d->GetVariable("projMatrix");
+	
 	// Setup projection for 2D, but now modelview, as we will modify 
 	// modelview in most 2D drawcalls using translation, rotation and scaling.
-	VSML *vsml = VSML::getInstance();
-	vsml->loadIdentity(VSML::PROJECTION);
-	vsml->ortho(0.0f, (float)xres, (float)yres, 0.f, -1.f , 1.f);
+	glm::mat4 ortho_perspective_matrix = glm::ortho(0.0f, (float)xres, (float)yres, 0.f, -1.f , 1.f);
+	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(ortho_perspective_matrix) );
 
 	if ( buffered_lines.size() > 0 ) 
 		draw_buffered_lines();

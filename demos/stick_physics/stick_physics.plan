@@ -1,0 +1,24 @@
+
+Project: Verlet mass-points connected by stick constraints
+goals
+-create an articulated rigid body simulation
+-test limits of creating a rigid body sim.
+
+Project: Cube rigid body sim
+goals
+-find out how simple a cube sim can be made
+-how physically correct
+-add sound
+-friction
+-stacking
+-gpgpu implementation
+
+
+Articles to read
+
+http://software.intel.com/en-us/articles/fluid-simulation-for-video-games-part-1/
+
+fedkiw
+mirtich & witkin course
+essential math for gameprogrammers last chapter
+http://www.myphysicslab.com/collision.html

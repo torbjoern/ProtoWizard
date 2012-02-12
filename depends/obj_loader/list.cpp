@@ -57,8 +57,9 @@ int list_add_item(list *listo, void *item, char *name)
 	if(name != NULL)
 	{
 		name_length = strlen(name);
-		new_name = (char*) malloc(sizeof(char) * name_length + 1);
-		strncpy(new_name, name, name_length);
+		int num_bytes = sizeof(char) * name_length + 1;
+		new_name = (char*)malloc(num_bytes);
+		strncpy_s( new_name, num_bytes, name, name_length);
 		listo->names[listo->item_count] = new_name;
 	}
 
