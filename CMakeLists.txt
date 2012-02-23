@@ -28,3 +28,4 @@ add_subdirectory (demos/voxel)
 
 add_subdirectory (tests/obj_model)
 add_subdirectory (tests/ray_isect)
+add_subdirectory (tests/dda_3d)

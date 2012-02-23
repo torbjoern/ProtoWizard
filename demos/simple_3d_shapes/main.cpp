@@ -444,7 +444,7 @@ int main(int argc, char* argv[])
 
 	float oldtime = 0.f;
 
-	int desired_fps = 120;
+	int desired_fps = 60;
 	float spectrum_update_rate = 1.0f / desired_fps;
 	float secTimer = spectrum_update_rate;
 
