@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace ProtoMath{
+namespace protomath{
 
 
 struct Ray
@@ -22,7 +22,7 @@ struct Ray
 	// for example, t=0.5 means intersection is on middle of ray
 	bool intersectBox( Ray ray, glm::vec3 box_pos, glm::vec3 box_dim, glm::vec3 &normal, float &t )
 	{
-		float EPSILON = 1e-6f;
+		float EPSILON = 1e-5f;
 
 		bool gotplane_origin[] = {true, true, true};
 		bool gotplane_dim[] = {true, true, true};

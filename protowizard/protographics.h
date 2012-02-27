@@ -119,6 +119,9 @@ public:
 
 	void drawCone( glm::vec3 p1, glm::vec3 p2, float radius );
 
+	/// <summary>
+	/// draw a cube centered at position, with diameter 1.0 given setScale( 1.0 )
+	/// </summary>
 	void drawCube( glm::vec3 position );
 
 	void drawPlane( glm::vec3 position, glm::vec3 normal, float radius );

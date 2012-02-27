@@ -31,7 +31,7 @@ class CubeGeometry
 
 
 		glm::vec3 v[8];  // Will be filled in with X,Y,Z vertexes.
-		float size = 1.0f;
+		float size = 0.5f; // would think diameter would be 1
 		v[0].x = v[1].x = v[2].x = v[3].x = -size;
 		v[4].x = v[5].x = v[6].x = v[7].x = +size;
 		v[0].y = v[1].y = v[4].y = v[5].y = -size;
