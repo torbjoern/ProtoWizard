@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-void scene(ProtoGraphics &proto, const glm::vec3& cameraPosition, const glm::vec3& cameraFocus)
+void scene(ProtoGraphics &proto)
 {
 	if ( proto.mouseDownLeft() )
 	{
@@ -53,10 +53,11 @@ void scene(ProtoGraphics &proto, const glm::vec3& cameraPosition, const glm::vec
 
 		if ( hit )  //  && t <= 1.f
 		{
-			proto.setColor( 1.f, 1.f, 0.f );
+			proto.setColor( 0.f, 0.f, 1.f );
 			glm::vec3 hit_point = ray.origin + ray.dir * t;
 			proto.drawSphere( hit_point, 0.3f );
 			
+			proto.setColor( 1.f, 1.f, 0.f );
 			proto.setScale( box_dim.x ); proto.drawCube( box_pos + box_dim * 0.5f ); proto.setScale( 1.f );
 		}else{
 			proto.setColor( 1.f, 1.f, 1.f );
@@ -82,14 +83,11 @@ int main()
 		return 1;
 	}
 
-	
-	glm::vec3 cameraPosition( 0.f, 0.f, -5.f );
-	glm::vec3 cameraFocus( 0.f, 0.f, 0.f );
 	do
 	{
 		proto.cls(0,0,0);
 
-		scene(proto, cameraPosition, cameraFocus );
+		scene(proto);
 
 		proto.frame();
 	}while( proto.isWindowOpen() );

@@ -73,7 +73,7 @@ class SphereGeometry
 			6,1,10,   9,0,11,  9,11,2,   9,2,5,   7,2,11   
 		};
 
-		int subDivDepth = 2;
+		int subDivDepth = 1;
 		std::vector< XYZVertex > sphere_vertices;
 		for (int i = 0; i < 20; i++)
 		{ 

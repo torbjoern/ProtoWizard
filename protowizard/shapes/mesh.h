@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 
-// a 3d triangle mesh
+// Create drawable VBO from VertexArray
 class Mesh
 {
 public:

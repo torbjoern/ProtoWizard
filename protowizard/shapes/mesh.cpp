@@ -11,8 +11,8 @@ Mesh::~Mesh()
 
 void Mesh::draw()
 {
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, num_vertices );
 	glBindVertexArray(0);

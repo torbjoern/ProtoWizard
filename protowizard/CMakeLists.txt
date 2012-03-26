@@ -65,6 +65,13 @@ set(Dependency_SRCS
 
 ######################## OK, now for ProtoWizard headers and sources:
 
+set(math_HDRS
+  math/math_common.h
+  math/math_line.h
+  math/math_ray.h
+)
+SOURCE_GROUP("Header Files\\math" FILES ${math_HDRS})
+
 set(HDRS
 	camera.h
 	color_utils.h
@@ -111,4 +118,4 @@ set(shader_srcs
 	normals.frag
 )
 
-add_library( ProtoWizard ${Dependency_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )
+add_library( ProtoWizard ${Dependency_HDRS} ${math_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )

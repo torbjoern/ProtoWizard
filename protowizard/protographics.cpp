@@ -24,7 +24,6 @@ FirstPersonCamera NULL_CAMERA = FirstPersonCamera();
 TextureManager NULL_TEX_MGR = TextureManager();
 GeometryLibrary NULL_GEO_LIB = GeometryLibrary();
 
-const glm::mat4 identityMatrix(1.f);
 
 ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), texture_manager(NULL_TEX_MGR), geo_lib(NULL_GEO_LIB)
 {
@@ -43,7 +42,7 @@ ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), texture_manager(NULL_TEX_M
 	mousx = 0;
 	mousy = 0;
 
-	light_pos = glm::vec3( 0.f, 0.f, 0.f );
+	light_pos = glm::vec3( -1000.f, 1000.f, -1000.f );
 
 	for( int i = 0; i < NUM_KEYS; i++ )
 	{
@@ -57,6 +56,8 @@ ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), texture_manager(NULL_TEX_M
 
 	currentOrientation = identityMatrix;
 	scale = glm::vec3( 1.0f );
+
+	isDebugNormalsActive = false;
 }
 
 ProtoGraphics::~ProtoGraphics()
@@ -284,14 +285,10 @@ void ProtoGraphics::frame()
 	GetError("ProtoGraphics::frame begin");
 #endif
 	
-	//camera.update( keystatus(GLFW_KEY_LEFT), keystatus(GLFW_KEY_RIGHT), keystatus(GLFW_KEY_UP), keystatus(GLFW_KEY_DOWN), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
-	//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta );
+	camera.update( keystatus(GLFW_KEY_LEFT), keystatus(GLFW_KEY_RIGHT), keystatus(GLFW_KEY_UP), keystatus(GLFW_KEY_DOWN), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), (float)delta_time );
+	//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta_time );
 
-	light_pos = glm::vec3(5.f, 5.f, 5.f );
-	//drawSphere( light_pos, 1.0f );
-
-
-	if ( keyhit('R') )
+	if ( false ) //keyhit('R') )
 	{
 		printf("/////////////////////////////R E L O A D I N G   S H A D E R S /////////////\n");
 		for(unsigned int i=0; i<shader_list.size(); i++)
@@ -320,13 +317,6 @@ void ProtoGraphics::frame()
 
 
 	draw_buffered_objects();
-
-	if ( keyhit('2') )
-	{
-		//setTexture( depth_texture );
-		//glQuad();
-	}
-
 
 	glfwGetMousePos(&mousx, &mousy);
 
@@ -360,6 +350,11 @@ void ProtoGraphics::frame()
 
 }
 
+void ProtoGraphics::debugNormals( bool enable )
+{
+	isDebugNormalsActive = enable;
+}
+
 bool ProtoGraphics::isWindowOpen()
 {
 	return isRunning;
@@ -389,6 +384,39 @@ int ProtoGraphics::getMouseY()
 {
 	return mousy;
 }
+
+int ProtoGraphics::getMouseWheel() 
+{
+	return glfwGetMouseWheel();
+}
+
+protomath::Ray ProtoGraphics::getMousePickRay()
+{
+	protomath::Ray ray;
+	ray.origin = camera.getPos();
+	float cameraPlaneDistance = 1.0f / (2.0f * tan(camera.getFov()*M_PI/180.f*0.5f) );
+	float u = -.5f + (mousx+.5f) / (float)(xres-1);
+	float aspect = xres / float(yres);
+	u *= aspect;
+
+	float v = -.5f + (mousy+.5f) / (float)(yres-1);
+	ray.dir = camera.getLookDirection() * cameraPlaneDistance + camera.getStrafeDirection() * u + camera.getUpDirection() * -v;
+	ray.dir = glm::normalize(ray.dir);
+	return ray;
+}
+
+float ProtoGraphics::getNormalizedMouseX() 
+{
+	return mousx / (float)getWindowWidth();
+}
+
+float ProtoGraphics::getNormalizedMouseY() 
+{
+	return mousy / (float)getWindowHeight();
+}
+
+float getNormalizedMouseX(); 
+float getNormalizedMouseY(); 
 
 bool ProtoGraphics::mouseDownLeft()
 {
@@ -536,10 +564,11 @@ void ProtoGraphics::drawCircle( float x, float y, float radius )
 void ProtoGraphics::drawSphere( glm::vec3 position, float radius ) 
 {
 	SphereState *state = new SphereState;
-	currentPosition = position;
 	save_state( state );
 
-	state->transform = glm::scale( glm::translate( this->currentOrientation, this->currentPosition ), glm::vec3(radius) );
+	state->transform = glm::translate( identityMatrix, position );
+	state->transform *= currentOrientation;
+	state->transform = glm::scale( state->transform, glm::vec3(radius) );
 
 	buffered_shapes.push_back( state );
 	sphereList.push_back( state );
@@ -548,7 +577,6 @@ void ProtoGraphics::drawSphere( glm::vec3 position, float radius )
 void ProtoGraphics::drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) 
 {
 	CylinderState *state = new CylinderState;
-	currentPosition = glm::vec3(0.f);
 	save_state( state );
 
 	state->p1 = p1;
@@ -578,7 +606,10 @@ void ProtoGraphics::drawPlane( glm::vec3 position, glm::vec3 normal, float radiu
 	PlaneState *state = new PlaneState;
 	save_state( state );
 
-	state->transform = glm::scale( glm::translate( glm::mat4( 1.0f ), position ), glm::vec3(radius) );
+	state->transform = glm::translate( identityMatrix, position );
+	state->transform *= currentOrientation;
+	state->transform = glm::scale( state->transform, glm::vec3(radius) );
+
 	state->normal = normal;
 	buffered_shapes.push_back( state );
 
@@ -609,7 +640,8 @@ void ProtoGraphics::drawMesh( glm::vec3 position, std::string path )
 	save_state( state );
 	state->mesh_path = path;
 
-	state->transform = glm::translate( identityMatrix , position ) * currentOrientation;
+	state->transform = glm::translate( identityMatrix, position );
+	state->transform *= currentOrientation;
 	state->transform = glm::scale( state->transform, scale );
 
 	buffered_shapes.push_back( state );
@@ -684,31 +716,22 @@ void ProtoGraphics::draw_buffered_circles()
 	buffered_circles.clear();
 }
 
-void ProtoGraphics::init_phong( Shader& active_shader )
+void ProtoGraphics::init_phong( const Shader& active_shader )
 {
 	active_shader.SetVec3( active_shader.GetVariable("cameraSpaceLightPos"), light_pos );
-	active_shader.SetFloat( active_shader.GetVariable("shininess"), 10.0f );
 
 	int tex0 = glGetUniformLocation( active_shader.getProgram() , "tex0");
 	glUniform1i(tex0, 0); // sampler "tex0" refers to texture unit 0
 }
 
-void ProtoGraphics::draw_buffered_shapes()
+void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 {
-	num_opaque = opaque.size();
-	num_blended = translucent.size();
-
-	//////////////////////////////////////////////////////////////////////////
-	Shader& active_shader_ref = (*phong_shader); //  phong_shader geo_shader_normals
-	active_shader_ref.begin();
-	init_phong( active_shader_ref );
-
 	unsigned int worldLoc = active_shader_ref.GetVariable("worldMatrix");
 	unsigned int viewLoc = active_shader_ref.GetVariable("viewMatrix");
 	unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
 		
 	glm::mat4 projection =
-		glm::perspective(90.0f, xres/(float)yres, 0.5f, 1000.f);
+		glm::perspective( camera.getFov(), xres/(float)yres, 0.5f, 1000.f);
 	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 	glm::mat4 viewMatrix = camera.getViewMatrix();
@@ -722,6 +745,8 @@ void ProtoGraphics::draw_buffered_shapes()
 
 	// useful article on blending
 	// http://blogs.msdn.com/b/shawnhar/archive/2009/02/18/depth-sorting-alpha-blended-objects.aspx
+	// also a nice explaination
+	// http://www.codermind.com/answers/What-is-order-independent-transparency.html
 
 	for (unsigned int i=0; i<opaque.size(); i++)
 	{
@@ -731,35 +756,16 @@ void ProtoGraphics::draw_buffered_shapes()
 			state->draw(&geo_lib);	
 	}
 
-	struct SortFunctor 
-	{
-		SortFunctor( const FirstPersonCamera &cam ) : camera( cam )
-		{
-		}
-
-		// std::sort expects a test like a < b for ascending sort order
-		bool operator() ( BaseState3D* a, BaseState3D* b )
-		{
-			return a->distance_from_camera(camera.getPos() ) > b->distance_from_camera(camera.getPos() ); // the one furthest away is to be drawn first.
-		}
-
-
-		FirstPersonCamera camera;
-	};
 
 	bool have_translucent_objs = translucent.size() > 0;
 
 	if ( have_translucent_objs )
 	{
-		//std::sort( translucent.begin(), translucent.end(), SortFunctor(camera) );
-
 		// http://www.opengl.org/sdk/docs/man/xhtml/glDepthMask.xml
 		glDepthMask(GL_FALSE);
 
 		glEnable(GL_BLEND);
 		int num_objs = translucent.size();
-		//for (int i=0; i<num_objs; i++)
-		//for (unsigned int i=num_objs-1; i>0; i--)
 		for (int i=0; i<num_objs; i++)
 		{
 			BaseState3D *state = translucent[i];
@@ -771,50 +777,6 @@ void ProtoGraphics::draw_buffered_shapes()
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
 	}
-
-
-
-	opaque.clear();
-	translucent.clear();
-
-	for(unsigned i=0; i<sphereList.size(); i++)
-	{
-		delete sphereList[i];
-	}
-
-	for(unsigned i=0; i<cylinderList.size(); i++)
-	{
-		delete cylinderList[i];
-	}
-
-	for(unsigned i=0; i<planeList.size(); i++)
-	{
-		delete planeList[i];
-	}
-
-	for(unsigned i=0; i<cubeList.size(); i++)
-	{
-		delete cubeList[i];
-	}
-
-	for(unsigned i=0; i<meshList.size(); i++)
-	{
-		delete meshList[i];
-	}
-
-	sphereList.clear();
-	cylinderList.clear();
-	planeList.clear();
-	cubeList.clear();
-	meshList.clear();
-
-
-	for(unsigned i=0; i<buffered_shapes.size(); i++)
-	{
-		//delete buffered_shapes[i];
-	}
-
-	buffered_shapes.clear();
 
 #ifdef _DEBUG
 	 GetError("ProtoGraphics::draw_buffered_shapes 3D end"); 
@@ -834,8 +796,64 @@ void ProtoGraphics::draw_buffered_objects()
 	// http://www.opengl.org/sdk/docs/man/xhtml/glCullFace.xml
 	glCullFace( GL_BACK );
 
-	if ( buffered_shapes.size() > 0 ) 
-		draw_buffered_shapes();
+	if ( buffered_shapes.size() > 0 )
+	{
+		num_opaque = opaque.size();
+		num_blended = translucent.size();
+
+		if ( isDebugNormalsActive ) {
+			geo_shader_normals->begin();
+			draw_buffered_shapes( (*geo_shader_normals) );
+		}
+
+		phong_shader->begin();
+		init_phong( (*phong_shader) );
+		draw_buffered_shapes( (*phong_shader) );
+		
+
+		opaque.clear();
+		translucent.clear();
+
+		for(unsigned i=0; i<sphereList.size(); i++)
+		{
+			delete sphereList[i];
+		}
+
+		for(unsigned i=0; i<cylinderList.size(); i++)
+		{
+			delete cylinderList[i];
+		}
+
+		for(unsigned i=0; i<planeList.size(); i++)
+		{
+			delete planeList[i];
+		}
+
+		for(unsigned i=0; i<cubeList.size(); i++)
+		{
+			delete cubeList[i];
+		}
+
+		for(unsigned i=0; i<meshList.size(); i++)
+		{
+			delete meshList[i];
+		}
+
+		sphereList.clear();
+		cylinderList.clear();
+		planeList.clear();
+		cubeList.clear();
+		meshList.clear();
+
+
+		for(unsigned i=0; i<buffered_shapes.size(); i++)
+		{
+			//delete buffered_shapes[i];
+		}
+
+		buffered_shapes.clear();
+
+	}
 
 	// for 2D we want overdraw in all cases, so turn depth test off
 	glDisable( GL_DEPTH_TEST );

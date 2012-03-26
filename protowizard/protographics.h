@@ -1,6 +1,7 @@
 
 // Forward decls
-class FirstPersonCamera;
+#include "camera.h"
+//class FirstPersonCamera;
 
 class TextureManager;
 class GeometryLibrary;
@@ -23,6 +24,8 @@ class Shader;
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
+
+#include "math/math_ray.h"
 
 class ProtoGraphics
 {
@@ -59,6 +62,8 @@ public:
 
 	void setCamera( glm::vec3 pos, float hang, float vang );
 
+	FirstPersonCamera* getCamera() {return &camera; }
+
 	void setTitle( const std::string &str);
 
 	void setTexture( const std::string& path );
@@ -82,6 +87,20 @@ public:
 	int getMouseX();
 
 	int getMouseY();
+
+	int getMouseWheel();
+
+	protomath::Ray getMousePickRay();
+
+	/// <summary>
+	/// returns mousx / xres, a value within [0,1]
+	/// </summary>
+	float getNormalizedMouseX(); 
+
+	/// <summary>
+	/// returns mousy / yres, a value within [0,1]
+	/// </summary>
+	float getNormalizedMouseY(); 
 
 	bool mouseDownLeft();
 
@@ -133,6 +152,8 @@ public:
 	void drawMesh( glm::vec3 pos, std::string path );
 
 	void frame();
+
+	void debugNormals( bool enable );
 private:
 
 	void handle_key(int key, int action);
@@ -154,11 +175,11 @@ private:
 
 	void draw_buffered_circles();
 
-	void draw_buffered_shapes();
+	void draw_buffered_shapes( const Shader& shader );
 
 	void draw_buffered_objects();
 
-	void init_phong( Shader& active_shader );
+	void init_phong( const Shader& active_shader );
 
 	bool install_shaders();
 
@@ -220,6 +241,8 @@ private:
 
 	int num_opaque;
 	int num_blended;
+
+	bool isDebugNormalsActive;
 };
 
 //};

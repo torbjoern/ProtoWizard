@@ -54,7 +54,7 @@ public:
 	static void printShaderInfoLog(unsigned int shader);
 
 	int GetVariable(char* strVariable) const;
-	unsigned int getProgram() { return program; }
+	unsigned int getProgram() const { return program; }
 	void SetInt(GLint variable, int newValue) const									{ glUniform1i(variable, newValue);			}
 	void SetFloat(GLint variable, float newValue) const								{ glUniform1f(variable, newValue);			}
 	void SetFloat2(GLint variable, float v0, float v1) const						{ glUniform2f(variable, v0, v1);			}

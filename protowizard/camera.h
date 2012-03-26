@@ -40,6 +40,24 @@ public:
 		return vang;
 	}
 
+	glm::vec3 getStrafeDirection() 
+	{
+		return glm::vec3( mCam[0].x, mCam[1].x, mCam[2].x );
+	}
+
+	glm::vec3 getUpDirection() 
+	{
+		return glm::vec3( mCam[0].y, mCam[1].y, mCam[2].y );
+	}
+
+	glm::vec3 getLookDirection() 
+	{
+		return -1.f * glm::vec3( mCam[0].z, mCam[1].z, mCam[2].z );
+	}
+
+	float getFov(){return fov;}
+
+
 private:
 	void calcViewMatrix();
 
@@ -48,6 +66,7 @@ private:
 	glm::mat4 mCam;
 	glm::vec3 pos;
 	glm::vec4 dirvec;
+	float fov;
 
 	float oldmousx;
 	float oldmousy;

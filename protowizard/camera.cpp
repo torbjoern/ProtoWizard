@@ -12,6 +12,8 @@ FirstPersonCamera::FirstPersonCamera()
 	pos = zero;
 	dirvec = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
+	fov = 90.f;
+
 	hang = 0.0f;
 	vang = 0.0f;
 
