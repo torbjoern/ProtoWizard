@@ -197,6 +197,7 @@ bool ProtoGraphics::init(int xres, int yres)
 
 	glfwSetWindowCloseCallback( &_closeCallback );
 	glfwSetKeyCallback( &_key_callback );
+	glfwSetMouseButtonCallback( &_key_callback );
 
 	// Clear error caused by GLEW using glGetString instead of glGetStringi( char*, int )
 	for ( GLenum Error = glGetError( ); ( GL_NO_ERROR != Error ); Error = glGetError( ) )
@@ -729,14 +730,12 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 	unsigned int worldLoc = active_shader_ref.GetVariable("worldMatrix");
 	unsigned int viewLoc = active_shader_ref.GetVariable("viewMatrix");
 	unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
-		
 	glm::mat4 projection =
-		glm::perspective( camera.getFov(), xres/(float)yres, 0.5f, 1000.f);
+		glm::perspective( camera.getFov(), xres/(float)yres, .5f, 1000.f);
 	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 	glm::mat4 viewMatrix = camera.getViewMatrix();
 	glUniformMatrix4fv( viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix) );
-
 
 	unsigned int colorLoc = active_shader_ref.GetVariable("diffuseColor");
 
