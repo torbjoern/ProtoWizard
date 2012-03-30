@@ -25,6 +25,8 @@ add_subdirectory (demos/fractal2d)
 add_subdirectory (demos/stress_test)
 add_subdirectory (demos/game_tron)
 add_subdirectory (demos/voxel)
+add_subdirectory (demos/stick_physics)
+
 
 add_subdirectory (tests/obj_model)
 add_subdirectory (tests/ray_isect)

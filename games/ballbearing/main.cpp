@@ -10,17 +10,21 @@
 #include "btBulletDynamicsCommon.h"
 
 #ifdef _DEBUG
-#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletDynamics_debug.lib")
-#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletCollision_debug.lib")
-//#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletSoftBody_debug.lib")
-//#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/ConvexDecomposition_debug.lib")
-//#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/HACD_debug.lib")
-#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/LinearMath_debug.lib")
-//#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/OpenGLSupport_debug.lib")
+
+//#if _MSC_VER > 1600
+	//#pragma comment(lib, "F:/code_lab/bullet-2.80-rev2531/msvc/vs2011beta/lib/Debug/BulletDynamics_debug.lib")
+	//#pragma comment(lib, "F:/code_lab/bullet-2.80-rev2531/msvc/vs2011beta/lib/Debug/BulletCollision_debug.lib")
+	//#pragma comment(lib, "F:/code_lab/bullet-2.80-rev2531/msvc/vs2011beta/lib/Debug/LinearMath_debug.lib")
+//#else
+	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletDynamics_debug.lib")
+	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletCollision_debug.lib")
+	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/LinearMath_debug.lib")
+//#endif
+
 #else
-#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletDynamics.lib")
-#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletCollision.lib")
-#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/LinearMath.lib")
+	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletDynamics.lib")
+	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletCollision.lib")
+	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/LinearMath.lib")
 #endif
 
 namespace 
@@ -29,6 +33,15 @@ namespace
 	std::vector<glm::vec3> constraint_lines;
 	std::vector<btGeneric6DofConstraint*> constraints;
 }
+
+namespace KEY
+{
+	const static int  SPECIAL = 256;
+	const static int  UP = SPECIAL + 27;
+	const static int  DOWN = SPECIAL + 28;
+	const static int  LEFT = SPECIAL + 29;
+	const static int  RIGHT = SPECIAL + 30;
+};
 
 struct rigid_body_t
 {
@@ -235,6 +248,12 @@ void ray_test()
 		{
 			createBall(end+normal, 1.f, 0.75f );
 		}
+		if ( protoPtr->keyhit('F') )
+		{
+			btRigidBody* rigid = createBall(end+normal, 1.f, 0.75f );
+			rigid->applyCentralImpulse( toBtVector( 10.f * protoPtr->getCamera()->getLookDirection()) );
+			phy_objs[ phy_objs.size()-1 ]->color = protowizard::hsv2rgb( protoPtr->random(0.f, 360.f), 0.75f, 0.75f );
+		}
 		if ( protoPtr->keyhit('A') )
 		{
 			createCapsule(end+normal, 1.f );
@@ -402,6 +421,33 @@ void toggle_constraints()
 	}
 }
 
+void loadConstraints()
+{
+	TextFile text_file("steps.txt");
+
+	for(int i=0; i<text_file.numLines(); i++)
+	{
+		text_file.setParseLine(i);
+		float xcoord = text_file.getFloat();
+		float ycoord = text_file.getFloat();
+		float zcoord = text_file.getFloat();
+
+		float xp = ycoord;
+		float zp = xcoord;
+		float yp = zcoord;
+
+		// rotate (x,z) 90* ... shounldn't it be enough to do (x,z) -> (-z,x) ?
+		//float ca = cos( 1.57f );
+		//float sa = sin( 1.57f );
+		//float tx = xp; float ty = zp;
+		//xp = ca*tx + sa*ty;
+		//zp = sa*tx - ca*ty;
+
+		glm::vec3 extents(2.8f, 0.125f, 1.45f);
+		if ( i < 8 ) extents = glm::vec3(1.0f, 0.145f, 2.8f);
+		create_slider( glm::vec3(xp,yp+2.f,zp), glm::vec3(xp,yp+3.6f,zp), extents );
+	}
+}
 
 int main()
 {
@@ -438,42 +484,8 @@ int main()
 	proto.setFrameRate( 60 );
 	char title_buf[256];
 
-	//create_slider( glm::vec3(0.0f, 2.0f, -30.0f), glm::vec3(0.0f, 7.0f, -30.0f) );
-	//create_slider( glm::vec3(0.0f, 8.5f, -30.0f), glm::vec3(0.0f, 14.0f, -30.0f) );
-	//create_slider( glm::vec3(0.0f, 15.0f, -30.0f), glm::vec3(0.0f, 15.0f, -33.0f) );
+	//loadConstraints();
 
-	for(int i=0; i<10; i++)
-	{
-		float normalized_i = i / 10.f;
-		float xp = i * 2.2f;
-		float zp = -30.0f;
-		create_slider( glm::vec3(xp, 1.f, zp), glm::vec3(xp, 5.0f -normalized_i*4.f, zp) );
-	}
-
-	TextFile text_file("steps.txt");
-
-	for(int i=0; i<text_file.numLines(); i++)
-	{
-		text_file.setParseLine(i);
-		float xcoord = text_file.getFloat();
-		float ycoord = text_file.getFloat();
-		float zcoord = text_file.getFloat();
-
-		float xp = ycoord;
-		float zp = xcoord;
-		float yp = zcoord;
-
-		// rotate (x,z) 90* ... shounldn't it be enough to do (x,z) -> (-z,x) ?
-		//float ca = cos( 1.57f );
-		//float sa = sin( 1.57f );
-		//float tx = xp; float ty = zp;
-		//xp = ca*tx + sa*ty;
-		//zp = sa*tx - ca*ty;
-
-		glm::vec3 extents(2.8f, 0.125f, 1.45f);
-		if ( i < 8 ) extents = glm::vec3(1.0f, 0.145f, 2.8f);
-		create_slider( glm::vec3(xp,yp+2.f,zp), glm::vec3(xp,yp+3.6f,zp), extents );
-	}
 
 	do
 	{
@@ -586,7 +598,8 @@ int main()
 		proto.setColor(0.1f, 0.5f, 0.1f); proto.drawCone( origin, origin + proto.getCamera()->getUpDirection(), .1f );
 		proto.setColor(0.1f, 0.1f, 0.5f); proto.drawCone( origin, origin + proto.getCamera()->getLookDirection(), .1f );
 		
-		
+		proto.getCamera()->update( proto.keystatus(KEY::LEFT), proto.keystatus(KEY::RIGHT), proto.keystatus(KEY::UP), proto.keystatus(KEY::DOWN), proto.getMouseX(), proto.getMouseY(), proto.mouseDownLeft(), proto.getMSPF() );
+
 		proto.frame();
 		
 	} while( proto.isWindowOpen() );

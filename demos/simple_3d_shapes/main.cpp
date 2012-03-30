@@ -66,17 +66,17 @@ int main()
 		proto.setOrientation( rotmat );
 
 		proto.setColor( 1.f, 0.f, .0f );
-		proto.drawCube( (rotmat * glm::vec4(-2.5f, -2.5f, 0.f, 1.f)).xyz() );
-		proto.drawCube( (rotmat * glm::vec4(-2.5f, +2.5f, 0.f, 1.f)).xyz() );
-		proto.drawCube( (rotmat * glm::vec4(+2.5f, +2.5f, 0.f, 1.f)).xyz() );
-		proto.drawCube( (rotmat * glm::vec4(+2.5f, -2.5f, 0.f, 1.f)).xyz() );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, -2.5f, 0.f, 1.f)) );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, +2.5f, 0.f, 1.f)) );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, +2.5f, 0.f, 1.f)) );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, 0.f, 1.f)) );
 
 		proto.setColor( 1.f, 1.f, 1.f );
 		float z = 5.0f;
-		proto.drawCube( (rotmat * glm::vec4(-2.5f, -2.5f, z, 1.f)).xyz() );
-		proto.drawCube( (rotmat * glm::vec4(-2.5f, +2.5f, z, 1.f)).xyz() );
-		proto.drawCube( (rotmat * glm::vec4(+2.5f, +2.5f, z, 1.f)).xyz() );
-		proto.drawCube( (rotmat * glm::vec4(+2.5f, -2.5f, z, 1.f)).xyz() );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, -2.5f, z, 1.f)) );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, +2.5f, z, 1.f)) );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, +2.5f, z, 1.f)) );
+		proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, z, 1.f)) );
 		
 		proto.setColor( 0.f, .5f, .8f );
 		//drawArm( proto, proto.getNormalizedMouseY() );

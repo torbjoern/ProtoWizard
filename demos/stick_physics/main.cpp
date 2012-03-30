@@ -3,6 +3,7 @@
 
 #include "protographics.h"
 #include "math/math_line.h"
+#include "math/math_common.h"
 
 #include <functional>
 #include <cassert>
@@ -905,7 +906,7 @@ int main()
 
 		static int iter = 0;
 		bool run_physics = false;
-		if ( proto.keyhit(GLFW_KEY_SPACE) ){
+		if ( proto.keyhit(' ') ){
 			std::cout << "iter " << iter++ << std::endl;
 			run_physics = true;
 		}
