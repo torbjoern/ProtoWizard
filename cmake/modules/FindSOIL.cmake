@@ -1,0 +1,12 @@
+
+SET(SOIL_ROOT_PATH F:/dok/kode/libraries/soil )
+
+FIND_PATH( SOIL_INCLUDE_DIR NAMES soil.h 
+		PATHS ${SOIL_ROOT_PATH}/src
+	)
+
+FIND_LIBRARY( SOIL_LIB NAMES SOIL_s
+		PATHS ${SOIL_ROOT_PATH}/lib
+	) 
+
+
