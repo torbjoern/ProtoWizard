@@ -6,26 +6,11 @@
 #include "fileio/text_file.h"
 #include "../../depends/obj_loader/objLoader.h"
 
-
 #include "btBulletDynamicsCommon.h"
 
-#ifdef _DEBUG
+#include <iostream>
+#include <string>
 
-//#if _MSC_VER > 1600
-	//#pragma comment(lib, "F:/code_lab/bullet-2.80-rev2531/msvc/vs2011beta/lib/Debug/BulletDynamics_debug.lib")
-	//#pragma comment(lib, "F:/code_lab/bullet-2.80-rev2531/msvc/vs2011beta/lib/Debug/BulletCollision_debug.lib")
-	//#pragma comment(lib, "F:/code_lab/bullet-2.80-rev2531/msvc/vs2011beta/lib/Debug/LinearMath_debug.lib")
-//#else
-	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletDynamics_debug.lib")
-	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletCollision_debug.lib")
-	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/LinearMath_debug.lib")
-//#endif
-
-#else
-	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletDynamics.lib")
-	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/BulletCollision.lib")
-	#pragma comment(lib, "F:/code_lab/bullet-2.79/lib/LinearMath.lib")
-#endif
 
 namespace 
 {
@@ -402,7 +387,7 @@ void create_slider(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& ex
 
 void toggle_constraints()
 {
-	for(int i=0; i<constraints.size(); i++){
+	for(size_t i=0; i<constraints.size(); i++){
 		btGeneric6DofConstraint* g6dof = constraints[i];
 		btScalar pos = g6dof->getRelativePivotPosition(1);
 		btScalar minp = g6dof->getTranslationalLimitMotor()->m_lowerLimit.y();
@@ -449,15 +434,16 @@ void loadConstraints()
 	}
 }
 
-int main()
+
+
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
 
-	if (!proto.init(640,480) ) {
+	if (!proto.init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}
-
 
 	proto.setFrameRate( 60 );
 	//proto.debugNormals(true);
@@ -477,8 +463,8 @@ int main()
 	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0,groundMotionState,groundShape,btVector3(0,0,0));
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
 	dynamicsWorld->addRigidBody(groundRigidBody);
-
-	const std::string level1_path = "assets/models/level1.obj";
+	
+	const std::string level1_path = proto.getResourceDir() + "/models/level1.obj";
 	createLevel(glm::vec3(0.f, 0.f, 0.f), level1_path );
 
 	proto.setFrameRate( 60 );
@@ -571,7 +557,7 @@ int main()
 			else if ( shapeType == TRIANGLE_MESH_SHAPE_PROXYTYPE )
 			{
 				proto.setBlend(true);
-				proto.setAlpha(0.65);
+				proto.setAlpha(0.65f);
 				proto.drawMesh( pos, phy_objs[i]->tri_mesh_path );
 				proto.setBlend(false);
 			}
@@ -586,7 +572,7 @@ int main()
 		double time_perf = proto.klock() - time_begin;
 
 		proto.setColor(0.75f, 0.75f, 0.75f);
-		for(int i=0; i<constraint_lines.size(); i+=2)
+		for(size_t i=0; i<constraint_lines.size(); i+=2)
 		{
 			glm::vec3 p1 = constraint_lines[i+0];
 			glm::vec3 p2 = constraint_lines[i+1];
@@ -598,7 +584,7 @@ int main()
 		proto.setColor(0.1f, 0.5f, 0.1f); proto.drawCone( origin, origin + proto.getCamera()->getUpDirection(), .1f );
 		proto.setColor(0.1f, 0.1f, 0.5f); proto.drawCone( origin, origin + proto.getCamera()->getLookDirection(), .1f );
 		
-		proto.getCamera()->update( proto.keystatus(KEY::LEFT), proto.keystatus(KEY::RIGHT), proto.keystatus(KEY::UP), proto.keystatus(KEY::DOWN), proto.getMouseX(), proto.getMouseY(), proto.mouseDownLeft(), proto.getMSPF() );
+		proto.getCamera()->update( proto.keystatus(KEY::LEFT), proto.keystatus(KEY::RIGHT), proto.keystatus(KEY::UP), proto.keystatus(KEY::DOWN), (float)proto.getMouseX(), (float)proto.getMouseY(), proto.mouseDownLeft(), proto.getMSPF() );
 
 		proto.frame();
 		

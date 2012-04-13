@@ -8,7 +8,11 @@ class ProtoApp
 public:
 	ProtoApp()
 	{
-		if ( !proto.init(640,480) )
+	}
+
+	ProtoApp(const char* argv[])
+	{
+		if ( !proto.init(640,480,argv) )
 		{
 			std::cerr << "proto failed to init. either because of missing shaders, bad shaders.. or bad opengl drivers. or just bad code in proto" << std::endl;
 			return;

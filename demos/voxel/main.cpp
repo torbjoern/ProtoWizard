@@ -21,6 +21,11 @@ class MyApp : public ProtoApp
 public:
 	int non_black_pixels;
 
+	MyApp(const char* argv[])
+	{
+		ProtoApp::ProtoApp(argv);
+	}
+
 	void sum_num_voxels( byte* data, int width, int height, int bits_per_pixel  )
 	{
 		int stride = width * bits_per_pixel;
@@ -136,9 +141,9 @@ public:
 	};
 };
 
-int main()
+int main(int argc, const char* argv[])
 {
-	MyApp app;
+	MyApp app(argv);
 	app.run();
 
 	return 0;

@@ -2,11 +2,11 @@
 #include <math/math_common.h>
 
 #include <iostream>
-
+#include <string>
 
 void drawArm( ProtoGraphics& proto, float angle )
 {
-   int segs = 25;
+   int segs = 30;
    double periods = 3;
    double a = 0.0;
    glm::vec3 p1( -11+20*0, 4.f * sin(periods * a), 4.f * sin(.5*M_PI + periods*a) );
@@ -17,17 +17,17 @@ void drawArm( ProtoGraphics& proto, float angle )
       
       double a = TWO_PI * t;
       glm::vec3 p2( -10+20*t, 4.f * sin(periods * a), 4.f * sin(.5*M_PI + periods*a) );
-	  //proto.drawSphere( p2, 1.0f );
-	  proto.drawCone( p1, p2, 1.0f );
+	  proto.drawSphere( p2, 1.0f );
+	  proto.drawCone( p1, p2, -1.0f );
 	  p1 = p2;
    }
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
 
-	if( !proto.init(640,480) )
+	if( !proto.init(640,480,argv) )
 	{
 		std::cerr << "failed to init" << std::endl;
 		return -1;
@@ -79,7 +79,8 @@ int main()
 		proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, z, 1.f)) );
 		
 		proto.setColor( 0.f, .5f, .8f );
-		//drawArm( proto, proto.getNormalizedMouseY() );
+		proto.setBlend( false );
+		drawArm( proto, proto.getNormalizedMouseY() );
 
 		//proto.drawCircle( 320 + 30.f * proto.noise(t), 240 + 30.f * proto.noise(t-.5f), 50.f );
 

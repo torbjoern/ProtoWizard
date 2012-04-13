@@ -874,12 +874,12 @@ void draw_line_cube( ProtoGraphics& proto, glm::vec3 pos , float scale )
 	}
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
 	using glm::vec3;
 
 	ProtoGraphics proto;
-	bool inited = proto.init(640,480);
+	bool inited = proto.init(640,480,argv);
 	assert( inited );
 
 	proto.setCamera( vec3(-30.f, -20.f, -60.f), 0,0 );

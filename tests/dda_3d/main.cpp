@@ -111,11 +111,11 @@ void blockscan (double x0, double y0, double x1, double y1)
 
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
 
-	if (!proto.init(640,480) ) {
+	if (!proto.init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}

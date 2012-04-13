@@ -19,7 +19,7 @@ void Shader::begin() { glUseProgram(program); }
 void Shader::end() { glUseProgram(0); }
 
 
-bool Shader::install(const char* VSPath, const char* FSPath)
+bool Shader::install(const std::string& VSPath, const std::string& FSPath)
 {
 	name = std::string(VSPath);
 
@@ -33,7 +33,7 @@ bool Shader::install(const char* VSPath, const char* FSPath)
 	return true;
 }
 
-bool Shader::install(const char* VSPath, const char* GSPath, const char* FSPath)
+bool Shader::install(const std::string& VSPath, const std::string& GSPath, const std::string& FSPath)
 {
 	name = std::string(VSPath);
 

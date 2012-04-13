@@ -4,10 +4,10 @@
 // in release: 7-8  
 // in debug  : 20-21
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
-	if ( !proto.init(600,600) )
+	if ( !proto.init(600,600,argv) )
 	{
 		fprintf(stderr, "failed to init proto. remembered to set default data dir???");
 	}

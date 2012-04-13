@@ -13,6 +13,7 @@
 #include "../depends/noise/perlin.h"
 
 #include "texture_manager.h"
+#include "path.h"
 
 
 
@@ -58,6 +59,8 @@ ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), texture_manager(NULL_TEX_M
 	scale = glm::vec3( 1.0f );
 
 	isDebugNormalsActive = false;
+
+	resource_dir = "../assets";
 }
 
 ProtoGraphics::~ProtoGraphics()
@@ -118,27 +121,27 @@ bool ProtoGraphics::install_shaders()
 	phong_shader = new Shader;
 	geo_shader_normals = new Shader;
 
-	if ( shader_lines2d->install("assets/line2d_shader.vert", "assets/line2d_shader.frag") == false )
+	if ( shader_lines2d->install( resource_dir + "/line2d_shader.vert", resource_dir + "/line2d_shader.frag") == false )
 	{
 		return false;
 	}else{
 		shader_list.push_back( shader_lines2d );
 	}
 
-	if ( shader_2d->install("assets/shader2d.vert", "assets/shader2d.frag") == false )
+	if ( shader_2d->install(resource_dir + "/shader2d.vert", resource_dir + "/shader2d.frag") == false )
 	{
 		return false;
 	}
 	shader_list.push_back( shader_2d );
 
-	if ( phong_shader->install("assets/phong.vert", "assets/phong.frag") == false )
+	if ( phong_shader->install(resource_dir + "/phong.vert", resource_dir + "/phong.frag") == false )
 	{
 		return false;
 	}else{
 		shader_list.push_back( phong_shader );
 	}
 	
-	if ( geo_shader_normals->install("assets/passthru.vert", "assets/normals.gs", "assets/normals.frag") == false )
+	if ( geo_shader_normals->install(resource_dir + "/passthru.vert", resource_dir + "/normals.gs", resource_dir + "/normals.frag") == false )
 	{
 		return false;
 	}else{
@@ -156,8 +159,11 @@ bool ProtoGraphics::install_shaders()
 	return true;
 }
 
-bool ProtoGraphics::init(int xres, int yres)
+bool ProtoGraphics::init(int xres, int yres, const char* argv[] )
 {
+	std::string folderWithBinary = extractExePath( std::string(argv[0]) );
+	setResourceDir( folderWithBinary+"/assets" );
+
 	int ok = glfwInit();
 	if ( ok==0 ) return false;
 	this->xres = xres;

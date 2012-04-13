@@ -72,12 +72,12 @@ void scene(ProtoGraphics &proto)
 }
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	using glm::vec3;
 
 	ProtoGraphics proto;
-	if (proto.init(640,480) == false )
+	if (proto.init(640,480,argv) == false )
 	{
 		std::cerr << "proto failed to init" << std::endl;
 		return 1;

@@ -54,7 +54,7 @@ public:
 
 	void dump_stats();
 
-	bool init(int xres, int yres);
+	bool init(int xres, int yres, const char* argv[] );
 
 	void setCamera( glm::vec3 pos, glm::vec3 target, glm::vec3 up );
 
@@ -83,6 +83,9 @@ public:
 	static ProtoGraphics* getInstance() { return instance; }
 	
 	double klock();
+
+	std::string getResourceDir() { return resource_dir; }
+	void setResourceDir( const std::string& new_dir ) { resource_dir = new_dir; }
 
 	int getMouseX();
 
@@ -243,6 +246,8 @@ private:
 	int num_blended;
 
 	bool isDebugNormalsActive;
+
+	std::string resource_dir;
 };
 
 //};

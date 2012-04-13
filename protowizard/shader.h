@@ -46,8 +46,8 @@ public:
 		}
 	}
 
-	bool install(const char* VSPath, const char* FSPath);
-	bool install(const char* VSPath, const char* GSPath, const char* FSPath);
+	bool install(const std::string& VSPath, const std::string& FSPath);
+	bool install(const std::string& VSPath, const std::string& GSPath, const std::string& FSPath);
 	//bool install_vert_and_geo( const char* VSPath, const char* GSPath );
 	bool reload();
 

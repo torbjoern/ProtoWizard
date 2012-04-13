@@ -1,6 +1,6 @@
 #include <protographics.h>
 #include "color_utils.h"
-
+#include <string>
 
 
 void draw_models( ProtoGraphics &proto )
@@ -11,20 +11,20 @@ void draw_models( ProtoGraphics &proto )
 
 	proto.disableTexture();
 	
-	proto.setTexture( "assets/textures/googley_hen.jpg");
-	proto.drawMesh( glm::vec3(0.f, 0.5f, 0.f), horiz, 90.f, "assets/models/googley_chicken.obj");
+	proto.setTexture( proto.getResourceDir() + "/textures/googley_hen.jpg");
+	proto.drawMesh( glm::vec3(0.f, 0.5f, 0.f), horiz, 90.f, proto.getResourceDir() + "/models/googley_chicken.obj");
 
 
-	proto.setTexture( "assets/textures/cube.png");
-	proto.drawMesh( glm::vec3(0.f, 0.f, 0.f), horiz, 0, "assets/models/cube.obj");
+	proto.setTexture( proto.getResourceDir() + "/textures/cube.png");
+	proto.drawMesh( glm::vec3(0.f, 0.f, 0.f), horiz, 0, proto.getResourceDir() + "/models/cube.obj");
 }
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
 
-	if (!proto.init(640,480) ) {
+	if (!proto.init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}

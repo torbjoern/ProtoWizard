@@ -433,10 +433,10 @@ private:
 };
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
-	bool inited = proto.init(640,480);
+	bool inited = proto.init(640,480,argv);
 	if( !inited )
 	{
 		throw char("could not init ProtoGraphics");

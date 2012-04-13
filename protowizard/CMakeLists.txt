@@ -91,6 +91,7 @@ set(HDRS
 	texture_manager.h
 	vertex_types.h
 	fileio/text_file.h
+	path.h
 )
 
 set(SRCS
@@ -103,6 +104,7 @@ set(SRCS
 	shapes/mesh.cpp
 	texture_manager.cpp
 	fileio/text_file.cpp
+	path.cpp
 )
 
 set(shader_srcs

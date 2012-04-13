@@ -1,6 +1,7 @@
 #include <protographics.h>
 #include <color_utils.h>
 #include <math/math_common.h>
+#include <string>
 
 glm::vec2 pointOnCicle( float u )
 {
@@ -22,16 +23,16 @@ void circle_of_things( ProtoGraphics& proto )
 		float hang = normalized * 360.f;
 
 		proto.setColor( protowizard::hsv2rgb( hang, 1,1 ) ); 
-		proto.setTexture("assets/textures/alpha_particle.png");
+		proto.setTexture( proto.getResourceDir() + std::string("/textures/alpha_particle.png") );
 		proto.drawPlane( glm::vec3(point.x, 0.f, point.y), glm::vec3(0.f, 0.f, 1.f), 2.f );
 	}
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
 
-	if (!proto.init(640,480) ) {
+	if (!proto.init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}

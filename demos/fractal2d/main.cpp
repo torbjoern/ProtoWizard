@@ -59,11 +59,11 @@ void do_fractal( ProtoGraphics &proto )
 }
 
 
-int main()
+int main(int argc, const char* argv[])
 {
 	ProtoGraphics proto;
 
-	if (!proto.init(640,480) ) {
+	if (!proto.init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}
