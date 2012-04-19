@@ -240,7 +240,8 @@ struct player_t{
 
 
 		if ( speed > MINIMUM_SPEED ) {
-			proto.setColor( lerp(proto.random(0.0f, 1.0f), glm::vec3(1.f,1.f,0.f), player_color) ) ;
+			glm::vec3 color = glm::mix(glm::vec3(1.f,1.f,0.f), player_color,proto.random(0.0f, 1.0f));
+			proto.setColor( color );
 		} else {
 			proto.setColor( player_color );
 		}

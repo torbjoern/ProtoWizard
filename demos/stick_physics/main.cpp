@@ -468,7 +468,7 @@ public:
 
 		for( int i=1; i<int(num_links); i++ ){
 			float t = i / (num_links-1.0f);
-			points.push_back( point_t( lerp(t, a,b ), standard_mass ) );
+			points.push_back( point_t( glm::mix(a,b,t), standard_mass ) );
 
 			int num_pts = points.size();
 			//edge_t edge(points[ num_pts - 2], points[ num_pts - 1]);

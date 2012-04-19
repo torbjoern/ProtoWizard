@@ -18,7 +18,4 @@ template <class T> T RADIANS_TO_DEGREES(T radians)
 	return radians / T(M_PI) * T(180.f);
 }
 
-#define lerp(t, a, b) ( a + t * (b - a) )
-
-
 #endif

@@ -36,6 +36,7 @@ add_subdirectory (demos/stick_physics)
 add_subdirectory (tests/obj_model)
 add_subdirectory (tests/ray_isect)
 add_subdirectory (tests/dda_3d)
+add_subdirectory (tests/random)
 
 add_subdirectory (games/ballbearing)
 add_subdirectory (games/bilspel)
