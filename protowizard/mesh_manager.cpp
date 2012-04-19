@@ -16,20 +16,22 @@ public:
 		mesh_map.clear();
 	}
 
-	virtual void drawMesh( const std::string& file_path )
+	virtual MeshPtr getMesh( const std::string& file_path )
 	{
-		using std::string;
-
-		std::map<string, MeshPtr >::iterator it;
-	
-		it = mesh_map.find( file_path );
-	
-		if ( it == mesh_map.end() )
+		if ( mesh_map[file_path] == 0x0 )
 		{
 			mesh_map[file_path] = createMesh( file_path );
-		} else {
-			(it->second)->draw();
-		}
+			if ( mesh_map[file_path] == 0x0 ) 
+			{
+				throw std::runtime_error("cant find mesh " + file_path);
+			} 
+		} 
+		return mesh_map[file_path];
+	}
+
+	virtual void drawMesh( const std::string& file_path )
+	{
+		mesh_map.find( file_path )->second->draw();
 	}
 
 private:
@@ -41,11 +43,11 @@ private:
 
 		char* cstrFileName = new char[fileName.length()+1];
 		strcpy_s( cstrFileName, fileName.length()+1, fileName.c_str() );
-		if ( !objData->load( cstrFileName ) ) 
+		if ( objData->load( cstrFileName ) == 0 ) 
 		{
 			// could not load mesh. 
 			// TODO use place holder mesh. some red 3d text "PLACEHOLDER - MESH NOT FOUND"
-			throw char ("Could prolly not find .obj file");
+			return std::shared_ptr<Mesh>( 0 );
 		}
 	
 		std::vector< glm::vec3 > obj_vertex_coords;

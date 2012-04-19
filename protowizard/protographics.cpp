@@ -16,10 +16,6 @@
 #include "mesh_manager.h"
 #include "path.h"
 
-
-
-//using namespace Proto;
-
 ProtoGraphics* ProtoGraphics::instance = 0x0; // C++ hack, static variables must be instantiated in a cpp
 
 ProtoGraphics::ProtoGraphics()
@@ -645,9 +641,8 @@ void ProtoGraphics::drawMesh( glm::vec3 position, std::string path )
 {
 	MeshState *state = new MeshState;
 	save_state( state );
-	state->mesh_path = path;
-	state->mesh_manager = this->mesh_manager; //std::shared_ptr<MeshManager>(mesh_manager);
-
+	state->mesh = mesh_manager->getMesh(path);
+	
 	state->transform = glm::translate( identityMatrix, position );
 	state->transform *= currentOrientation;
 	state->transform = glm::scale( state->transform, scale );

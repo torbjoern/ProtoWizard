@@ -70,15 +70,8 @@ set(math_HDRS
   math/math_line.h
   math/math_ray.h
 )
-SOURCE_GROUP("Header Files\\math" FILES ${math_HDRS})
 
-set(HDRS
-	camera.h
-	color_utils.h
-	common.h
-	opengl_stuff.h
-	platform.h
-	protographics.h
+set(shape_HDRS
 	shapes/sphere.h
 	shapes/shapes.h
 	shapes/plane.h
@@ -87,6 +80,19 @@ set(HDRS
 	shapes/cube.h
 	shapes/circle.h
 	shapes/mesh.h
+)
+SOURCE_GROUP("Header Files\\math" FILES ${math_HDRS})
+SOURCE_GROUP("Header Files\\shapes" FILES ${shape_HDRS})
+
+set(HDRS
+	${math_HDRS}
+	${shape_HDRS}
+	camera.h
+	color_utils.h
+	common.h
+	opengl_stuff.h
+	platform.h
+	protographics.h
 	shader.h
 	texture_manager.h
 	mesh_manager.h
@@ -109,7 +115,7 @@ set(SRCS
 	path.cpp
 )
 
-set(shader_srcs
+set(shader_SRCS
 	shader2d.frag
 	shader2d.vert
 
@@ -123,5 +129,6 @@ set(shader_srcs
 	normals.gs
 	normals.frag
 )
+# has no effect SOURCE_GROUP("Resource Files\\shaders" FILES ${shader_SRCS})
 
-add_library( ProtoWizard ${Dependency_HDRS} ${math_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )
+add_library( ProtoWizard ${Dependency_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )

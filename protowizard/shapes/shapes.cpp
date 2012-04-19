@@ -1,4 +1,5 @@
 #include "shapes.h"
+#include "mesh.h"
 
 #include <algorithm>
 
@@ -70,7 +71,7 @@ void Shapes::de_init()
 
 void MeshState::draw()
 {
-	mesh_manager->drawMesh( this->mesh_path );
+	mesh->draw();
 }
 
 void *SphereState::operator new(size_t size)

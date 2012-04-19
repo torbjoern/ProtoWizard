@@ -122,9 +122,7 @@ struct MeshState : public BaseState3D
 {
 	
 	virtual void draw();
-
-	std::string mesh_path;
-	MeshManager* mesh_manager;
+	MeshPtr mesh;
 };
 
 
