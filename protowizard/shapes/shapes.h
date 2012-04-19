@@ -8,38 +8,27 @@
 #include "cube.h"
 #include "plane.h"
 
+#include "../mesh_manager.h"
+
 #include "../vertex_types.h"
 #include "../common.h"
 
 #include <map>
+#include <memory>
 
 
-class Mesh;
-
-class GeometryLibrary
+namespace Shapes
 {
-
-public:
+	extern LineGeometry line;
+	extern CircleGeometry circle;
+	extern CylinderGeometry cylinder;
+	extern SphereGeometry sphere;
+	extern CubeGeometry cube;
+	extern PlaneGeometry plane;
 
 	bool init();
-
-	void shutdown();
-
-	// if the mesh couldn't be found, it draws a placeholder... some error register should indicate this
-	void drawMesh( const std::string& file_path );
-
-	Mesh* createMesh(const std::string& fileName);
-
-public:
-	LineGeometry line;
-	CircleGeometry circle;
-	CylinderGeometry cylinder;
-	SphereGeometry sphere;
-	CubeGeometry cube;
-	PlaneGeometry plane;
-private:
-	std::map<std::string, Mesh*> mesh_map;
-};
+	void de_init();
+}
 
 namespace blending
 {
@@ -117,7 +106,7 @@ struct BaseState3D : public BaseState
 	}
 
 
-	virtual void draw( GeometryLibrary* geo_lib ) = 0;
+	virtual void draw() = 0;
 
 	BaseState3D()
 	{
@@ -131,9 +120,11 @@ struct BaseState3D : public BaseState
 
 struct MeshState : public BaseState3D
 {
-	virtual void draw( GeometryLibrary* geo_lib );
+	
+	virtual void draw();
 
 	std::string mesh_path;
+	MeshManager* mesh_manager;
 };
 
 
@@ -144,7 +135,7 @@ struct SphereState : public BaseState3D
 
 	virtual void pre_draw(Shader const& shader);
 
-	virtual void draw( GeometryLibrary* geo_lib );
+	virtual void draw();
 
 private:
 	static std::vector<SphereState*> pool;
@@ -159,7 +150,7 @@ struct CylinderState : public BaseState3D
 
 	virtual void pre_draw(Shader const& shader);
 
-	virtual void draw( GeometryLibrary* geo_lib );
+	virtual void draw();
 
 	virtual float distance_from_camera( glm::vec3 const& camera_pos ) const;
 
@@ -177,9 +168,9 @@ struct CubeState : public BaseState3D
 
     void operator delete(void *memory);
 
-	void draw( GeometryLibrary* geo_lib )
+	void draw()
 	{
-		geo_lib->cube.draw();
+		Shapes::cube.draw();
 	}
 
 private:
@@ -192,12 +183,12 @@ struct PlaneState : public BaseState3D
 
 	void operator delete(void *memory);
 
-	virtual void draw( GeometryLibrary* geo_lib )
+	virtual void draw()
 	{
 		glm::vec3 pos = glm::vec3(transform[3]);
 		glDisable(GL_CULL_FACE);
-		geo_lib->plane.createGeometry( pos, normal, 1.0 );
-		geo_lib->plane.draw();
+		Shapes::plane.createGeometry( pos, normal, 1.0 );
+		Shapes::plane.draw();
 
 		glEnable(GL_CULL_FACE);
 	}

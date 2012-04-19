@@ -1,10 +1,11 @@
+#pragma once;
 
 // Forward decls
 #include "camera.h"
 //class FirstPersonCamera;
 
 class TextureManager;
-class GeometryLibrary;
+class MeshManager;
 
 struct LineSegmentState;
 struct CircleState;
@@ -26,6 +27,7 @@ class Shader;
 #include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
 
 #include "math/math_ray.h"
+#include "math/math_common.h"
 
 class ProtoGraphics
 {
@@ -56,13 +58,13 @@ public:
 
 	bool init(int xres, int yres, const char* argv[] );
 
-	void setCamera( glm::vec3 pos, glm::vec3 target, glm::vec3 up );
+	void setCamera( const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up );
 
 	void setCamera( float x, float y, float z, float hang, float vang );
 
-	void setCamera( glm::vec3 pos, float hang, float vang );
+	void setCamera( const glm::vec3& pos, float hang, float vang );
 
-	FirstPersonCamera* getCamera() {return &camera; }
+	FirstPersonCamera* getCamera() {return camera; }
 
 	void setTitle( const std::string &str);
 
@@ -187,7 +189,10 @@ private:
 	bool install_shaders();
 
 	void save_state( BaseState3D* state );
-	
+
+	// TODO.. use friend instead...?
+public:
+	MeshManager *mesh_manager;
 private:
 	static ProtoGraphics *instance;
 	bool isRunning;
@@ -208,10 +213,9 @@ private:
 
 	glm::vec3 light_pos;
 
-	FirstPersonCamera& camera;
-
-	TextureManager &texture_manager;
-	GeometryLibrary &geo_lib;
+	FirstPersonCamera *camera;
+	TextureManager *texture_manager;
+	
 	
 	Shader *shader_2d;
 	Shader *shader_lines2d;

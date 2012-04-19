@@ -11,9 +11,10 @@ class Mesh
 {
 public:
 	void draw();
+	Mesh( std::vector<Vertex_VNC>& verts );
+	Mesh( std::vector<Vertex_VNT>& verts );
 	~Mesh();
-	bool setVertexData( std::vector<Vertex_VNC>& verts );
-	bool setVertexData( std::vector<Vertex_VNT>& verts );
+
 
 private:
 	GLuint vbo;

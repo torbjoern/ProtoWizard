@@ -8,7 +8,6 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
 endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
-set(CMAKE_DEBUG_POSTFIX "-debug")
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin")
 
 find_package(OPENGL REQUIRED)
@@ -39,3 +38,4 @@ add_subdirectory (tests/ray_isect)
 add_subdirectory (tests/dda_3d)
 
 add_subdirectory (games/ballbearing)
+add_subdirectory (games/bilspel)

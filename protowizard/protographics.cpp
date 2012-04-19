@@ -13,6 +13,7 @@
 #include "../depends/noise/perlin.h"
 
 #include "texture_manager.h"
+#include "mesh_manager.h"
 #include "path.h"
 
 
@@ -21,13 +22,13 @@
 
 ProtoGraphics* ProtoGraphics::instance = 0x0; // C++ hack, static variables must be instantiated in a cpp
 
-FirstPersonCamera NULL_CAMERA = FirstPersonCamera();
-TextureManager NULL_TEX_MGR = TextureManager();
-GeometryLibrary NULL_GEO_LIB = GeometryLibrary();
-
-
-ProtoGraphics::ProtoGraphics() : camera(NULL_CAMERA), texture_manager(NULL_TEX_MGR), geo_lib(NULL_GEO_LIB)
+ProtoGraphics::ProtoGraphics()
 {
+	texture_manager = TextureManager::init();
+	mesh_manager = MeshManager::init();
+	camera = new FirstPersonCamera;
+
+	printf("protographics v 0.1\n");
 	instance = this;
 
 	isRunning = false;
@@ -211,7 +212,7 @@ bool ProtoGraphics::init(int xres, int yres, const char* argv[] )
 	}
 
 
-	geo_lib.init();
+	Shapes::init();
 
 	if ( !install_shaders() ) return false;
 		
@@ -225,19 +226,19 @@ bool ProtoGraphics::init(int xres, int yres, const char* argv[] )
 }
 
 
-void ProtoGraphics::setCamera( glm::vec3 pos, glm::vec3 target, glm::vec3 up )
+void ProtoGraphics::setCamera( const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up )
 {
-	camera.lookAt( pos, target, up );
+	camera->lookAt( pos, target, up );
 }
 
 void ProtoGraphics::setCamera( float x, float y, float z, float hang, float vang )
 {
-	camera.set( glm::vec3(x,y,z), hang, vang );
+	camera->set( glm::vec3(x,y,z), hang, vang );
 }
 
-void ProtoGraphics::setCamera( glm::vec3 pos, float hang, float vang )
+void ProtoGraphics::setCamera( const glm::vec3& pos, float hang, float vang )
 {
-	camera.set( pos, hang, vang );
+	camera->set( pos, hang, vang );
 }
 
 void ProtoGraphics::setTitle( const std::string &str)
@@ -247,12 +248,12 @@ void ProtoGraphics::setTitle( const std::string &str)
 
 void ProtoGraphics::setTexture( const std::string& path )
 {
-	texture_manager.setTexture( path );
+	texture_manager->setTexture( path );
 }
 
 void ProtoGraphics::disableTexture()
 {
-	texture_manager.disableTextures();
+	texture_manager->disableTextures();
 }
 
 // shutdown is called by the class destructor
@@ -262,8 +263,10 @@ void ProtoGraphics::disableTexture()
 // cleaning up as an exercise.
 void ProtoGraphics::shutdown()
 {	
-	texture_manager.shutdown();
-	geo_lib.shutdown();
+	texture_manager->shutdown( texture_manager );
+	mesh_manager->shutdown( mesh_manager );
+	Shapes::de_init();
+	delete camera;
 
 	for(unsigned int i=0; i<shader_list.size(); i++){
 		shader_list[i]->shutdown();
@@ -291,9 +294,6 @@ void ProtoGraphics::frame()
 #ifdef _DEBUG
 	GetError("ProtoGraphics::frame begin");
 #endif
-	
-	//camera.update( keystatus(GLFW_KEY_LEFT), keystatus(GLFW_KEY_RIGHT), keystatus(GLFW_KEY_UP), keystatus(GLFW_KEY_DOWN), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), (float)delta_time );
-	//camera.update( keystatus('A'), keystatus('D'), keystatus('W'), keystatus('S'), (float)getMouseX(), (float)getMouseY(), mouseDownLeft(), delta_time );
 
 	if ( false ) //keyhit('R') )
 	{
@@ -400,14 +400,14 @@ int ProtoGraphics::getMouseWheel()
 protomath::Ray ProtoGraphics::getMousePickRay()
 {
 	protomath::Ray ray;
-	ray.origin = camera.getPos();
-	float cameraPlaneDistance = 1.0f / (2.0f * tan(camera.getFov()*M_PI/180.f*0.5f) );
+	ray.origin = camera->getPos();
+	float cameraPlaneDistance = 1.0f / (2.0f * tan(camera->getFov()*M_PI/180.f*0.5f) );
 	float u = -.5f + (mousx+.5f) / (float)(xres-1);
 	float aspect = xres / float(yres);
 	u *= aspect;
 
 	float v = -.5f + (mousy+.5f) / (float)(yres-1);
-	ray.dir = camera.getLookDirection() * cameraPlaneDistance + camera.getStrafeDirection() * u + camera.getUpDirection() * -v;
+	ray.dir = camera->getLookDirection() * cameraPlaneDistance + camera->getStrafeDirection() * u + camera->getUpDirection() * -v;
 	ray.dir = glm::normalize(ray.dir);
 	return ray;
 }
@@ -547,7 +547,7 @@ void ProtoGraphics::save_state( BaseState3D* state )
 {
 	state->color = this->colorState;
 	state->blend_mode = this->blend_state;
-	state->tex_handle = texture_manager.getActiveTexture();
+	state->tex_handle = texture_manager->getActiveTexture();
 
 	if( state->blend_mode == blending::SOLID_BLEND )
 	{
@@ -646,6 +646,7 @@ void ProtoGraphics::drawMesh( glm::vec3 position, std::string path )
 	MeshState *state = new MeshState;
 	save_state( state );
 	state->mesh_path = path;
+	state->mesh_manager = this->mesh_manager; //std::shared_ptr<MeshManager>(mesh_manager);
 
 	state->transform = glm::translate( identityMatrix, position );
 	state->transform *= currentOrientation;
@@ -672,7 +673,7 @@ void ProtoGraphics::draw_buffered_lines()
 	unsigned int loc = shader_lines2d->GetVariable("mvp");
 	glm::mat4 orthomat = glm::ortho(  0.f, (float)xres, (float)yres, 0.f );
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(orthomat) );
-	geo_lib.line.draw(buffered_lines);
+	Shapes::line.draw(buffered_lines);
 	buffered_lines.clear();
 }
 
@@ -712,11 +713,11 @@ void ProtoGraphics::draw_buffered_circles()
 
 		if ( buffered_circles[i].radius < 0.f )
 		{
-			geo_lib.circle.draw_open();
+			Shapes::circle.draw_open();
 		} 
 		else
 		{
-			geo_lib.circle.draw_fill();
+			Shapes::circle.draw_fill();
 		}
 		
 	}
@@ -737,10 +738,10 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 	unsigned int viewLoc = active_shader_ref.GetVariable("viewMatrix");
 	unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
 	glm::mat4 projection =
-		glm::perspective( camera.getFov(), xres/(float)yres, .5f, 1000.f);
+		glm::perspective( camera->getFov(), xres/(float)yres, .5f, 1000.f);
 	glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
-	glm::mat4 viewMatrix = camera.getViewMatrix();
+	glm::mat4 viewMatrix = camera->getViewMatrix();
 	glUniformMatrix4fv( viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix) );
 
 	unsigned int colorLoc = active_shader_ref.GetVariable("diffuseColor");
@@ -758,7 +759,7 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 			BaseState3D *state = opaque[i];
 			active_shader_ref.SetVec4( colorLoc, state->color );
 			state->pre_draw( active_shader_ref );
-			state->draw(&geo_lib);	
+			state->draw();	
 	}
 
 
@@ -776,7 +777,7 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 			BaseState3D *state = translucent[i];
 			active_shader_ref.SetVec4( colorLoc, state->color );
 			state->pre_draw( active_shader_ref );
-			translucent[i]->draw( &geo_lib );
+			translucent[i]->draw();
 		}
 
 		glDisable(GL_BLEND);

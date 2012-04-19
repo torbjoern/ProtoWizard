@@ -18,7 +18,7 @@ void Mesh::draw()
 	glBindVertexArray(0);
 }
 
-bool Mesh::setVertexData( std::vector<Vertex_VNC>& verts ) 
+Mesh::Mesh( std::vector<Vertex_VNC>& verts ) 
 {
 	this->num_vertices = (int)verts.size();
 	int num_tris = num_vertices / 3;
@@ -31,7 +31,7 @@ bool Mesh::setVertexData( std::vector<Vertex_VNC>& verts )
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNC) * num_vertices, &verts[0], GL_STATIC_DRAW);
 	if (glGetError() == GL_OUT_OF_MEMORY)
 	{
-		return false;
+		std::runtime_error("fatal, out of GL memory");
 	}
 
 	// XYZ vertices
@@ -58,11 +58,9 @@ bool Mesh::setVertexData( std::vector<Vertex_VNC>& verts )
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
-	return true;
 }
 
-bool Mesh::setVertexData( std::vector<Vertex_VNT>& verts ) 
+Mesh::Mesh( std::vector<Vertex_VNT>& verts ) 
 {
 	this->num_vertices = (int)verts.size();
 	int num_tris = num_vertices / 3;
@@ -75,7 +73,7 @@ bool Mesh::setVertexData( std::vector<Vertex_VNT>& verts )
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNT) * num_vertices, &verts[0], GL_STATIC_DRAW);
 	if (glGetError() == GL_OUT_OF_MEMORY)
 	{
-		return false;
+		std::runtime_error("fatal err: GL_OUT_OF_MEMORY");
 	}
 
 	// XYZ vertices
@@ -102,6 +100,4 @@ bool Mesh::setVertexData( std::vector<Vertex_VNT>& verts )
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
-	return true;
 }

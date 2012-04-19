@@ -1,33 +1,14 @@
-#include <map>
+#pragma once;
 #include <string>
-
-
-class TextureHandle
-{
-public:
-
-	TextureHandle() : tex_handle(0)
-	{
-	}
-
-	TextureHandle( unsigned int handle_ ) : tex_handle(handle_)
-	{
-	}
-
-	~TextureHandle();
-
-	unsigned int tex_handle;
-};
 
 class TextureManager
 {
 public:
-	TextureManager();
-	void shutdown();
-	void disableTextures() { active_texture.tex_handle = 0; }
-	void setTexture( const std::string& file_path );
-	unsigned int getActiveTexture(){ return active_texture.tex_handle; }
-private:
-	std::map<std::string, TextureHandle*> texture_handle_map;
-	TextureHandle active_texture;
+	virtual ~TextureManager() {}
+	virtual void disableTextures() = 0;
+	virtual void setTexture( const std::string& file_path ) = 0;
+	virtual unsigned int getActiveTexture() = 0;
+
+	static TextureManager *init();
+	static void shutdown(TextureManager *tm);
 };
