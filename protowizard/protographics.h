@@ -53,6 +53,8 @@ public:
 	double noise(double x, double y, double z);
 
 	float getMSPF();
+	float getAverageMSPF();
+	
 
 	void dump_stats();
 
@@ -161,6 +163,8 @@ public:
 	void debugNormals( bool enable );
 private:
 
+	void initState();
+
 	void handle_key(int key, int action);
 
 	static void _key_callback(int key, int action)
@@ -196,6 +200,7 @@ public:
 private:
 	static ProtoGraphics *instance;
 	bool isRunning;
+	bool hasShutdown;
 
 	int xres, yres;
 	int mousx, mousy;
@@ -252,6 +257,9 @@ private:
 	bool isDebugNormalsActive;
 
 	std::string resource_dir;
+
+	double mspf_samples[10];
+	int currentSample;
 };
 
 //};

@@ -48,6 +48,7 @@ public:
 
 	TextureHandlePtr loadTexture( const std::string& file_path )
 	{
+		// SOIL_load_OGL_texture requires a const char*, and isnt happy with file_path.c_str
 		std::vector<char> cstr_path(file_path.size() + 1);
 		std::copy(file_path.begin(), file_path.end(), cstr_path.begin());
 

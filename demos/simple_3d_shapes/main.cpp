@@ -42,7 +42,7 @@ int main(int argc, const char* argv[])
 
 		if ( proto.mouseDownLeft() == false )
 		{
-			float ang = TWO_PI * proto.getMouseX() / (float)proto.getWindowWidth();
+			float ang = TWO_PI * proto.getNormalizedMouseX();
 			float ca = cos(ang); 
 			float sa = sin(ang); 
 			float radi = 15.f;
@@ -88,8 +88,4 @@ int main(int argc, const char* argv[])
 
 		t += 1.f / 500.f;
 	}
-
-	proto.shutdown();
-
-
 }

@@ -17,5 +17,17 @@ template <class T> T RADIANS_TO_DEGREES(T radians)
 {
 	return radians / T(M_PI) * T(180.f);
 }
+//// given to points p1 and p2 create a vector out
+//// that is perpendicular to (p2-p1)
+//glm::vec3 createPerp(const glm::vec3& p1, const glm::vec3& p2)
+//{
+//	glm::vec3 invec = glm::normalize(p2 - p1);
+//	glm::vec3 out = glm::cross( invec, glm::vec3(0.f, 0.f, 1.f) );
+//	if ( glm::length(out) == 0 )
+//	{
+//		out = glm::cross( invec, glm::vec3(0.f, 1.f, 0.f) );
+//	}
+//	return out;
+//}
 
 #endif

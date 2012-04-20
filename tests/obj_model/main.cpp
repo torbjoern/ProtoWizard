@@ -13,7 +13,7 @@ void draw_models( ProtoGraphics &proto )
 	
 	proto.setTexture( proto.getResourceDir() + "/textures/googley_hen.jpg");
 	proto.drawMesh( glm::vec3(0.f, 0.5f, 0.f), horiz, 90.f, proto.getResourceDir() + "/models/googley_chicken.obj");
-	proto.drawMesh( glm::vec3(0.f, 0.5f, 0.f), horiz, 90.f, proto.getResourceDir() + "/models/non_existant.obj");
+	//proto.drawMesh( glm::vec3(0.f, 0.5f, 0.f), horiz, 90.f, proto.getResourceDir() + "/models/non_existant.obj");
 
 
 	proto.setTexture( proto.getResourceDir() + "/textures/cube.png");

@@ -20,44 +20,6 @@ ProtoGraphics* ProtoGraphics::instance = 0x0; // C++ hack, static variables must
 
 ProtoGraphics::ProtoGraphics()
 {
-	texture_manager = TextureManager::init();
-	mesh_manager = MeshManager::init();
-	camera = new FirstPersonCamera;
-
-	printf("protographics v 0.1\n");
-	instance = this;
-
-	isRunning = false;
-
-	time = 0.0;
-	old_time = 0.0;
-	delta_time = 0.0;
-
-	max_millis_per_frame = 1.0 / 1000.0; // cap framerate at 1000 fps
-
-	numframes = 0;
-
-	mousx = 0;
-	mousy = 0;
-
-	light_pos = glm::vec3( -1000.f, 1000.f, -1000.f );
-
-	for( int i = 0; i < NUM_KEYS; i++ )
-	{
-		key_array[i] = false;
-		key_hit_array[i] = 0;
-	}
-
-	blend_state = blending::SOLID_BLEND;
-	colorState = glm::vec4( 1.f );
-	move_to_state = glm::vec2(0.f, 0.f);
-
-	currentOrientation = identityMatrix;
-	scale = glm::vec3( 1.0f );
-
-	isDebugNormalsActive = false;
-
-	resource_dir = "../assets";
 }
 
 ProtoGraphics::~ProtoGraphics()
@@ -102,6 +64,13 @@ double ProtoGraphics::noise(double x, double y, double z)
 
 float ProtoGraphics::getMSPF(){
 	return (float)delta_time;
+}
+float ProtoGraphics::getAverageMSPF(){
+	double acc = 0.f;
+	for (int i=0; i<10; i++) {
+		acc += mspf_samples[i];
+	}
+	return (float) acc / 10.f;
 }
 
 void ProtoGraphics::dump_stats()
@@ -156,8 +125,57 @@ bool ProtoGraphics::install_shaders()
 	return true;
 }
 
+void ProtoGraphics::initState()
+{
+	texture_manager = TextureManager::init();
+	mesh_manager = MeshManager::init();
+	camera = new FirstPersonCamera;
+
+	printf("protographics v 0.1\n");
+	instance = this;
+
+	hasShutdown = false;
+	isRunning = false;
+
+	time = 0.0;
+	old_time = 0.0;
+	delta_time = 0.0;
+
+	max_millis_per_frame = 1.0 / 1000.0; // cap framerate at 1000 fps
+
+	numframes = 0;
+
+	mousx = 0;
+	mousy = 0;
+
+	light_pos = glm::vec3( -1000.f, 1000.f, -1000.f );
+
+	for( int i = 0; i < NUM_KEYS; i++ )
+	{
+		key_array[i] = false;
+		key_hit_array[i] = 0;
+	}
+
+	blend_state = blending::SOLID_BLEND;
+	colorState = glm::vec4( 1.f );
+	move_to_state = glm::vec2(0.f, 0.f);
+
+	currentOrientation = identityMatrix;
+	scale = glm::vec3( 1.0f );
+
+	isDebugNormalsActive = false;
+
+	resource_dir = "../assets";
+
+	currentSample = 0;
+	for(int i=0; i<10; i++) {
+		mspf_samples[i] = 0;
+	}
+}
+
 bool ProtoGraphics::init(int xres, int yres, const char* argv[] )
 {
+	initState();
 	std::string folderWithBinary = extractExePath( std::string(argv[0]) );
 	setResourceDir( folderWithBinary+"/assets" );
 
@@ -259,6 +277,8 @@ void ProtoGraphics::disableTexture()
 // cleaning up as an exercise.
 void ProtoGraphics::shutdown()
 {	
+	if ( hasShutdown ) return; // allready shut down
+
 	texture_manager->shutdown( texture_manager );
 	mesh_manager->shutdown( mesh_manager );
 	Shapes::de_init();
@@ -271,6 +291,7 @@ void ProtoGraphics::shutdown()
 	glfwCloseWindow();
 	glfwTerminate();
 
+	hasShutdown = true;
 	isRunning = false;
 }
 
@@ -326,6 +347,12 @@ void ProtoGraphics::frame()
 	double time_since_program_started = glfwGetTime();
 	delta_time = time_since_program_started - old_time;
 	old_time = time_since_program_started;
+
+	mspf_samples[currentSample] = delta_time;
+	currentSample++;
+	if ( currentSample > 9 ) {
+		currentSample = 0;
+	}
 
 	// time program har spent running. minimized state not counted
 	time += delta_time;
