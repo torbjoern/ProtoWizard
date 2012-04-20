@@ -9,6 +9,7 @@
 #include "plane.h"
 
 #include "../mesh_manager.h"
+#include "mesh.h"
 
 #include "../vertex_types.h"
 #include "../common.h"
@@ -97,29 +98,28 @@ struct BaseState3D : public BaseState
 		}
 	}
 
-	virtual void pre_draw(Shader const& shader)
+	virtual void pre_draw(Shader const& shader, bool useTexture)
 	{
-		if ( tex_handle != 0 )
-		{
-			shader.SetInt( shader.GetVariable("use_textures"), 1 );
+		if ( useTexture ) {
+			if ( tex_handle != 0 )
+			{
+				shader.SetInt( shader.GetVariable("use_textures"), 1 );
 
-			// http://www.opengl.org/wiki/GLSL_Samplers#Binding_textures_to_samplers
-			// TODO sort by material/texture to avoid unneccessary swappign and binds?
-			int loc = shader.GetVariable("tex0");
-			shader.SetInt( loc, 0 );
-			glActiveTexture(GL_TEXTURE0 + 0); // Texture Unit to use
-			glBindTexture(GL_TEXTURE_2D, tex_handle); // texture_handle to bind to currently active unit
-		} else {
-			shader.SetInt( shader.GetVariable("use_textures"), 0 );
+				// http://www.opengl.org/wiki/GLSL_Samplers#Binding_textures_to_samplers
+				// TODO sort by material/texture to avoid unneccessary swappign and binds?
+				int loc = shader.GetVariable("tex0");
+				shader.SetInt( loc, 0 );
+				glActiveTexture(GL_TEXTURE0 + 0); // Texture Unit to use
+				glBindTexture(GL_TEXTURE_2D, tex_handle); // texture_handle to bind to currently active unit
+			} else {
+				shader.SetInt( shader.GetVariable("use_textures"), 0 );
+			}
 		}
 
 		setBlendMode();
 
 		int worldLoc = shader.GetVariable("worldMatrix");
 		glUniformMatrix4fv(worldLoc, 1, GL_FALSE, glm::value_ptr( transform) );
-
-		int isSphere = shader.GetVariable("isSphere");
-		shader.SetInt(isSphere, 0);
 
 		// would be most effective to send readily calculated MVP directly to GL
 		//glm::mat4 model_view_projection = projectionMatrix * viewMatrix * modelMatrix;
@@ -130,27 +130,30 @@ struct BaseState3D : public BaseState
 
 struct MeshState : public BaseState3D
 {
-	virtual void draw();
+	virtual void draw() {
+		mesh->draw();
+	}
 	MeshPtr mesh;
 };
 
 struct SphereState : public BaseState3D
 {
-	virtual void pre_draw(Shader const& shader);
-	virtual void draw();
+	virtual void draw() {
+		Shapes::sphere.draw();
+	}
 };
 
 struct CylinderState : public BaseState3D
 {
-	virtual void pre_draw(Shader const& shader);
-	virtual void draw();
+	virtual void draw() {
+		Shapes::cylinder.draw( hasCap );
+	}
 	bool hasCap;
 };
 
 struct CubeState : public BaseState3D
 {
-	void draw()
-	{
+	void draw() {
 		Shapes::cube.draw();
 	}
 };

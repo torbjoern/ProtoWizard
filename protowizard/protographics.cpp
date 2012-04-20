@@ -197,14 +197,6 @@ bool ProtoGraphics::init(int xres, int yres, const char* argv[] )
 	glfwSetWindowTitle("ProtoWizard project");
 	glfwSwapInterval(0); // vsync on/off
 		
-	//glewExperimental = GL_TRUE;
-	//int err = glewInit();
-	//if ( GLEW_OK != err )
-	//{
-	//	printf("Failed to init GLEW\n");
-	//	return false;
-	//}
-
 	if ( gl3wInit() ) {
 		fprintf(stderr, "failed to initialize OpenGL\n");
 		return false;
@@ -327,18 +319,16 @@ void ProtoGraphics::frame()
 		}
 	}
 
-	if ( keyhit('1') )
+	if ( false )
 	{
 		static bool wire_frame_mode = false;
-		wire_frame_mode = !wire_frame_mode;
-			
+		wire_frame_mode = !wire_frame_mode;			
 		glPolygonMode(GL_FRONT_AND_BACK, wire_frame_mode ? GL_LINE : GL_FILL);		
 	}
 
 	static size_t max_objs = 0;
 	size_t num_objs = buffered_shapes.size();
 	if ( num_objs > max_objs ){ max_objs = num_objs; }
-
 
 	draw_buffered_objects();
 
@@ -365,7 +355,7 @@ void ProtoGraphics::frame()
 		}
 	}
 
-	//printf("slep %d percent of available frametime\n", (int) (100.0 * delta_time / max_millis_per_frame) );
+	//printf("sleep %d percent of available frametime\n", (int) (100.0 * delta_time / max_millis_per_frame) );
 
 	//char title_buf[256];
 	//sprintf_s(title_buf, 256, " %2.2f mspf, %2.2f mspf with sleep,  numObjs = %i, max = %i", delta_time*1000.0, (delta_time+time_to_sleep)*1000.0, num_objs, max_objs);
@@ -757,6 +747,9 @@ void ProtoGraphics::init_phong( const Shader& active_shader )
 
 void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 {
+	// use textures as long as
+	bool useTexture = (&active_shader_ref) != geo_shader_normals;
+
 	unsigned int worldLoc = active_shader_ref.GetVariable("worldMatrix");
 	unsigned int viewLoc = active_shader_ref.GetVariable("viewMatrix");
 	unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
@@ -781,7 +774,7 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 	{
 			BaseState3DPtr state = opaque[i];
 			active_shader_ref.SetVec4( colorLoc, state->color );
-			state->pre_draw( active_shader_ref );
+			state->pre_draw( active_shader_ref, useTexture );
 			state->draw();	
 	}
 
@@ -799,7 +792,7 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 		{
 			BaseState3DPtr state = translucent[i];
 			active_shader_ref.SetVec4( colorLoc, state->color );
-			state->pre_draw( active_shader_ref );
+			state->pre_draw( active_shader_ref, useTexture );
 			translucent[i]->draw();
 		}
 

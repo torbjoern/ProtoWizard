@@ -28,14 +28,14 @@ class SphereGeometry
 		GetError();
 	}
 	
-	void subdivide(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, int depth, std::vector< XYZVertex > &vertbuf) 
+	void subdivide(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, int depth, std::vector< PNVertex > &vertbuf) 
 	{ 
 		if(depth == 0)
 		{
 			// actually create a triangle
-			vertbuf.push_back( XYZVertex(v3) );
-			vertbuf.push_back( XYZVertex(v2) );
-			vertbuf.push_back( XYZVertex(v1) );
+			vertbuf.push_back( PNVertex(v3, glm::normalize(v3) ));
+			vertbuf.push_back( PNVertex(v2, glm::normalize(v2) ));
+			vertbuf.push_back( PNVertex(v1, glm::normalize(v1) ));
 			return;
 		}
 
@@ -74,7 +74,7 @@ class SphereGeometry
 		};
 
 		int subDivDepth = 1;
-		std::vector< XYZVertex > sphere_vertices;
+		std::vector< PNVertex > sphere_vertices;
 		for (int i = 0; i < 20; i++)
 		{ 
 			glm::vec3 v1(vertexData[ tindices[i][0] ][0],  vertexData[ tindices[i][0] ][1],  vertexData[ tindices[i][0] ][2] ); 
@@ -92,10 +92,14 @@ class SphereGeometry
 		glGenBuffers(1, &sphereBufferObject);
 
 		glBindBuffer(GL_ARRAY_BUFFER, sphereBufferObject);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(XYZVertex) * SPHERE_VERTS, &sphere_vertices[0], GL_STATIC_DRAW);
-		glVertexAttribPointer( (GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(PNVertex) * SPHERE_VERTS, &sphere_vertices[0], GL_STATIC_DRAW);
 
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), 0);
+#define BUFFER_OFFSET(p) ((char*)0 + (p))
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
 
 		glBindVertexArray(0);
 		

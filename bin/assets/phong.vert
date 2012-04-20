@@ -10,10 +10,6 @@ uniform mat4 worldMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 
-
-uniform int isSphere;
-
-
 uniform vec3 cameraSpaceLightPos;
 
 out vec3 fNormal, lightDir, eyeVec;
@@ -24,23 +20,13 @@ out vec3 vLightBack;
 
 void main()
 {	
-	
-	if ( isSphere == 1 )
-	{
-		vec3 sphereNormal = vec3( position );
-		fNormal = sphereNormal;
-	}else
-	{
-		fNormal = normal;
-	}
-	
-	
+	fNormal = normal;
+
 	vec3 vVertex = vec3( worldMatrix * vec4(position,1.0) );
 
 	lightDir = cameraSpaceLightPos - vVertex.xyz;
 	lightDir = ( viewMatrix * vec4( lightDir, 0.0 ) ).xyz;
 	eyeVec = -vVertex;
-
 
 	mat4 mv = viewMatrix * worldMatrix;
 	mat4 mvp = projMatrix * mv;

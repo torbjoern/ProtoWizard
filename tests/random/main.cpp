@@ -59,7 +59,7 @@ struct Particle
 		proto.setAlpha( life / max_life );
 		//proto.setAlpha(1);
 		proto.setTexture(proto.getResourceDir() + "/textures/alpha_dot.png");
-		proto.drawPlane( pos, proto.getCamera()->getLookDirection(), 3.f );
+		proto.drawPlane( pos, proto.getCamera()->getLookDirection(), 0.5f );
 	};
 };
 
@@ -138,7 +138,6 @@ int main(int argc, const char* argv[])
 		return -1;
 	}
 
-	proto.debugNormals( true );
 	ParticleSystem particleSystem;
 	proto.setFrameRate(60);
 

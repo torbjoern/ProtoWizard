@@ -33,8 +33,6 @@ int main(int argc, const char* argv[])
 		return -1;
 	}
 
-	//proto.debugNormals( true );
-
 	float t = 0.f;
 	while( proto.isWindowOpen() )
 	{
@@ -53,6 +51,7 @@ int main(int argc, const char* argv[])
 			proto.setCamera(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 		}
 
+		proto.debugNormals( proto.keystatus('N') );
 		
 		proto.setBlend( true );
 		//proto.setLightBlend();
