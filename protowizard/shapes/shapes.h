@@ -43,7 +43,13 @@ namespace blending
 struct BaseState
 {
 	int blend_mode;
-	glm::vec4 color;	
+	glm::vec4 color;
+	BaseState() {
+	}
+	BaseState(const glm::vec4& color, int blend_mode) : color(color), blend_mode(blend_mode)
+	{
+	}
+	
 };
 
 struct CircleState : public BaseState
@@ -53,6 +59,20 @@ struct CircleState : public BaseState
 
 struct BaseState3D : public BaseState
 {
+	glm::mat4 transform;
+	unsigned int tex_handle;
+
+	BaseState3D()
+	{
+		transform = glm::mat4( 1.0f );
+		tex_handle = 0;
+	}
+	BaseState3D ( const glm::vec4& color, int blend_mode, const glm::mat4& transform, unsigned int tex_handle ) : 
+				  BaseState(color, blend_mode), transform(transform), tex_handle(tex_handle)
+	{
+	}
+
+	
 	virtual float distance_from_camera( glm::vec3 const& camera_pos )
 	{
 		return glm::distance( glm::vec3(transform[3]), camera_pos );
@@ -105,86 +125,43 @@ struct BaseState3D : public BaseState
 		//glm::mat4 model_view_projection = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
-
 	virtual void draw() = 0;
-
-	BaseState3D()
-	{
-		transform = glm::mat4( 1.0f );
-		tex_handle = 0;
-	}
-
-	glm::mat4 transform;
-	unsigned int tex_handle;
 };
 
 struct MeshState : public BaseState3D
 {
-	
 	virtual void draw();
 	MeshPtr mesh;
 };
 
-
 struct SphereState : public BaseState3D
 {
-	void *operator new(size_t size);
-    void operator delete(void *memory);
-
 	virtual void pre_draw(Shader const& shader);
-
 	virtual void draw();
-
-private:
-	static std::vector<SphereState*> pool;
-
 };
 
 struct CylinderState : public BaseState3D
 {
-	void *operator new(size_t size);
-	void operator delete(void *memory);
-
-
 	virtual void pre_draw(Shader const& shader);
-
 	virtual void draw();
-
-	virtual float distance_from_camera( glm::vec3 const& camera_pos ) const;
-
-	glm::vec3 p1;
-	glm::vec3 p2;
-	float radius;
-
-private:
-	static std::vector<CylinderState*> pool;
+	bool hasCap;
 };
 
 struct CubeState : public BaseState3D
 {
-	void *operator new(size_t size);
-
-    void operator delete(void *memory);
-
 	void draw()
 	{
 		Shapes::cube.draw();
 	}
-
-private:
-	static std::vector<CubeState*> pool;
 };
 
 struct PlaneState : public BaseState3D
 {
-	void *operator new(size_t size);
-
-	void operator delete(void *memory);
-
 	virtual void draw()
 	{
 		glm::vec3 pos = glm::vec3(transform[3]);
 		glDisable(GL_CULL_FACE);
+		// TODO
 		Shapes::plane.createGeometry( pos, normal, 1.0 );
 		Shapes::plane.draw();
 
@@ -192,9 +169,6 @@ struct PlaneState : public BaseState3D
 	}
 
 	glm::vec3 normal;
-
-private:
-	static std::vector<PlaneState*> pool;
 };
 
 

@@ -32,10 +32,12 @@ class Shader;
 class ProtoGraphics
 {
 private:
+	typedef std::shared_ptr<BaseState3D> BaseState3DPtr;
+
+private:
 	// Disallowing copying. Please pass protographics about as a const ptr or refrence!
 	ProtoGraphics(const ProtoGraphics&); // no implementation 
 	ProtoGraphics& operator=(const ProtoGraphics&); // no implementation 
-
 public:
 	ProtoGraphics();
 	~ProtoGraphics();
@@ -192,7 +194,8 @@ private:
 
 	bool install_shaders();
 
-	void save_state( BaseState3D* state );
+	glm::mat4 get3DTransform(const glm::mat4& orientation, const glm::vec3& position, const glm::vec3 scale );
+	void save_state( BaseState3DPtr state, const glm::mat4& transform );
 
 	// TODO.. use friend instead...?
 public:
@@ -232,17 +235,9 @@ private:
 	std::vector< LineSegmentState > buffered_lines;
 	std::vector< CircleState > buffered_circles;
 
-	std::vector< BaseState3D* > buffered_shapes;
-
-	// Keep track of pointers for deletion. Need to know type to call correct dtor
-	std::vector< SphereState* > sphereList;
-	std::vector< CylinderState* > cylinderList;
-	std::vector< PlaneState* > planeList;
-	std::vector< CubeState* > cubeList;
-	std::vector< MeshState* > meshList;
-	
-	std::vector<BaseState3D*> opaque;
-	std::vector<BaseState3D*> translucent;
+	std::vector<BaseState3DPtr> buffered_shapes;
+	std::vector<BaseState3DPtr> opaque;
+	std::vector<BaseState3DPtr> translucent;
 
 	double delta_time;
 	double time;

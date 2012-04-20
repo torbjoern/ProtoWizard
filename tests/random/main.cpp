@@ -138,7 +138,7 @@ int main(int argc, const char* argv[])
 		return -1;
 	}
 
-	//proto.debugNormals( true );
+	proto.debugNormals( true );
 	ParticleSystem particleSystem;
 	proto.setFrameRate(60);
 

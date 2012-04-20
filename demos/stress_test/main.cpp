@@ -19,6 +19,8 @@ int main(int argc, const char* argv[])
 
 		//proto.setCamera( glm::vec3(0.f, -30.f, 0.f), glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f) );
 		proto.setCamera( glm::vec3(0.f, 30.f, 0.f), 0.f, -90.f ); // setcam(0,-30,0,0,pi/2);
+		proto.setScale( 1.f );
+		proto.setOrientation( identityMatrix );
 	   int wid = 64;
 	   int dep = 64;
 	   for(int i=0; i<wid; i++)

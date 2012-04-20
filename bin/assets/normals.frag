@@ -11,6 +11,8 @@ uniform vec3 cameraSpaceLightPos;
 uniform float lightAttenuation;
 uniform float shininess;
 
+uniform sampler2D tex0;
+uniform int use_textures;
 
 
 in vec3 fNormal, lightDir, eyeVec;
@@ -51,6 +53,10 @@ void main (void)
 		final_color += (diffuseColor * lambertTerm) + specular;
 	}
 
+	if (use_textures == 1) {
+		final_color = mix( texture2D(tex0, vec2(0.0, 0.0)), final_color, 0.9 ) ;
+	}
+	
 	
 	//final_color = vec4(0.5 + 0.5 * fNormal, 0.0);
 	

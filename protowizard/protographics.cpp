@@ -565,12 +565,12 @@ void ProtoGraphics::lineTo( float to_x, float to_y )
 
 	move_to_state = glm::vec2(to_x,to_y); 
 }
-
-void ProtoGraphics::save_state( BaseState3D* state )
+void ProtoGraphics::save_state( BaseState3DPtr state, const glm::mat4& transform )
 {
 	state->color = this->colorState;
 	state->blend_mode = this->blend_state;
 	state->tex_handle = texture_manager->getActiveTexture();
+	state->transform = transform;
 
 	if( state->blend_mode == blending::SOLID_BLEND )
 	{
@@ -578,6 +578,7 @@ void ProtoGraphics::save_state( BaseState3D* state )
 	}else{
 		translucent.push_back(state);
 	}
+	buffered_shapes.push_back( state );
 }
 
 void ProtoGraphics::drawCircle( float x, float y, float radius )
@@ -591,59 +592,67 @@ void ProtoGraphics::drawCircle( float x, float y, float radius )
 	buffered_circles.push_back( state );
 }
 
+glm::mat4 ProtoGraphics::get3DTransform(const glm::mat4& orientation, const glm::vec3& position, const glm::vec3 scale )
+{
+	glm::mat4 transform = glm::translate( identityMatrix, position );
+	transform *= orientation;
+	transform = glm::scale( transform, scale );
+	return transform;
+}
+
 void ProtoGraphics::drawSphere( glm::vec3 position, float radius ) 
 {
-	SphereState *state = new SphereState;
-	save_state( state );
+	BaseState3DPtr state = std::make_shared<SphereState>();
+	save_state( state, get3DTransform(currentOrientation, position, glm::vec3(radius) ) );
+}
 
-	state->transform = glm::translate( identityMatrix, position );
-	state->transform *= currentOrientation;
-	state->transform = glm::scale( state->transform, glm::vec3(radius) );
+// Create a matrix that will orient an object from p1 to p2
+// currently for cylinders & rods
+// could be extended with scale along x,y,z indep....
+glm::mat4 calcMatrix(const glm::vec3& p1, const glm::vec3& p2, float radius)
+{
+	glm::vec3 normal = glm::normalize(p2 - p1);
+	glm::vec3 not_normal = normal;
 
-	buffered_shapes.push_back( state );
-	sphereList.push_back( state );
+	glm::vec3 perp = normal;
+	float eps = 1e-7f;
+	if ( fabs(not_normal.x) < eps && fabs(not_normal.z) < eps){ // comparing to eps instead of bla == 0
+		not_normal.x += 1.0f;
+	}else{
+		not_normal.y += 1.0f;
+	}
+
+	glm::vec3 a = glm::normalize( glm::cross(perp,not_normal) );
+	glm::vec3 b = glm::cross(perp,a);
+
+	float length = glm::distance( p1, p2 );
+	return glm::mat4( glm::vec4(radius*a, 0.f),		// X-axis
+		              glm::vec4(length*normal, 0.f),// Y-axis
+					  glm::vec4(radius*b, 0.f),		// Z-axis
+					  glm::vec4(p1,1.f) );			// Position
 }
 
 void ProtoGraphics::drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) 
 {
-	CylinderState *state = new CylinderState;
-	save_state( state );
-
-	state->p1 = p1;
-	state->p2 = p2;
-	state->radius = radius;
-	buffered_shapes.push_back( state );
-
-	cylinderList.push_back( state );
+	std::shared_ptr<CylinderState> state = std::make_shared<CylinderState>();
+	//glm::vec3 pos = 0.5f*(p1+p2);
+	//const glm::mat4& worldTf = get3DTransform(currentOrientation, pos, scale );
+	const glm::mat4& localTf = calcMatrix( p1, p2, radius );
+	save_state( state, localTf );
+	state->hasCap = radius >= 0; // if neg radius, dont draw cap
 }
 
-void ProtoGraphics::drawCube( glm::vec3 position  )
+void ProtoGraphics::drawCube( glm::vec3 position )
 {
-	CubeState *state = new CubeState;
-	save_state( state );
-
-	state->transform = glm::translate( identityMatrix, position );
-	state->transform *= currentOrientation;
-	state->transform = glm::scale( state->transform, scale );
-		
-	buffered_shapes.push_back( state );
-
-	cubeList.push_back( state );
+	std::shared_ptr<CubeState> state = std::make_shared<CubeState>();
+	save_state( state, get3DTransform(currentOrientation, position, scale) );
 }
 
 void ProtoGraphics::drawPlane( glm::vec3 position, glm::vec3 normal, float radius )
 {
-	PlaneState *state = new PlaneState;
-	save_state( state );
-
-	state->transform = glm::translate( identityMatrix, position );
-	state->transform *= currentOrientation;
-	state->transform = glm::scale( state->transform, glm::vec3(radius) );
-
+	std::shared_ptr<PlaneState> state = std::make_shared<PlaneState>();
+	save_state( state, get3DTransform(currentOrientation, position, glm::vec3(radius) ) );
 	state->normal = normal;
-	buffered_shapes.push_back( state );
-
-	planeList.push_back( state );
 }
 
 void ProtoGraphics::drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path )
@@ -666,17 +675,9 @@ void ProtoGraphics::drawMesh( glm::vec3 position, float horiz_ang, float verti_a
 
 void ProtoGraphics::drawMesh( glm::vec3 position, std::string path )
 {
-	MeshState *state = new MeshState;
-	save_state( state );
+	std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
+	save_state( state, get3DTransform(currentOrientation, position, scale ));
 	state->mesh = mesh_manager->getMesh(path);
-	
-	state->transform = glm::translate( identityMatrix, position );
-	state->transform *= currentOrientation;
-	state->transform = glm::scale( state->transform, scale );
-
-	buffered_shapes.push_back( state );
-
-	meshList.push_back( state );
 }
 
 void ProtoGraphics::handle_key(int key, int action)
@@ -778,7 +779,7 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 
 	for (unsigned int i=0; i<opaque.size(); i++)
 	{
-			BaseState3D *state = opaque[i];
+			BaseState3DPtr state = opaque[i];
 			active_shader_ref.SetVec4( colorLoc, state->color );
 			state->pre_draw( active_shader_ref );
 			state->draw();	
@@ -796,7 +797,7 @@ void ProtoGraphics::draw_buffered_shapes( const Shader& active_shader_ref )
 		int num_objs = translucent.size();
 		for (int i=0; i<num_objs; i++)
 		{
-			BaseState3D *state = translucent[i];
+			BaseState3DPtr state = translucent[i];
 			active_shader_ref.SetVec4( colorLoc, state->color );
 			state->pre_draw( active_shader_ref );
 			translucent[i]->draw();
@@ -841,44 +842,6 @@ void ProtoGraphics::draw_buffered_objects()
 
 		opaque.clear();
 		translucent.clear();
-
-		for(unsigned i=0; i<sphereList.size(); i++)
-		{
-			delete sphereList[i];
-		}
-
-		for(unsigned i=0; i<cylinderList.size(); i++)
-		{
-			delete cylinderList[i];
-		}
-
-		for(unsigned i=0; i<planeList.size(); i++)
-		{
-			delete planeList[i];
-		}
-
-		for(unsigned i=0; i<cubeList.size(); i++)
-		{
-			delete cubeList[i];
-		}
-
-		for(unsigned i=0; i<meshList.size(); i++)
-		{
-			delete meshList[i];
-		}
-
-		sphereList.clear();
-		cylinderList.clear();
-		planeList.clear();
-		cubeList.clear();
-		meshList.clear();
-
-
-		for(unsigned i=0; i<buffered_shapes.size(); i++)
-		{
-			//delete buffered_shapes[i];
-		}
-
 		buffered_shapes.clear();
 
 	}
