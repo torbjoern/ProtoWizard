@@ -10,44 +10,41 @@ Shader::Shader()
 	name = "un-initialized shader";
 }
 
+Shader::Shader(const std::string& vert, const std::string& frag)
+{
+	name = std::string(vert);
+	vsPath = vert;
+	gsPath = "";
+	fsPath = frag;
+}
+
+Shader::Shader(const std::string& vert, const std::string& geo, const std::string& frag)
+{
+	name = std::string(vert);
+	vsPath = vert;
+	gsPath = geo;
+	fsPath = frag;
+}
+
 Shader::~Shader()
 {
-
 }
 
 void Shader::begin() { glUseProgram(program); }
 void Shader::end() { glUseProgram(0); }
 
 
-bool Shader::install(const std::string& VSPath, const std::string& FSPath)
+bool Shader::load()
 {
-	name = std::string(VSPath);
-
-	shaderList.push_back( ShaderSource(VSPath, VERTEX_SHADER ) );
-	shaderList.push_back( ShaderSource(FSPath, FRAGMENT_SHADER ) );
+	shaderList.push_back( ShaderSource(vsPath, VERTEX_SHADER ) );
+	if(gsPath != "" ) shaderList.push_back( ShaderSource(gsPath, GEOMETRY_SHADER ) );
+	shaderList.push_back( ShaderSource(fsPath, FRAGMENT_SHADER ) );
 
 	if ( compileSources() == false ) {
 		return false;
 	}
-
 	return true;
 }
-
-bool Shader::install(const std::string& VSPath, const std::string& GSPath, const std::string& FSPath)
-{
-	name = std::string(VSPath);
-
-	shaderList.push_back( ShaderSource(VSPath, VERTEX_SHADER ) );
-	shaderList.push_back( ShaderSource(GSPath, GEOMETRY_SHADER ) );
-	shaderList.push_back( ShaderSource(FSPath, FRAGMENT_SHADER ) );
-
-	if ( compileSources() == false ) {
-		return false;
-	}
-
-	return true;
-}
-
 
 bool Shader::compileSources()
 {

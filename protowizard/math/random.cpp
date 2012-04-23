@@ -1,6 +1,7 @@
 #include "random.h"
 
 #include "math_common.h"
+#include "../../depends/noise/perlin.h"
 
 // Krand function taken from Ken Silverman's Polydraw source
 static long kholdrand = 1, snormstat = 0; 
@@ -52,4 +53,33 @@ glm::vec3 protowizard::randPointOnSphere(float radius) {
 glm::vec3 protowizard::randomUnitVector()
 {
 	return glm::normalize( glm::vec3(sfrand(),sfrand(),sfrand()) );
+}
+
+double protowizard::noise(double x)
+{
+	return noise1(x);
+}
+
+double protowizard::noise(double x, double y)
+{
+	double vec[] = {x,y};
+	return noise2(vec);
+}
+
+double protowizard::noise(double x, double y, double z)
+{
+	double vec[] = {x,y,z};
+	return noise3(vec);
+}
+
+double protowizard::octaves_of_noise(int octaves, double x, double y, double z){
+	double value = 0.0;
+	double vec[3];
+	for(int i=0; i<octaves; i++){
+		vec[0] = x*pow( 2, (double)i );
+		vec[1] = y*pow( 2, (double)i );
+		vec[2] = z*pow( 2, (double)i );
+		value += noise3( vec );
+	}
+	return value;
 }

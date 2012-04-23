@@ -33,6 +33,8 @@ class Shader
 {
 public:
 	Shader();
+	Shader(const std::string& vert, const std::string& frag);
+	Shader(const std::string& vert, const std::string& geo, const std::string& frag);
 	~Shader();
 
 	void shutdown()
@@ -46,9 +48,7 @@ public:
 		}
 	}
 
-	bool install(const std::string& VSPath, const std::string& FSPath);
-	bool install(const std::string& VSPath, const std::string& GSPath, const std::string& FSPath);
-	//bool install_vert_and_geo( const char* VSPath, const char* GSPath );
+	bool load();
 	bool reload();
 
 	static void printShaderInfoLog(unsigned int shader);
@@ -75,5 +75,8 @@ private:
 	unsigned int program;
 	typedef std::vector< ShaderSource > ShaderSourceList;
 	ShaderSourceList shaderList;
-	
+
+	std::string vsPath;
+	std::string gsPath;
+	std::string fsPath;
 };
