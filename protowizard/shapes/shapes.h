@@ -56,6 +56,8 @@ struct BaseState
 struct CircleState : public BaseState
 {
 	float x, y, radius;
+	CircleState(const glm::vec4& color, int blend_mode, float x, float y, float radius) : 
+				BaseState(color, blend_mode), x(x), y(y), radius(radius) {}
 };
 
 struct BaseState3D : public BaseState

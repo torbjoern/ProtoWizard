@@ -42,12 +42,6 @@ public:
 	ProtoGraphics();
 	~ProtoGraphics();
 
-	// fast float random in interval -1,1
-	// source by RGBA: http://www.rgba.org/articles/sfrand/sfrand.htm
-	float sfrand( void );
-
-	float random( float range_begin, float range_end );
-
 	double octaves_of_noise(int octaves, double x, double y, double z);
 
 	double noise(double x);
@@ -235,7 +229,6 @@ private:
 	std::vector< LineSegmentState > buffered_lines;
 	std::vector< CircleState > buffered_circles;
 
-	std::vector<BaseState3DPtr> buffered_shapes;
 	std::vector<BaseState3DPtr> opaque;
 	std::vector<BaseState3DPtr> translucent;
 

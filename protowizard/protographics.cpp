@@ -20,6 +20,7 @@ ProtoGraphics* ProtoGraphics::instance = 0x0; // C++ hack, static variables must
 
 ProtoGraphics::ProtoGraphics()
 {
+	resource_dir = "../assets";
 }
 
 ProtoGraphics::~ProtoGraphics()
@@ -27,22 +28,6 @@ ProtoGraphics::~ProtoGraphics()
 	shutdown();
 }
 
-// fast float random in interval -1,1
-// source by RGBA: http://www.rgba.org/articles/sfrand/sfrand.htm
-float ProtoGraphics::sfrand( void )
-{
-	unsigned int a=(rand()<<16)|rand();  //we use the bottom 23 bits of the int, so one
-	//16 bit rand() won't cut it.
-	a=(a&0x007fffff) | 0x40000000;  
-
-	return( *((float*)&a) - 3.0f );
-}
-
-float ProtoGraphics::random( float range_begin, float range_end ) 
-{
-	float normalized = (sfrand()*0.5f) + 0.5f;
-	return range_begin + normalized * (range_end-range_begin);
-}
 
 double ProtoGraphics::noise(double x)
 {
@@ -164,8 +149,6 @@ void ProtoGraphics::initState()
 	scale = glm::vec3( 1.0f );
 
 	isDebugNormalsActive = false;
-
-	resource_dir = "../assets";
 
 	currentSample = 0;
 	for(int i=0; i<10; i++) {
@@ -325,10 +308,6 @@ void ProtoGraphics::frame()
 		wire_frame_mode = !wire_frame_mode;			
 		glPolygonMode(GL_FRONT_AND_BACK, wire_frame_mode ? GL_LINE : GL_FILL);		
 	}
-
-	static size_t max_objs = 0;
-	size_t num_objs = buffered_shapes.size();
-	if ( num_objs > max_objs ){ max_objs = num_objs; }
 
 	draw_buffered_objects();
 
@@ -562,24 +541,17 @@ void ProtoGraphics::save_state( BaseState3DPtr state, const glm::mat4& transform
 	state->tex_handle = texture_manager->getActiveTexture();
 	state->transform = transform;
 
-	if( state->blend_mode == blending::SOLID_BLEND )
+	if( blend_state == blending::SOLID_BLEND )
 	{
 		opaque.push_back( state );
 	}else{
 		translucent.push_back(state);
 	}
-	buffered_shapes.push_back( state );
 }
 
 void ProtoGraphics::drawCircle( float x, float y, float radius )
 {
-	CircleState state;
-	state.color = colorState;
-	state.blend_mode = blend_state;
-	state.x = x;
-	state.y = y;
-	state.radius = radius;
-	buffered_circles.push_back( state );
+	buffered_circles.push_back( CircleState(colorState,blend_state,x,y,radius) );
 }
 
 glm::mat4 ProtoGraphics::get3DTransform(const glm::mat4& orientation, const glm::vec3& position, const glm::vec3 scale )
@@ -592,7 +564,7 @@ glm::mat4 ProtoGraphics::get3DTransform(const glm::mat4& orientation, const glm:
 
 void ProtoGraphics::drawSphere( glm::vec3 position, float radius ) 
 {
-	BaseState3DPtr state = std::make_shared<SphereState>();
+	auto state = std::make_shared<SphereState>();
 	save_state( state, get3DTransform(currentOrientation, position, glm::vec3(radius) ) );
 }
 
@@ -624,7 +596,7 @@ glm::mat4 calcMatrix(const glm::vec3& p1, const glm::vec3& p2, float radius)
 
 void ProtoGraphics::drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) 
 {
-	std::shared_ptr<CylinderState> state = std::make_shared<CylinderState>();
+	auto state = std::make_shared<CylinderState>();
 	//glm::vec3 pos = 0.5f*(p1+p2);
 	//const glm::mat4& worldTf = get3DTransform(currentOrientation, pos, scale );
 	const glm::mat4& localTf = calcMatrix( p1, p2, radius );
@@ -634,13 +606,13 @@ void ProtoGraphics::drawCone( glm::vec3 p1, glm::vec3 p2, float radius )
 
 void ProtoGraphics::drawCube( glm::vec3 position )
 {
-	std::shared_ptr<CubeState> state = std::make_shared<CubeState>();
+	auto state = std::make_shared<CubeState>();
 	save_state( state, get3DTransform(currentOrientation, position, scale) );
 }
 
 void ProtoGraphics::drawPlane( glm::vec3 position, glm::vec3 normal, float radius )
 {
-	std::shared_ptr<PlaneState> state = std::make_shared<PlaneState>();
+	auto state = std::make_shared<PlaneState>();
 	save_state( state, get3DTransform(currentOrientation, position, glm::vec3(radius) ) );
 	state->normal = normal;
 }
@@ -818,11 +790,10 @@ void ProtoGraphics::draw_buffered_objects()
 	// http://www.opengl.org/sdk/docs/man/xhtml/glCullFace.xml
 	glCullFace( GL_BACK );
 
-	if ( buffered_shapes.size() > 0 )
+	num_opaque = opaque.size();
+	num_blended = translucent.size();
+	if ( num_opaque > 0 || num_blended > 0 )
 	{
-		num_opaque = opaque.size();
-		num_blended = translucent.size();
-
 		if ( isDebugNormalsActive ) {
 			geo_shader_normals->begin();
 			draw_buffered_shapes( (*geo_shader_normals) );
@@ -835,7 +806,6 @@ void ProtoGraphics::draw_buffered_objects()
 
 		opaque.clear();
 		translucent.clear();
-		buffered_shapes.clear();
 
 	}
 
