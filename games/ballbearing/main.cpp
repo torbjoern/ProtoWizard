@@ -4,12 +4,14 @@
 #include "color_utils.h"
 #include "color_utils.h"
 #include "fileio/text_file.h"
+#include <math/random.h>
 #include "../../depends/obj_loader/objLoader.h"
 
 #include "btBulletDynamicsCommon.h"
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 
 namespace 
@@ -17,6 +19,7 @@ namespace
 	btDiscreteDynamicsWorld* dynamicsWorld;
 	std::vector<glm::vec3> constraint_lines;
 	std::vector<btGeneric6DofConstraint*> constraints;
+	ProtoGraphicsPtr proto;
 }
 
 namespace KEY
@@ -104,7 +107,7 @@ btTriangleMesh* loadTriangleMesh(const std::string &fileName)
 	btTriangleMesh *mTriMesh = new btTriangleMesh();
 
 	//btTriangleIndexVertexArray( numTris, indexBasePtr, 0, numVerts, vertBasePtr, 0 );
-	//proto.readMesh("assets/models/googley_chicken.obj");
+	//proto->readMesh("assets/models/googley_chicken.obj");
 	//mTriMesh->addTriangle(v0,v1,v2);
 
 
@@ -199,8 +202,7 @@ btRigidBody* createCylinder(const glm::vec3 &pos, float mass = 1.f, glm::vec3 ha
 
 void ray_test()
 {
-	ProtoGraphics* protoPtr = ProtoGraphics::getInstance();
-	protomath::Ray ray = protoPtr->getMousePickRay();
+	protomath::Ray ray = proto->getMousePickRay();
 
 	glm::vec3 start = -ray.origin;
 	float rayLength = 100.0f;
@@ -217,37 +219,37 @@ void ray_test()
 		glm::vec3 end = toGLM(RayCallback.m_hitPointWorld);
 		glm::vec3 normal = toGLM(RayCallback.m_hitNormalWorld);
 		// Do some clever stuff here
-		protoPtr->setColor(0.4f, 0.4f, 0.1f);
-		protoPtr->drawCone(end, end+2.f*normal, 0.1f);
+		proto->setColor(0.4f, 0.4f, 0.1f);
+		proto->drawCone(end, end+2.f*normal, 0.1f);
 
-		protoPtr->setBlend(true);
-		protoPtr->setAlpha( 0.75f );
-		protoPtr->drawSphere( end, 0.5f );
-		protoPtr->setBlend(false);
+		proto->setBlend(true);
+		proto->setAlpha( 0.75f );
+		proto->drawSphere( end, 0.5f );
+		proto->setBlend(false);
 
-		if ( protoPtr->keyhit('Q') )
+		if ( proto->keyhit('Q') )
 		{
 			createCube( end+normal, 1.f );
 		}
-		if ( protoPtr->keyhit('W') )
+		if ( proto->keyhit('W') )
 		{
 			createBall(end+normal, 1.f, 0.75f );
 		}
-		if ( protoPtr->keyhit('F') )
+		if ( proto->keyhit('F') )
 		{
 			btRigidBody* rigid = createBall(end+normal, 1.f, 0.75f );
-			rigid->applyCentralImpulse( toBtVector( 10.f * protoPtr->getCamera()->getLookDirection()) );
-			phy_objs[ phy_objs.size()-1 ]->color = protowizard::hsv2rgb( protoPtr->random(0.f, 360.f), 0.75f, 0.75f );
+			rigid->applyCentralImpulse( toBtVector( 10.f * proto->getCamera()->getLookDirection()) );
+			phy_objs[ phy_objs.size()-1 ]->color = protowizard::hsv2rgb( protowizard::random(0.f, 360.f), 0.75f, 0.75f );
 		}
-		if ( protoPtr->keyhit('A') )
+		if ( proto->keyhit('A') )
 		{
 			createCapsule(end+normal, 1.f );
 		}
-		if ( protoPtr->keyhit('S') )
+		if ( proto->keyhit('S') )
 		{
 			createCylinder(end+normal, 1.f );
 		}
-		if ( protoPtr->keystatus('E') )
+		if ( proto->keystatus('E') )
 		{
 			for(size_t i=0; i<phy_objs.size(); i++){
 				btRigidBody* bodyPtr = phy_objs[i]->bodyPtr;
@@ -261,26 +263,26 @@ void ray_test()
 			}
 			
 		}
-		if ( protoPtr->keyhit('R') )
+		if ( proto->keyhit('R') )
 		{
 			for(size_t i=0; i<phy_objs.size(); i++){
 				btRigidBody* bodyPtr = phy_objs[i]->bodyPtr;
 				if ( RayCallback.m_collisionObject == bodyPtr ){
-					phy_objs[i]->color = protowizard::hsv2rgb( protoPtr->random(0.f, 360.f), 0.75f, 0.75f );
+					phy_objs[i]->color = protowizard::hsv2rgb( protowizard::random(0.f, 360.f), 0.75f, 0.75f );
 				}
 			}
 		}
 
-		if ( protoPtr->keyhit('Z') )
+		if ( proto->keyhit('Z') )
 		{
 			createCube(end+normal, 1.f, glm::vec3(4.f, 1.f, 1.f) );
 		}
-		if ( protoPtr->keyhit('X') )
+		if ( proto->keyhit('X') )
 		{
 			createCube(end+normal, 1.f, glm::vec3(1.f, 1.f, 4.f) );
 		}
 
-		if ( protoPtr->mouseDownRight() )
+		if ( proto->mouseDownRight() )
 		{
 			for(size_t i=0; i<phy_objs.size(); i++){
 				btRigidBody* bodyPtr = phy_objs[i]->bodyPtr;
@@ -293,13 +295,13 @@ void ray_test()
 			}
 		}
 
-		if ( protoPtr->keyhit(0) ) // mouseleft
+		if ( proto->keyhit(0) ) // mouseleft
 		{
 			printf("%.1f, %.1f, %.1f\n", end.x, end.y, end.z);
 			//std::cout << end << std::endl;
 		}
 
-		if ( protoPtr->keyhit(256+41) )
+		if ( proto->keyhit(256+41) )
 		{
 			rigid_list_iterator it = phy_objs.begin();
 			for(; it!=phy_objs.end(); ++it){
@@ -322,8 +324,7 @@ void ray_test()
 
 void draw_cylinder(const glm::vec3& pos, const glm::mat4& orientation, btCollisionShape*& shape )
 {
-	ProtoGraphics* protoPtr = ProtoGraphics::getInstance();
-	protoPtr->setOrientation( glm::mat4(1.f) );
+	proto->setOrientation( glm::mat4(1.f) );
 
 	const btCylinderShape* cylinder = static_cast<const btCylinderShape*>(shape);
 	float radius = cylinder->getRadius();
@@ -331,7 +332,7 @@ void draw_cylinder(const glm::vec3& pos, const glm::mat4& orientation, btCollisi
 	int upAxis = cylinder->getUpAxis();
 	float halfHeight = cylinder->getHalfExtentsWithMargin()[upAxis];
 	glm::vec3 p1 = glm::vec3( orientation * glm::vec4(0.f, halfHeight, 0.f, 0.f) );
-	protoPtr->drawCone( pos-p1 , pos+p1, radius );
+	proto->drawCone( pos-p1 , pos+p1, radius );
 }
 
 void create_slider(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& extents = glm::vec3(1.0f, 0.125f, 2.5f) )
@@ -438,15 +439,15 @@ void loadConstraints()
 
 int main(int argc, const char* argv[])
 {
-	ProtoGraphics proto;
+	proto = ProtoGraphics::create();
 
-	if (!proto.init(640,480,argv) ) {
+	if (!proto->init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}
 
-	proto.setFrameRate( 60 );
-	//proto.debugNormals(true);
+	proto->setFrameRate( 60 );
+	//proto->debugNormals(true);
 	
 	btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -464,10 +465,10 @@ int main(int argc, const char* argv[])
     btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
 	dynamicsWorld->addRigidBody(groundRigidBody);
 	
-	const std::string level1_path = proto.getResourceDir() + "/models/level1.obj";
+	const std::string level1_path = proto->getResourceDir() + "/models/level1.obj";
 	createLevel(glm::vec3(0.f, 0.f, 0.f), level1_path );
 
-	proto.setFrameRate( 60 );
+	proto->setFrameRate( 60 );
 	char title_buf[256];
 
 	//loadConstraints();
@@ -475,21 +476,21 @@ int main(int argc, const char* argv[])
 
 	do
 	{
-		double time = proto.klock();
+		double time = proto->klock();
 
-		proto.cls(0.f, 0.f, 0.f);
+		proto->cls(0.f, 0.f, 0.f);
 
-		float mspf = proto.getMSPF();
+		float mspf = proto->getMSPF();
 		sprintf_s( title_buf, 256, "%.2f mspf, %3.0f", 1000.f * mspf, 1.f/mspf);
-		proto.setTitle( title_buf );
+		proto->setTitle( title_buf );
 
-		float normalized_mx = proto.getMouseX() / (float)proto.getWindowWidth();
-		float normalized_my = proto.getMouseY() / (float)proto.getWindowHeight();
+		float normalized_mx = proto->getMouseX() / (float)proto->getWindowWidth();
+		float normalized_my = proto->getMouseY() / (float)proto->getWindowHeight();
 		glm::vec2 normalized_mouse(normalized_mx, normalized_my);
 
-		//float zoom = 15.f;// + proto.getMouseWheel();
-		//proto.setCamera( glm::vec3(0.f, zoom, -zoom), glm::vec3(0.f, 1.0f, 0.f), glm::vec3(0.f, 1.f, 0.f) );
-		//proto.enableFPSCamera();
+		//float zoom = 15.f;// + proto->getMouseWheel();
+		//proto->setCamera( glm::vec3(0.f, zoom, -zoom), glm::vec3(0.f, 1.0f, 0.f), glm::vec3(0.f, 1.f, 0.f) );
+		//proto->enableFPSCamera();
         		
 		dynamicsWorld->stepSimulation(1/60.f,10);
 
@@ -498,13 +499,13 @@ int main(int argc, const char* argv[])
 			time_since_last_toggle = 0;
 			toggle_constraints();
 		}
-		time_since_last_toggle += proto.getMSPF();
+		time_since_last_toggle += proto->getMSPF();
 
 		// Draw Ground plane
 		btTransform trans;
 		groundRigidBody->getMotionState()->getWorldTransform(trans);
-		proto.setColor(0.10f, 0.60f, 0.10f);
-		proto.drawPlane( toGLM(trans.getOrigin()), glm::vec3(0.f, 1.f, 0.f), 50.f );
+		proto->setColor(0.10f, 0.60f, 0.10f);
+		proto->drawPlane( toGLM(trans.getOrigin()), glm::vec3(0.f, 1.f, 0.f), 50.f );
 		
 		// Draw all other physics objects
 		for(size_t i=0; i<phy_objs.size(); i++)
@@ -515,30 +516,30 @@ int main(int argc, const char* argv[])
 			bodyPtr->getMotionState()->getWorldTransform(trans);
 			btQuaternion ori = trans.getRotation();
 			glm::mat4 mtx = glm::mat4_cast( glm::fquat(ori.w(), ori.x(), ori.y(), ori.z() ) );
-			proto.setOrientation( mtx );
+			proto->setOrientation( mtx );
 
 			glm::vec3 pos = toGLM(trans.getOrigin());
 
-			proto.setColor( phy_objs[i]->color );
+			proto->setColor( phy_objs[i]->color );
 
 			int shapeType = shape->getShapeType();
 			if ( shapeType == SPHERE_SHAPE_PROXYTYPE )
 			{
 				const btSphereShape* sphereShape = static_cast<const btSphereShape*>(shape);
 				float radius = sphereShape->getMargin();//radius doesn't include the margin, so draw with margin
-				proto.drawSphere( pos, radius );
+				proto->drawSphere( pos, radius );
 			} 
 			else if ( shapeType == BOX_SHAPE_PROXYTYPE )
 			{
 				const btBoxShape* boxShape = static_cast<const btBoxShape*>(shape);
 				btVector3 halfExtent = boxShape->getHalfExtentsWithMargin();
-				proto.setScale( 2.f * halfExtent.x(), 2.f * halfExtent.y(), 2.f * halfExtent.z() );
-				proto.drawCube( pos );
-				proto.setScale( 1.f );
+				proto->setScale( 2.f * halfExtent.x(), 2.f * halfExtent.y(), 2.f * halfExtent.z() );
+				proto->drawCube( pos );
+				proto->setScale( 1.f );
 			}
 			else if ( shapeType == CAPSULE_SHAPE_PROXYTYPE )
 			{
-				proto.setOrientation( glm::mat4(1.f) );
+				proto->setOrientation( glm::mat4(1.f) );
 
 				const btCapsuleShape* capsule = static_cast<const btCapsuleShape*>(shape);
 				float radius = capsule->getRadius();
@@ -546,9 +547,9 @@ int main(int argc, const char* argv[])
 				float halfHeight = capsule->getHalfHeight();
 				glm::vec3 p1 = glm::vec3( mtx * glm::vec4(0.f, halfHeight, 0.f, 0.f) );
 
-				proto.drawCone( pos-p1 , pos+p1, radius );
-				proto.drawSphere( pos - p1, radius );
-				proto.drawSphere( pos + p1, radius );
+				proto->drawCone( pos-p1 , pos+p1, radius );
+				proto->drawSphere( pos - p1, radius );
+				proto->drawSphere( pos + p1, radius );
 			}
 			else if ( shapeType == CYLINDER_SHAPE_PROXYTYPE )
 			{
@@ -556,39 +557,39 @@ int main(int argc, const char* argv[])
 			}
 			else if ( shapeType == TRIANGLE_MESH_SHAPE_PROXYTYPE )
 			{
-				proto.setBlend(true);
-				proto.setAlpha(0.65f);
-				proto.drawMesh( pos, phy_objs[i]->tri_mesh_path );
-				proto.setBlend(false);
+				proto->setBlend(true);
+				proto->setAlpha(0.65f);
+				proto->drawMesh( pos, phy_objs[i]->tri_mesh_path );
+				proto->setBlend(false);
 			}
 
-			proto.setOrientation( glm::mat4(1.f) );
+			proto->setOrientation( glm::mat4(1.f) );
 		}
 
 		
 
-		double time_begin = proto.klock();
+		double time_begin = proto->klock();
 		ray_test();
-		double time_perf = proto.klock() - time_begin;
+		double time_perf = proto->klock() - time_begin;
 
-		proto.setColor(0.75f, 0.75f, 0.75f);
+		proto->setColor(0.75f, 0.75f, 0.75f);
 		for(size_t i=0; i<constraint_lines.size(); i+=2)
 		{
 			glm::vec3 p1 = constraint_lines[i+0];
 			glm::vec3 p2 = constraint_lines[i+1];
-			proto.drawCone( p1, p2, 0.1f );
+			proto->drawCone( p1, p2, 0.1f );
 		}
 
 		glm::vec3 origin(0.f);
-		proto.setColor(0.5f, 0.1f, 0.1f); proto.drawCone( origin, origin + proto.getCamera()->getStrafeDirection(), .1f );
-		proto.setColor(0.1f, 0.5f, 0.1f); proto.drawCone( origin, origin + proto.getCamera()->getUpDirection(), .1f );
-		proto.setColor(0.1f, 0.1f, 0.5f); proto.drawCone( origin, origin + proto.getCamera()->getLookDirection(), .1f );
+		proto->setColor(0.5f, 0.1f, 0.1f); proto->drawCone( origin, origin + proto->getCamera()->getStrafeDirection(), .1f );
+		proto->setColor(0.1f, 0.5f, 0.1f); proto->drawCone( origin, origin + proto->getCamera()->getUpDirection(), .1f );
+		proto->setColor(0.1f, 0.1f, 0.5f); proto->drawCone( origin, origin + proto->getCamera()->getLookDirection(), .1f );
 		
-		proto.getCamera()->update( proto.keystatus(KEY::LEFT), proto.keystatus(KEY::RIGHT), proto.keystatus(KEY::UP), proto.keystatus(KEY::DOWN), (float)proto.getMouseX(), (float)proto.getMouseY(), proto.mouseDownLeft(), proto.getMSPF() );
+		proto->getCamera()->update( proto->keystatus(KEY::LEFT), proto->keystatus(KEY::RIGHT), proto->keystatus(KEY::UP), proto->keystatus(KEY::DOWN), (float)proto->getMouseX(), (float)proto->getMouseY(), proto->mouseDownLeft(), proto->getMSPF() );
 
-		proto.frame();
+		proto->frame();
 		
-	} while( proto.isWindowOpen() );
+	} while( proto->isWindowOpen() );
 
     // Clean up behind ourselves like good little programmers
     delete dynamicsWorld;

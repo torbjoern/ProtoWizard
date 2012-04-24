@@ -4,26 +4,35 @@
 #include <glm/glm.hpp>
 #include "math/math_ray.h"
 #include "camera.h"
-// <proto/math/ray>
 
 #include <string>
+#include <memory>
+class ProtoGraphics;
+typedef std::shared_ptr<ProtoGraphics> ProtoGraphicsPtr;
 
 
 class ProtoGraphics
 {
+private:
+	
 public:
-	static ProtoGraphics* create();
-	static void destroy( ProtoGraphics* p );
+	//ProtoGraphics() {}
+	virtual ~ProtoGraphics() {}
+	static ProtoGraphicsPtr create();
 
 	virtual bool init(int xres, int yres, const char* argv[] ) = 0;
 
 	virtual float getMSPF()= 0;
 	virtual float getAverageMSPF()= 0;
-	virtual void debugNormals( bool enable )= 0;
 	virtual bool isWindowOpen()= 0;
 	virtual int getWindowWidth()= 0;
 	virtual int getWindowHeight()= 0;
 	virtual double klock()= 0;
+	
+	// Debug
+	virtual void toggleWireframe() = 0;
+	virtual void debugNormals( bool enable )= 0;
+	virtual void reloadShaders() = 0;
 
 	// Input
 	virtual float getNormalizedMouseX()= 0;
@@ -67,6 +76,7 @@ public:
 	virtual void setLightBlend() = 0;
 	virtual void setTexture( const std::string& path ) = 0;
 	virtual void disableTexture() = 0;
+	virtual void clz() = 0;
 	virtual void cls( float r, float g, float b ) = 0;
 
 	// Draw Frame!
@@ -78,6 +88,5 @@ public:
 	// Resource
 	virtual std::string getResourceDir() = 0;
 	virtual void setResourceDir( const std::string& new_dir ) = 0;
-	virtual void reloadShaders() = 0;
 
 };

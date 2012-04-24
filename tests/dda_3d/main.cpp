@@ -1,14 +1,16 @@
 #include <protographics.h>
 #include "color_utils.h"
 
-double BSIZ = 32;
+namespace {
+		ProtoGraphicsPtr proto;
+}
 
+double BSIZ = 32;
 
 void drawblock(double x, double y)
 {
    float x0 = x*BSIZ; float x1 = x0+BSIZ;
    float y0 = y*BSIZ; float y1 = y0+BSIZ;
-   ProtoGraphics *proto = ProtoGraphics::getInstance();
    for(int y=y0+1;y<y1;y++) { proto->moveTo(x0+1,y); proto->lineTo(x1,y); }
 }
 
@@ -16,7 +18,6 @@ void drawblock2(double x, double y)
 {
    float x0 = x*BSIZ-2; float x1 = x0+BSIZ+2;
    float y0 = y*BSIZ-2; float y1 = y0+BSIZ+2;
-   ProtoGraphics *proto = ProtoGraphics::getInstance();
    proto->moveTo(x0,y0); 
    proto->lineTo(x1,y0);
    proto->lineTo(x1,y1);
@@ -113,15 +114,14 @@ void blockscan (double x0, double y0, double x1, double y1)
 
 int main(int argc, const char* argv[])
 {
-	ProtoGraphics proto;
+	proto = ProtoGraphics::create();
 
-	if (!proto.init(640,480,argv) ) {
+	if (!proto->init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}
 
-
-	proto.setFrameRate( 60 );
+	proto->setFrameRate( 60 );
 	
 	double sx,sy;
 	sx = sy = 0.0;
@@ -130,39 +130,34 @@ int main(int argc, const char* argv[])
 	char title_buf[256];
 	do
 	{
-		proto.cls(0.f, 0.f, 0.f);
+		proto->cls(0.f, 0.f, 0.f);
 
-		float mspf = proto.getMSPF();
+		float mspf = proto->getMSPF();
 		sprintf_s( title_buf, 256, "%.2f mspf, %3.0f", 1000.f * mspf, 1.f/mspf);
-		proto.setTitle( title_buf );
+		proto->setTitle( title_buf );
 
-		float normalized_mx = proto.getMouseX() / (float)proto.getWindowWidth();
-		float normalized_my = proto.getMouseY() / (float)proto.getWindowHeight();
+		float normalized_mx = proto->getMouseX() / (float)proto->getWindowWidth();
+		float normalized_my = proto->getMouseY() / (float)proto->getWindowHeight();
 		glm::vec2 normalized_mouse(normalized_mx, normalized_my);
 
-		proto.setColor(1.f, 0.f, 0.f);
-		blockscan( sx, sy, proto.getMouseX()/BSIZ , proto.getMouseY()/BSIZ );
+		proto->setColor(1.f, 0.f, 0.f);
+		blockscan( sx, sy, proto->getMouseX()/BSIZ , proto->getMouseY()/BSIZ );
 		
-		proto.setColor(0.f, 1.f, 0.f);
-		raycast( sx, sy, 0., proto.getMouseX()/BSIZ , proto.getMouseY()/BSIZ, 0. );
+		proto->setColor(0.f, 1.f, 0.f);
+		raycast( sx, sy, 0., proto->getMouseX()/BSIZ , proto->getMouseY()/BSIZ, 0. );
 
-		if ( proto.mouseDownLeft() ){
-			sx = proto.getMouseX()/BSIZ;
-			sy = proto.getMouseY()/BSIZ;
+		if ( proto->mouseDownLeft() ){
+			sx = proto->getMouseX()/BSIZ;
+			sy = proto->getMouseY()/BSIZ;
 		}
 
-		proto.setColor(.5f, .5f, .5f);
-		proto.moveTo(sx, sy);
-		proto.lineTo(proto.getMouseX(), proto.getMouseY());
+		proto->setColor(.5f, .5f, .5f);
+		proto->moveTo(sx, sy);
+		proto->lineTo(proto->getMouseX(), proto->getMouseY());
 
-		//float ang = normalized_mouse.x*6.28f;
-		//glm::vec3 cam_pos( cos(ang), 0.f, sin(ang) );
-		//cam_pos *= 25.f;
-		//proto.setCamera( cam_pos, glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f) );
+		proto->frame();
 
-		proto.frame();
-
-	} while( proto.isWindowOpen() );
+	} while( proto->isWindowOpen() );
 
 
 }

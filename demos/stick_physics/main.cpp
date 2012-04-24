@@ -4,6 +4,7 @@
 #include "protographics.h"
 #include "math/math_line.h"
 #include "math/math_common.h"
+#include "math/random.h"
 
 #include <functional>
 #include <cassert>
@@ -718,7 +719,7 @@ public:
 					//}
 					//
 					if ( !active ){
-						float col = proto.sfrand() * 0.5f + 0.5f;
+						float col = protowizard::sfrand() * 0.5f + 0.5f;
 					
 						proto.setBlend( true );
 						proto.setAlpha( 0.75f );

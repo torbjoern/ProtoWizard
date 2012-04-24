@@ -4,6 +4,7 @@
 #include "protographics.h"
 #include "math/math_common.h"
 #include "math/math_line.h"
+#include "math/random.h"
 #include "color_utils.h"
 
 #include <functional>
@@ -87,7 +88,7 @@ struct particle_emitter_t{
 
 			if ( spawn_time_out < 0.0 ) {
 				spawn_time_out = 1.0 / emission_rate_per_second;
-				glm::vec3 vel = glm::vec3( proto.sfrand() * 0.5f, 5.0f * fabs(proto.sfrand()), proto.sfrand() * 0.5f  );
+				glm::vec3 vel = glm::vec3( protowizard::sfrand() * 0.5f, 5.0f * fabs(protowizard::sfrand()), protowizard::sfrand() * 0.5f  );
 				particles.push_back( particle_t(pos, vel ) );
 			}
 		}
@@ -240,7 +241,7 @@ struct player_t{
 
 
 		if ( speed > MINIMUM_SPEED ) {
-			glm::vec3 color = glm::mix(glm::vec3(1.f,1.f,0.f), player_color,proto.random(0.0f, 1.0f));
+			glm::vec3 color = glm::mix(glm::vec3(1.f,1.f,0.f), player_color, protowizard::random(0.0f, 1.0f));
 			proto.setColor( color );
 		} else {
 			proto.setColor( player_color );

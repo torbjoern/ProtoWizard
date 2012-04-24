@@ -1,6 +1,9 @@
 #ifndef _VERTEX_TYPES_H
 #define _VERTEX_TYPES_H
 
+#define GLM_SWIZZLE 
+#include <glm/glm.hpp>
+
 // some gpu's like vertex layout in multiples of 32 bytes
 // http://www.opengl.org/wiki/Vertex_Formats
 

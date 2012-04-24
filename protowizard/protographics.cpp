@@ -48,10 +48,17 @@ private:
 	typedef std::shared_ptr<BaseState3D> BaseState3DPtr;
 private:
 	// Disallowing copying. Please pass protographics about as a const ptr or refrence!
-	ProtoGraphicsImplementation(const ProtoGraphicsImplementation&); // no implementation 
-	ProtoGraphicsImplementation& operator=(const ProtoGraphicsImplementation&); // no implementation 
+	//ProtoGraphicsImplementation(const ProtoGraphicsImplementation&); // no implementation 
+	//ProtoGraphicsImplementation& operator=(const ProtoGraphicsImplementation&); // no implementation 
+
 public:
-	ProtoGraphicsImplementation(){
+
+	~ProtoGraphicsImplementation() {
+		shutdown();
+	}
+
+	virtual bool init(int xres, int yres, const char* argv[] )
+	{
 		texture_manager = TextureManager::init();
 		mesh_manager = MeshManager::init();
 		camera = new FirstPersonCamera;
@@ -95,13 +102,7 @@ public:
 			mspf_samples[i] = 0;
 		}
 		resource_dir = "";
-	}
-	~ProtoGraphicsImplementation() {
-		shutdown();
-	}
 
-	virtual bool init(int xres, int yres, const char* argv[] )
-	{
 		std::string folderWithBinary = extractExePath( std::string(argv[0]) );
 		setResourceDir( folderWithBinary+"\\assets" );
 
@@ -274,6 +275,12 @@ public:
 		return camera;
 	}
 
+	virtual void clz()
+	{
+		assert( isRunning );
+		glClear(GL_DEPTH_BUFFER_BIT );
+	}
+
 	virtual void cls( float r, float g, float b )
 	{
 		assert( isRunning );
@@ -296,8 +303,6 @@ public:
 	{
 		glfwSetWindowTitle( str.c_str() );
 	}
-
-	static ProtoGraphics* getInstance() { return instance; }
 	
 	virtual std::string getResourceDir() { return resource_dir; }
 
@@ -470,6 +475,13 @@ public:
 		texture_manager->disableTextures();
 	}
 
+	virtual void toggleWireframe()
+	{
+		static bool wire_frame_mode = false;
+		wire_frame_mode = !wire_frame_mode;			
+		glPolygonMode(GL_FRONT_AND_BACK, wire_frame_mode ? GL_LINE : GL_FILL);		
+	}
+
 	virtual void reloadShaders()
 	{
 		printf("\nR E L O A D I N G   S H A D E R S\n\n");
@@ -489,13 +501,6 @@ public:
 	#ifdef _DEBUG
 		GetError("ProtoGraphicsImplementation::frame begin");
 	#endif
-
-		if ( false )
-		{
-			static bool wire_frame_mode = false;
-			wire_frame_mode = !wire_frame_mode;			
-			glPolygonMode(GL_FRONT_AND_BACK, wire_frame_mode ? GL_LINE : GL_FILL);		
-		}
 
 		drawFrame();
 
@@ -880,9 +885,6 @@ private:
 };
 
 
-
-
 ProtoGraphicsImplementation *ProtoGraphicsImplementation::instance = 0x0;
 
-ProtoGraphics* ProtoGraphics::create() { return new ProtoGraphicsImplementation; }
-void ProtoGraphics::destroy( ProtoGraphics* p ) { delete p; }
+ProtoGraphicsPtr ProtoGraphics::create() { return std::shared_ptr<ProtoGraphics>(new ProtoGraphicsImplementation); }
