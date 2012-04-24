@@ -1,11 +1,8 @@
-#define GLM_SWIZZLE 
-#include <glm/glm.hpp>
-
-#include "protographics.h"
-#include "math/math_common.h"
-#include "math/math_line.h"
-#include "math/random.h"
-#include "color_utils.h"
+#include <proto/protographics.h>
+#include <proto/color_utils.h>
+#include <proto/math/random.h>
+#include <proto/math/math_common.h>
+#include <proto/math/math_line.h>
 
 #include <functional>
 #include <cassert>
@@ -13,10 +10,12 @@
 #include <vector>
 #include <map>
 
+ProtoGraphicsPtr proto;
+
 typedef ProtoMath::line_t<glm::vec3> line3D;
 typedef ProtoMath::line_t<glm::vec2> line2D;
 
-void draw_wall_segment( ProtoGraphics &proto, const glm::vec3 start, const glm::vec3 end, float thickness = 0.25f ) {
+void draw_wall_segment( const glm::vec3 start, const glm::vec3 end, float thickness = 0.25f ) {
 	float siz_x = fabs(start.x - end.x);
 	float siz_z = fabs(start.z - end.z);
 	float kEpsilon = 1e-6f;
@@ -26,10 +25,10 @@ void draw_wall_segment( ProtoGraphics &proto, const glm::vec3 start, const glm::
 	if ( siz_z <= kEpsilon ){
 		siz_z = thickness;
 	}
-	proto.setScale( 0.5f * siz_x, 1.0f, 0.5f * siz_z );
+	proto->setScale( 0.5f * siz_x, 1.0f, 0.5f * siz_z );
 
 	glm::vec3 center = 0.5f * ( start + end );
-	proto.drawCube( center );
+	proto->drawCube( center );
 }
 
 struct particle_t {
@@ -58,23 +57,23 @@ struct particle_emitter_t{
 	{
 	}
 
-	void draw( ProtoGraphics& proto ){
+	void draw(){
 
 		float speed = 1.0f / 60.0f;
 		const glm::vec3 gravity(0.f, -1.0f, 0.f);
 
-		proto.setBlend( true );
-		proto.setAlpha( 0.5f );
-		proto.setColor( 1.f, 1.f, 0.f );
+		proto->setBlend( true );
+		proto->setAlpha( 0.5f );
+		proto->setColor( 1.f, 1.f, 0.f );
 		for ( size_t i=0; i<particles.size(); i++ ){
-			proto.drawSphere( particles[i].pos, 0.5f );
+			proto->drawSphere( particles[i].pos, 0.5f );
 			float tSq = (float) (particles[i].flight_time*particles[i].flight_time);
 			particles[i].pos += speed * particles[i].vel + speed*(0.5f * gravity * tSq); // y = y0 + 0.5 * g * t^2
 		}
-		proto.setBlend( false );
+		proto->setBlend( false );
 	}
 
-	void update( ProtoGraphics& proto, double dt ){
+	void update( double dt ){
 		seconds_to_live -= dt;
 		spawn_time_out -= dt;
 
@@ -103,20 +102,20 @@ struct particle_emitter_manager_t{
 		emitter_list.push_back( emitter );
 	}
 
-	static void draw_all( ProtoGraphics& proto ) {
+	static void draw_all() {
 		
 		for( auto it=begin(emitter_list); it!=end(emitter_list); ++it ){
 			if ( (*it).seconds_to_live > 0.0 ) {
-				(*it).draw(proto);
+				(*it).draw();
 			}
 		}
 	}
 
-	static void update_all( ProtoGraphics& proto, double dt ) {
+	static void update_all( double dt ) {
 		
 		for( auto it=begin(emitter_list); it!=end(emitter_list); ++it ){
 			if ( (*it).seconds_to_live > 0.0 ) {
-				(*it).update(proto,dt);
+				(*it).update(dt);
 			}
 		}
 
@@ -211,50 +210,47 @@ struct player_t{
 		create_tail_point();
 	}
 
-	void draw_tail( ProtoGraphics &proto ){
-		proto.setBlend( true );
-		proto.setAlpha( 0.75f );
-		proto.setColor( player_color );
+	void draw_tail(){
+		proto->setBlend( true );
+		proto->setAlpha( 0.75f );
+		proto->setColor( player_color );
 
 		unsigned int num_points = (unsigned int)tail_points.size();
 
 		if ( num_points > 1 ){
-			draw_wall_segment( proto, tail_points[0], tail_points[1] );
+			draw_wall_segment( tail_points[0], tail_points[1] );
 			
 			for( unsigned int i = 1; i<num_points; i++ ){
-				draw_wall_segment( proto, tail_points[i], tail_points[i-1] );
+				draw_wall_segment( tail_points[i], tail_points[i-1] );
 			}
 		}
 
 		// Draw from last created tail-point to player
 		if ( num_points > 0 ){
-			draw_wall_segment( proto, pos, tail_points[num_points-1] );
+			draw_wall_segment( pos, tail_points[num_points-1] );
 		}
 			
-		proto.setScale( 1.f, 1.f, 1.f );
-		proto.setOrientation( glm::mat4(1.0f) );
-		proto.setBlend( false );
+		proto->setScale( 1.f, 1.f, 1.f );
+		proto->setOrientation( glm::mat4(1.0f) );
+		proto->setBlend( false );
 	}
 
-	void draw( ProtoGraphics &proto ){
-		
-
-
+	void draw(){
 		if ( speed > MINIMUM_SPEED ) {
 			glm::vec3 color = glm::mix(glm::vec3(1.f,1.f,0.f), player_color, protowizard::random(0.0f, 1.0f));
-			proto.setColor( color );
+			proto->setColor( color );
 		} else {
-			proto.setColor( player_color );
+			proto->setColor( player_color );
 		}
 
 		float ang = glm::degrees( heading );
 		
-		proto.setScale( 0.25f, 0.5f, player_length );
-		proto.setOrientation( glm::rotate( glm::mat4(1.0f), ang, glm::vec3(0.f, 1.f, 0.f) ) );
+		proto->setScale( 0.25f, 0.5f, player_length );
+		proto->setOrientation( glm::rotate( glm::mat4(1.0f), ang, glm::vec3(0.f, 1.f, 0.f) ) );
 		
-		proto.drawCube( pos );
-		proto.setScale( 1.f, 1.f, 1.f );
-		proto.setOrientation( glm::mat4(1.0f) );
+		proto->drawCube( pos );
+		proto->setScale( 1.f, 1.f, 1.f );
+		proto->setOrientation( glm::mat4(1.0f) );
 
 		// Debug viz
 		float feeler_range = 2.5f * player_radius;
@@ -263,22 +259,22 @@ struct player_t{
 		glm::vec2 perp1( -feeler_vector.y, feeler_vector.x );
 		glm::vec2 perp2( feeler_vector.y, -feeler_vector.x );
 		
-		proto.drawCone( player_front_point, player_front_point + glm::vec3(perp1.x, 0.f, perp1.y ), 0.25f );
-		proto.drawCone( player_front_point, player_front_point + glm::vec3(perp2.x, 0.f, perp2.y ), 0.25f );
+		proto->drawCone( player_front_point, player_front_point + glm::vec3(perp1.x, 0.f, perp1.y ), 0.25f );
+		proto->drawCone( player_front_point, player_front_point + glm::vec3(perp2.x, 0.f, perp2.y ), 0.25f );
 
 		// debug viz
 
-		draw_tail( proto );
+		draw_tail();
 
 		//char buf[256];
 		//sprintf(buf, "heading: %.2f", heading);
-		//proto.drawText3D( pos, buf );
+		//proto->drawText3D( pos, buf );
 	}
 
-	void update( ProtoGraphics &proto, double dt ){
-		//float dx = (float)( proto.keystatus( GLFW_KEY_RIGHT ) - proto.keystatus( GLFW_KEY_LEFT ) );
-		float steer_dir = (float) ( proto.keystatus(steer_key_left) - proto.keystatus( steer_key_right ) );
-		//float steer_dir = (float) ( proto.keyhit(steer_key_left) - proto.keyhit( steer_key_right ) );
+	void update(double dt){
+		//float dx = (float)( proto->keystatus( GLFW_KEY_RIGHT ) - proto->keystatus( GLFW_KEY_LEFT ) );
+		float steer_dir = (float) ( proto->keystatus(steer_key_left) - proto->keystatus( steer_key_right ) );
+		//float steer_dir = (float) ( proto->keyhit(steer_key_left) - proto->keyhit( steer_key_right ) );
 
 		if ( time_until_change_dir <= 0.0 ){
 			if (  fabs(steer_dir) > 0.f ){
@@ -389,14 +385,14 @@ struct board_t {
 	{
 	}
 
-	void draw(ProtoGraphics& proto){
-		proto.setColor( 0.f, 0.f, 1.f );
+	void draw(){
+		proto->setColor( 0.f, 0.f, 1.f );
 
 		for (size_t i=0; i<wall_segments.size(); i++){
-			draw_wall_segment( proto, wall_segments[i].v0, wall_segments[i].v1, 2.f );
+			draw_wall_segment( wall_segments[i].v0, wall_segments[i].v1, 2.f );
 		}
 
-		proto.drawPlane( glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), half_size );
+		proto->drawPlane( glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), half_size );
 	}
 
 	void init() {
@@ -437,8 +433,8 @@ private:
 
 int main(int argc, const char* argv[])
 {
-	ProtoGraphics proto;
-	bool inited = proto.init(640,480,argv);
+	proto = ProtoGraphics::create();
+	bool inited = proto->init(640,480,argv);
 	if( !inited )
 	{
 		throw char("could not init ProtoGraphics");
@@ -449,8 +445,8 @@ int main(int argc, const char* argv[])
 	
 	int num_frames = 0;
 
-	//proto.setCamera( glm::vec3(20.f, -20.f, -20.f), 45.0f, 45.0f );
-	proto.setCamera( glm::vec3(0.f, -22.f, 0.f), 0.0f, 90.0f );
+	//proto->setCamera( glm::vec3(20.f, -20.f, -20.f), 45.0f, 45.0f );
+	proto->setCamera( glm::vec3(0.f, -22.f, 0.f), 0.0f, 90.0f );
 	
 
 	Player_Registery player_registery;
@@ -479,27 +475,27 @@ int main(int argc, const char* argv[])
 
 	game_state.running = true;
 
-	proto.setFrameRate( 60 );
+	proto->setFrameRate( 60 );
 	
-	while( proto.isWindowOpen() )
+	while( proto->isWindowOpen() )
 	{
-		double time = proto.klock();
+		double time = proto->klock();
 		double dt = time - old_time;
 		old_time = time;
 
 		// TODO ... a good lerping camera
 		glm::vec3 ahead_of_player = player_list[0].pos + 10.f * glm::vec3( player_list[0].dir.x, 0.f, player_list[0].dir.y );
 		glm::vec3 behind_of_player = player_list[0].pos - 10.f * glm::vec3( player_list[0].dir.x, 0.f, player_list[0].dir.y );
-		proto.setCamera( glm::vec3(0.f, 10.f, 0.f) + behind_of_player, ahead_of_player, glm::vec3(0.f, 1.f, 0.f) );
+		proto->setCamera( glm::vec3(0.f, 10.f, 0.f) + behind_of_player, ahead_of_player, glm::vec3(0.f, 1.f, 0.f) );
 
-		proto.cls(0,0,0);
+		proto->cls(0,0,0);
 
-		proto.setColor( 1.f, 1.f, 1.f );
+		proto->setColor( 1.f, 1.f, 1.f );
 
-		board.draw( proto );
+		board.draw();
 
 		for( size_t i=0; i<player_list.size(); i++){
-			player_list[i].draw( proto );
+			player_list[i].draw();
 		}
 
 		if ( game_state.running == true ) {
@@ -511,7 +507,7 @@ int main(int argc, const char* argv[])
 
 			if ( player_registery[player.id].alive ) {
 				num_players_alive++;
-				player.update( proto, dt );
+				player.update(dt);
 				board.test_collision( player );
 			}
 		}
@@ -537,7 +533,7 @@ int main(int argc, const char* argv[])
 
 		if ( game_state.running == false ) {
 
-			if ( proto.keyhit('R') ) {
+			if ( proto->keyhit('R') ) {
 				for( size_t i=0; i<player_list.size(); i++ ) {
 					player_list[i].init();
 
@@ -550,15 +546,15 @@ int main(int argc, const char* argv[])
 
 
 
-		particle_emitter_manager_t::draw_all( proto );
-		particle_emitter_manager_t::update_all( proto, dt );
+		particle_emitter_manager_t::draw_all();
+		particle_emitter_manager_t::update_all(dt);
 
 
-		//while( proto.klock() < num_frames/60.f ) {}
+		//while( proto->klock() < num_frames/60.f ) {}
 
 		num_frames++;
 
-		proto.frame();
+		proto->frame();
 	}
 	return 0;
 }

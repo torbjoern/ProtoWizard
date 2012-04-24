@@ -65,27 +65,29 @@ set(Dependency_SRCS
 
 ######################## OK, now for ProtoWizard headers and sources:
 
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+
 set(math_HDRS
-  math/math_common.h
-  math/math_line.h
-  math/math_ray.h
-  math/random.h
+  proto/math/math_common.h
+  proto/math/math_line.h
+  proto/math/math_ray.h
+  proto/math/random.h
 )
 set(math_SRCS
-  math/random.cpp
+  src/random.cpp
 )
 SOURCE_GROUP("Header Files\\math" FILES ${math_HDRS})
 SOURCE_GROUP("Source Files\\math" FILES ${math_SRCS})
 
 set(shape_HDRS
-	shapes/sphere.h
-	shapes/shapes.h
-	shapes/plane.h
-	shapes/line.h
-	shapes/cylinder.h
-	shapes/cube.h
-	shapes/circle.h
-	shapes/mesh.h
+	proto/shapes/sphere.h
+	proto/shapes/shapes.h
+	proto/shapes/plane.h
+	proto/shapes/line.h
+	proto/shapes/cylinder.h
+	proto/shapes/cube.h
+	proto/shapes/circle.h
+	proto/shapes/mesh.h
 )
 
 SOURCE_GROUP("Header Files\\shapes" FILES ${shape_HDRS})
@@ -93,33 +95,33 @@ SOURCE_GROUP("Header Files\\shapes" FILES ${shape_HDRS})
 set(HDRS
 	${math_HDRS}
 	${shape_HDRS}
-	camera.h
-	color_utils.h
-	common.h
-	opengl_stuff.h
-	platform.h
-	protographics.h
-	shader.h
-	texture_manager.h
-	mesh_manager.h
-	vertex_types.h
-	fileio/text_file.h
-	path.h
+	proto/camera.h
+	proto/color_utils.h
+	proto/common.h
+	proto/opengl_stuff.h
+	proto/platform.h
+	proto/protographics.h
+	proto/shader.h
+	proto/texture_manager.h
+	proto/mesh_manager.h
+	proto/vertex_types.h
+	proto/fileio/text_file.h
+	proto/path.h
 )
 
 set(SRCS
 	${math_SRCS}
-	camera.cpp
-	color_utils.cpp
-	platform.cpp
-	protographics.cpp
-	shader.cpp
-	shapes/shapes.cpp
-	shapes/mesh.cpp
-	texture_manager.cpp
-	mesh_manager.cpp
-	fileio/text_file.cpp
-	path.cpp
+	src/camera.cpp
+	src/color_utils.cpp
+	src/platform.cpp
+	src/protographics.cpp
+	src/shader.cpp
+	src/shapes.cpp
+	src/mesh.cpp
+	src/texture_manager.cpp
+	src/mesh_manager.cpp
+	src/text_file.cpp
+	src/path.cpp
 )
 
 add_library( ProtoWizard ${Dependency_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )

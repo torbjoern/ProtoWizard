@@ -1,6 +1,6 @@
-#include <protographics.h>
-#include "color_utils.h"
-#include "math/random.h"
+#include <proto/protographics.h>
+#include <proto/color_utils.h>
+#include <proto/math/random.h>
 
 #include <memory>
 

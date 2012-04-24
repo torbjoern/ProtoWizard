@@ -1,8 +1,8 @@
-#include "texture_manager.h"
+#include "proto/texture_manager.h"
 
 #include "../depends/soil/SOIL.h"
 
-#include "common.h"
+#include "proto/common.h"
 #include <map>
 #include <memory>
 

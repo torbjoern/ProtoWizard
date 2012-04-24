@@ -1,10 +1,9 @@
-#include <protographics.h>
-#include <glm/gtc/quaternion.hpp>
+#include <proto/protographics.h>
+#include <proto/color_utils.h>
+#include <proto/fileio/text_file.h>
+#include <proto/math/random.h>
 
-#include "color_utils.h"
-#include "color_utils.h"
-#include "fileio/text_file.h"
-#include <math/random.h>
+#include <glm/gtc/quaternion.hpp>
 #include "../../depends/obj_loader/objLoader.h"
 
 #include "btBulletDynamicsCommon.h"

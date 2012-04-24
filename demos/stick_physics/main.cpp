@@ -1,16 +1,20 @@
 #define GLM_SWIZZLE 
 #include <glm/glm.hpp>
 
-#include "protographics.h"
-#include "math/math_line.h"
-#include "math/math_common.h"
-#include "math/random.h"
+#include <proto/protographics.h>
+#include <proto/math/math_line.h>
+#include <proto/math/math_common.h>
+#include <proto/math/random.h>
 
 #include <functional>
 #include <cassert>
 #include <iostream>
+#include <vector>
+
 
 #define for_each(_ITER_, _COLL_) for (auto _ITER_ = begin(_COLL_); _ITER_ != end(_COLL_); ++_ITER_)
+
+ProtoGraphicsPtr proto;
 
 using glm::vec3;
 typedef float real;
@@ -48,7 +52,7 @@ struct ray_t{
 	}
 };
 
-void test_ray_point_square( ProtoGraphics& proto, const glm::vec2 &norm_mouse ){
+void test_ray_point_square( const glm::vec2 &norm_mouse ){
 	ray_t ray;
 	ray.origin = glm::vec3( 0.f );
 
@@ -113,27 +117,27 @@ bool isect_ray_cyl( ray_t ray, cyl_t cyl, float& t )
    return false;
 }
 
-void ray_cyl_test(ProtoGraphics& proto, const glm::vec2& norm_mouse){
+void ray_cyl_test(const glm::vec2& norm_mouse){
 		ray_t ray;
 		ray.origin = vec3(0.f, 0.f, 0.f);
 		ray.dir = vec3( cos(norm_mouse.x*3.14f*2.f) * 10.f, 0.f , sin(norm_mouse.x*3.14f*2.f)*10.f);
 
-		proto.setColor( 1.f, 1.f, 1.f );
+		proto->setColor( 1.f, 1.f, 1.f );
 
-		proto.drawCone( ray.origin, ray.origin + ray.dir, 0.125f );
+		proto->drawCone( ray.origin, ray.origin + ray.dir, 0.125f );
 
 		cyl_t cyl;
 		cyl.e1 = vec3( 0.f, 0.f, 3.f );
 		cyl.e2 = vec3( 5.f, 0.f, 3.f );
 		cyl.radi = 0.5f;
 
-		proto.drawCone( cyl.e1, cyl.e2, cyl.radi );
+		proto->drawCone( cyl.e1, cyl.e2, cyl.radi );
 
 		float t = 0.f;
 		bool hit = isect_ray_cyl( ray, cyl, t );
 
 		if ( hit )
-			proto.drawSphere( ray.origin + t * ray.dir, 0.25f );
+			proto->drawSphere( ray.origin + t * ray.dir, 0.25f );
 }
 
 bool IsZero( float n ){
@@ -245,12 +249,12 @@ void closestPoints( glm::vec3 &point0, glm::vec3 &point1, float& s0_t, float& s1
 
 }
 
-void closestPointsTest( ProtoGraphics& proto, const glm::vec2& normalized_mouse ){
+void closestPointsTest( const glm::vec2& normalized_mouse ){
 
 	static float a = 0.f;
 	static float a2 = 0.f;
-	if ( proto.mouseDownRight() ) a = normalized_mouse.x*6.28f;
-	if ( proto.mouseDownRight() ) a2 = normalized_mouse.y*6.28f;
+	if ( proto->mouseDownRight() ) a = normalized_mouse.x*6.28f;
+	if ( proto->mouseDownRight() ) a2 = normalized_mouse.y*6.28f;
 	
 
 	ray_t line1;
@@ -266,11 +270,11 @@ void closestPointsTest( ProtoGraphics& proto, const glm::vec2& normalized_mouse 
 	float t1,t2;
 	closestPoints( p1, p2, t1, t2, line1, line2 );
 
-	proto.drawSphere( p1, 1.0f );
-	proto.drawSphere( p2, 1.0f );
+	proto->drawSphere( p1, 1.0f );
+	proto->drawSphere( p2, 1.0f );
 
-	proto.drawCone( line1.origin, line1.origin + line1.dir, 0.5f);
-	proto.drawCone( line2.origin, line2.origin + line2.dir, 0.5f);
+	proto->drawCone( line1.origin, line1.origin + line1.dir, 0.5f);
+	proto->drawCone( line2.origin, line2.origin + line2.dir, 0.5f);
 }
 
 // proj a onto b
@@ -548,7 +552,7 @@ public:
 		}
 	}
 
-	void update_edges(ProtoGraphics &proto){
+	void update_edges(){
 		for_each( e_ptr, edges ){
 			edge_t &e = *(e_ptr);
 
@@ -594,7 +598,7 @@ public:
 
 	}
 
-	void vertex_edge_collide(ProtoGraphics &proto, bool active){
+	void vertex_edge_collide(bool active){
 		for_each( v_ptr , points ){
 			point_t &v = *(v_ptr);
 
@@ -634,25 +638,25 @@ public:
 						v2.acc -= v2_impulse;
 
 					}else{
-						proto.setColor(1.f, 1.f, 0.f);
-						proto.drawCone( closest, v.pos, 1.0f / 8.f );
-						//proto.drawSphere(closest, 0.125f );
+						proto->setColor(1.f, 1.f, 0.f);
+						proto->drawCone( closest, v.pos, 1.0f / 8.f );
+						//proto->drawSphere(closest, 0.125f );
 
-						//proto.setColor(0.f, 1.f, 1.f );
-						//proto.drawCone( v.pos, v.pos + v_impulse * 100.f, 1.0f / 24.f );
+						//proto->setColor(0.f, 1.f, 1.f );
+						//proto->drawCone( v.pos, v.pos + v_impulse * 100.f, 1.0f / 24.f );
 
-						//proto.setColor(0.f, 0.f, 1.f );
-						//proto.drawCone( v1.pos, v1.pos + v1_impulse * 100.f, 1.0f / 24.f );
+						//proto->setColor(0.f, 0.f, 1.f );
+						//proto->drawCone( v1.pos, v1.pos + v1_impulse * 100.f, 1.0f / 24.f );
 
-						//proto.setColor(0.f, 1.f, 0.f );
-						//proto.drawCone( v2.pos, v2.pos + v2_impulse * 100.f, 1.0f / 24.f );
+						//proto->setColor(0.f, 1.f, 0.f );
+						//proto->drawCone( v2.pos, v2.pos + v2_impulse * 100.f, 1.0f / 24.f );
 					}
 				}
 			}
 		}
 	}
 
-	void edge_edge_collide(ProtoGraphics &proto, bool active){
+	void edge_edge_collide(bool active){
 		for( auto e1_ptr=begin(edges); e1_ptr != end(edges); ++e1_ptr ){
 			edge_t &ed1 = *(e1_ptr);
 
@@ -721,14 +725,14 @@ public:
 					if ( !active ){
 						float col = protowizard::sfrand() * 0.5f + 0.5f;
 					
-						proto.setBlend( true );
-						proto.setAlpha( 0.75f );
-						proto.setColor( col, 0.f, 0.f );
-						//proto.drawSphere( coll_point, RAD*0.125f );
-						proto.setColor( 0.f, col, 0.f );
+						proto->setBlend( true );
+						proto->setAlpha( 0.75f );
+						proto->setColor( col, 0.f, 0.f );
+						//proto->drawSphere( coll_point, RAD*0.125f );
+						proto->setColor( 0.f, col, 0.f );
 	
-						proto.setColor(1.f, 1.f, 0.f);
-						proto.drawCone( hit_e1, hit_e2, 0.125f );
+						proto->setColor(1.f, 1.f, 0.f);
+						proto->drawCone( hit_e1, hit_e2, 0.125f );
 
 					}else{
 
@@ -756,37 +760,37 @@ public:
 				}
 
 				if ( !active ) {
-					proto.setColor( 1.f, 1.f, 1.f );
-					proto.setBlend( false );
+					proto->setColor( 1.f, 1.f, 1.f );
+					proto->setBlend( false );
 				}
 
 			}
 		}
 	}
 
-	void update(ProtoGraphics &proto){
-		vertex_edge_collide(proto, true);
-		edge_edge_collide( proto, true );
+	void update(){
+		vertex_edge_collide(true);
+		edge_edge_collide(true );
 		vertex_vertex_collide();
 
-		update_edges(proto);	
+		update_edges();	
 		update_points();
 	}
 
-	void draw(ProtoGraphics &proto){
+	void draw(){
 
 		//vertex_edge_collide(proto, false);
-		edge_edge_collide( proto, false );
+		edge_edge_collide(false );
 
-		proto.setBlend( true );
-		proto.setAlpha( 0.5f );
+		proto->setBlend( true );
+		proto->setAlpha( 0.5f );
 
-		proto.setColor(1,0,0);
+		proto->setColor(1,0,0);
 		for_each( p_ptr, points ){
-			proto.drawSphere( p_ptr->pos, RAD );
+			proto->drawSphere( p_ptr->pos, RAD );
 		}
 
-		proto.setColor(1,1,1);
+		proto->setColor(1,1,1);
 		for_each( e_ptr, edges ){
 			edge_t e = *(e_ptr);
 
@@ -795,11 +799,11 @@ public:
 
 			vec3 dir = glm::normalize( v2.pos - v1.pos );
 
-			//proto.drawCone( v1.pos, v2.pos, -CYL_RAD );
-			proto.drawCone( v1.pos + dir*RAD, v2.pos - dir*RAD, -CYL_RAD );
+			//proto->drawCone( v1.pos, v2.pos, -CYL_RAD );
+			proto->drawCone( v1.pos + dir*RAD, v2.pos - dir*RAD, -CYL_RAD );
 
 		}
-		proto.setBlend( false );
+		proto->setBlend( false );
 	}
 
 public:
@@ -816,7 +820,7 @@ class Timer{
 public:
 	typedef std::tr1::function <void(void)> voidfunc;
 	explicit Timer(voidfunc callback_, double interval_) : callback(callback_), interval(interval_) {
-		start_time = ProtoGraphics::getInstance()->klock();
+		start_time = proto->klock();
 
 	}
 
@@ -825,7 +829,7 @@ public:
 	}
 
 	void update(){
-		double time = ProtoGraphics::getInstance()->klock();
+		double time = proto->klock();
 		if ( (time - start_time) > interval ) {
 			start_time = time;
 			onTick();
@@ -852,7 +856,7 @@ struct IncFunctor
 	double &var;
 };
 
-void draw_line_cube( ProtoGraphics& proto, glm::vec3 pos , float scale )
+void draw_line_cube( glm::vec3 pos , float scale )
 {
 		for(int i=0; i<2; i++){
 		for(int j=0; j<2; j++){
@@ -865,11 +869,11 @@ void draw_line_cube( ProtoGraphics& proto, glm::vec3 pos , float scale )
 			p1 += pos;
 			p2 += pos;
 
-			proto.drawCone( p1, p2 , 1.0 );
+			proto->drawCone( p1, p2 , 1.0 );
 
-			proto.drawCone( p1.xzy(), p2.xzy() , 1.0 );
+			proto->drawCone( p1.xzy(), p2.xzy() , 1.0 );
 
-			proto.drawCone( p1.zxy(), p2.zxy() , 1.0 );
+			proto->drawCone( p1.zxy(), p2.zxy() , 1.0 );
 				
 		}
 	}
@@ -879,11 +883,11 @@ int main(int argc, const char* argv[])
 {
 	using glm::vec3;
 
-	ProtoGraphics proto;
-	bool inited = proto.init(640,480,argv);
+	proto = ProtoGraphics::create();
+	bool inited = proto->init(640,480,argv);
 	assert( inited );
 
-	proto.setCamera( vec3(-30.f, -20.f, -60.f), 0,0 );
+	proto->setCamera( vec3(-30.f, -20.f, -60.f), 0,0 );
 
 	//double seconds = 0.0;
 	//IncFunctor my_functor( seconds );
@@ -893,26 +897,26 @@ int main(int argc, const char* argv[])
 
 	StickPhysics::Engine my_physics_engine;
 
-	while( proto.isWindowOpen() )
+	while( proto->isWindowOpen() )
 	{
 		//secTimer.update();
 
-		proto.cls(0,0,0);
+		proto->cls(0,0,0);
 
 		
-		my_physics_engine.draw( proto );
+		my_physics_engine.draw();
 
-		proto.setColor( 0.0f, 0.0f, 1.0f );
-		draw_line_cube( proto, glm::vec3(0.0f), my_physics_engine.world_size );
+		proto->setColor( 0.0f, 0.0f, 1.0f );
+		draw_line_cube(glm::vec3(0.0f), my_physics_engine.world_size );
 
 		static int iter = 0;
 		bool run_physics = false;
-		if ( proto.keyhit(' ') ){
+		if ( proto->keyhit(' ') ){
 			std::cout << "iter " << iter++ << std::endl;
 			run_physics = true;
 		}
 
-		if ( proto.keystatus('E') ){
+		if ( proto->keystatus('E') ){
 			std::cout << "iter " << iter++ << std::endl;
 			run_physics = true;
 		}
@@ -921,23 +925,23 @@ int main(int argc, const char* argv[])
 		if ( run_physics ) {
 			
 			double dt = 1.0/PHYSHZ;
-			double tim = proto.klock();
+			double tim = proto->klock();
 
 			for(;tics<tim;tics+=dt)
 			{
-				my_physics_engine.update(proto);
+				my_physics_engine.update();
 			}
 		}else{
-			tics = proto.klock();
+			tics = proto->klock();
 		}
 
-		if ( proto.keyhit('C') ) my_physics_engine.init();
+		if ( proto->keyhit('C') ) my_physics_engine.init();
 		
-		glm::vec2 norm_mouse( proto.getMouseX() / (float)proto.getWindowWidth(), 1.0f - proto.getMouseY() / (float)proto.getWindowHeight() );
+		glm::vec2 norm_mouse( proto->getMouseX() / (float)proto->getWindowWidth(), 1.0f - proto->getMouseY() / (float)proto->getWindowHeight() );
 		
 
 
-		if ( proto.keystatus('G') ){
+		if ( proto->keystatus('G') ){
 			float ang2 = 2.0f*3.141592f * norm_mouse.x;
 			float ang1 = 2.0f*3.141592f * norm_mouse.y;
 			glm::mat4 mtx = glm::rotate( glm::mat4(1.0f), glm::degrees(ang1), vec3(0.0f, 0.0f, 1.0f ) );
@@ -945,16 +949,16 @@ int main(int argc, const char* argv[])
 			gravity_dir = ( glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f ) * mtx ).xyz();
 		}
 
-		//proto.drawCone( zero_vec, gravity_dir*2.0f, 0.1f );
+		//proto->drawCone( zero_vec, gravity_dir*2.0f, 0.1f );
 
-		//closestPointsTest( proto, norm_mouse );
-		//closest_pt_test( proto, norm_mouse );
+		//closestPointsTest( norm_mouse );
+		//closest_pt_test( norm_mouse );
 
 		static int numframes = 0;
-		//while( proto.klock() < double(numframes)/(2*60.0) ){ }
+		//while( proto->klock() < double(numframes)/(2*60.0) ){ }
 		numframes++;
 
-		proto.frame();
+		proto->frame();
 	}
 	return 0;
 }

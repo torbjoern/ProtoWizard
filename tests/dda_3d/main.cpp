@@ -1,5 +1,5 @@
-#include <protographics.h>
-#include "color_utils.h"
+#include <proto/protographics.h>
+#include <proto/color_utils.h>
 
 namespace {
 		ProtoGraphicsPtr proto;

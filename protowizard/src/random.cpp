@@ -1,6 +1,6 @@
-#include "random.h"
+#include "proto/math/random.h"
 
-#include "math_common.h"
+#include "proto/math/math_common.h"
 #include "../../depends/noise/perlin.h"
 
 // Krand function taken from Ken Silverman's Polydraw source

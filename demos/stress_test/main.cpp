@@ -1,5 +1,5 @@
-#include <protographics.h>
-#include <math/math_common.h>
+#include <proto/protographics.h>
+#include <proto/math/math_common.h>
 
 // last tested timings in mspf
 // in release: 7-8  

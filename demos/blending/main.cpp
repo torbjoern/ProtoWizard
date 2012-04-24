@@ -1,6 +1,6 @@
-#include <protographics.h>
-#include <color_utils.h>
-#include <math/math_common.h>
+#include <proto/protographics.h>
+#include <proto/color_utils.h>
+#include <proto/math/math_common.h>
 #include <string>
 
 namespace {

@@ -1,11 +1,10 @@
-#include <protographics.h>
-#include "color_utils.h"
+#include <proto/protographics.h>
+#include <proto/color_utils.h>
 #include <string>
 
 namespace {
 		ProtoGraphicsPtr proto;
 }
-
 
 void draw_models()
 {

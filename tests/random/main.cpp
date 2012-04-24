@@ -1,7 +1,7 @@
-#include <protographics.h>
-#include <math/math_common.h>
-#include <color_utils.h>
-#include <math/random.h>
+#include <proto/protographics.h>
+#include <proto/math/math_common.h>
+#include <proto/color_utils.h>
+#include <proto/math/random.h>
 
 #include <iostream>
 #include <string>
@@ -121,7 +121,7 @@ struct Magnetic
 	const static int NUMP = 1024;
 	glm::vec3* particlePos;
 
-	const static int MAXPOLES = 8;
+	const static int MAXPOLES = 128;
 	glm::vec3 polePos[MAXPOLES];
 	float polarity[MAXPOLES];
 	int positivePole[MAXPOLES];
