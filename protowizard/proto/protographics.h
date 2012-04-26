@@ -47,8 +47,6 @@ public:
 	virtual protomath::Ray getMousePickRay()= 0;
 
 	// Camera
-	virtual void setCamera( const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up ) = 0;
-	virtual void setCamera( const glm::vec3& pos, float hang, float vang ) = 0;
 	virtual FirstPersonCamera* getCamera() = 0;
 
 	// Draw 2D
@@ -69,7 +67,7 @@ public:
 	virtual void setScale( float x, float y, float z ) = 0;
 	virtual void setScale( float uniform_scale ) = 0;
 	
-	virtual void setColor( glm::vec3 c ) = 0;
+	virtual void setColor( const glm::vec3 &c ) = 0;
 	virtual void setColor( float r, float g, float b ) = 0;
 	virtual void setAlpha( float a ) = 0;
 	virtual void setBlend( bool active ) = 0;

@@ -426,10 +426,10 @@ int main(int argc, const char* argv[])
 			float sa = sin(ang); 
 			float radi = 20.f;
 
-			proto->setCamera(  glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+			proto->getCamera()->lookAt(  glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 		} else {
 			// Move cam up, back and right
-			proto->setCamera(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+			proto->getCamera()->lookAt(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 		}
 
 

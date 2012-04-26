@@ -1,20 +1,20 @@
 
-#include "protographics.h"
+#include "proto/protographics.h"
+
+#include "proto/common.h"
+#include "proto/camera.h"
+#include "proto/shapes/shapes.h"
+
+#include "proto/texture_manager.h"
+#include "proto/mesh_manager.h"
+#include "proto/path.h"
+
+#include "proto/camera.h"
+#include "proto/shader.h"
 
 #include <vector>
 #include <algorithm>
 #include <functional>
-
-#include "common.h"
-#include "camera.h"
-#include "shapes/shapes.h"
-
-#include "texture_manager.h"
-#include "mesh_manager.h"
-#include "path.h"
-
-#include "camera.h"
-#include "shader.h"
 
 
 // Forward decls
@@ -39,8 +39,8 @@ struct MeshState;
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
 
-#include "math/math_ray.h"
-#include "math/math_common.h"
+#include "proto/math/math_ray.h"
+#include "proto/math/math_common.h"
 
 class ProtoGraphicsImplementation : public ProtoGraphics
 {
@@ -260,16 +260,6 @@ public:
 		return ray;
 	}
 
-	virtual void setCamera( const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up )
-	{
-		camera->lookAt( pos, target, up );
-	}
-
-	virtual void setCamera( const glm::vec3& pos, float hang, float vang )
-	{
-		camera->set( pos, hang, vang );
-	}
-
 	virtual FirstPersonCamera* getCamera()
 	{
 		return camera;
@@ -393,9 +383,6 @@ public:
 		glm::mat4 backup = currentOrientation;
 	
 		// create a rotation matrix given horiz- and verti angles
-		//currentOrientation = glm::rotate( glm::rotate( identityMatrix, verti_ang, glm::vec3(1.f, 0.f, 0.f) ), horiz_ang, glm::vec3(0.f, 1.f, 0.f) );
-		//currentOrientation = glm::rotate( glm::rotate( identityMatrix, horiz_ang, glm::vec3(0.f, 1.f, 0.f) ), verti_ang, glm::vec3(1.f, 0.f, 0.f) );
-
 		glm::mat4 xrot = glm::rotate( identityMatrix, verti_ang, glm::vec3(1.f, 0.f, 0.f) );
 		glm::mat4 yrot = glm::rotate( identityMatrix, horiz_ang, glm::vec3(0.f, 1.f, 0.f) );
 		currentOrientation = glm::transpose(xrot * yrot);
@@ -427,7 +414,7 @@ public:
 		scale = glm::vec3( uniform_scale );
 	}
 
-	virtual void setColor( glm::vec3 c )
+	virtual void setColor( const glm::vec3 &c )
 	{
 		colorState.x = c.x; colorState.y = c.y; colorState.z = c.z;
 	}
@@ -444,26 +431,19 @@ public:
 
 	virtual void setBlend( bool active )
 	{
-		// TODO guess I want 2D blending at least... so, should each ShapeState have a BLEND_FUNC property?
-		// and should blending allways be enabled? yes... maybe... maybe handle it the same way as color
-		// so you do setBlend( LIGHT_BLEND ) etc. steal blitzmax' names :]
-		// SOLIDBLEND (no blend, overwrite) ALPHABLEND (use alpha channel in image and specified draw color RGBA), LIGHTBLEND (additive), SHADEBLEND (multiply with backbuffer, MASKBLEND (draw if alpha > .5 )
-		// see http://en.wikibooks.org/wiki/BlitzMax/Modules/Graphics/Max2D#SetBlend
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		if ( active )
 		{
 			blend_state = blending::ALPHA_BLEND;
 		}else{
 			blend_state = blending::SOLID_BLEND;
 		}
-		
 	}
 
-	virtual void setLightBlend()
-	{
-		blend_state = blending::ADDITIVE_BLEND;
-	}
+	//virtual void disableBlending() { blend_state = blending::SOLID_BLEND; } // SOLIDBLEND (no blend, overwrite)
+	//virtual void setAlphaBlend() { blend_state = blending::SOLID_BLEND;		// ALPHABLEND (use alpha channel in image and current color.a (alpha) )
+	virtual void setLightBlend() { blend_state = blending::ADDITIVE_BLEND; }// LIGHTBLEND (additive)
+	//virtual void setShadeBlend() { blend_state = blending::SHADE_BLEND; }// SHADEBLEND (multiply with backbuffer
+	//virtual void setMaskBlend() { blend_state = blending::MASK_BLEND; }// MASKBLEND (draw if alpha > .5 )
 
 	virtual void setTexture( const std::string& path )
 	{
@@ -862,7 +842,6 @@ private:
 	
 	std::vector< LineSegmentState > buffered_lines;
 	std::vector< CircleState > buffered_circles;
-
 	std::vector<BaseState3DPtr> opaque;
 	std::vector<BaseState3DPtr> translucent;
 
@@ -870,18 +849,17 @@ private:
 	double time;
 	double old_time;
 	double max_millis_per_frame;
-
 	unsigned int numframes;
 
 	int num_opaque;
 	int num_blended;
-
 	bool isDebugNormalsActive;
+	double mspf_samples[10];
+	int currentSample;
 
 	std::string resource_dir;
 
-	double mspf_samples[10];
-	int currentSample;
+
 };
 
 

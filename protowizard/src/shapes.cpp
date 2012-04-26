@@ -1,5 +1,5 @@
-#include "shapes.h"
-#include "mesh.h"
+#include <proto/shapes/shapes.h>
+#include "proto/shapes/mesh.h"
 
 #include <algorithm>
 
@@ -22,36 +22,17 @@ bool Shapes::init()
 		return false;
 	}
 
-	if ( !circle.init() )
-	{
-		printf("failed to init Circle VBO");
-		return false;
-	}
+	bool inited = true;
+	inited &= circle.init();
+	inited &= sphere.init();
+	inited &= cylinder.init();
+	inited &= cube.init();
+	inited &= plane.init();
 
-	if ( !sphere.init() )
-	{
-		printf("failed to init Sphere VBO");
-		return false;
+	if ( !inited ) {
+		printf("failed to init some shape");
 	}
-
-	if ( !cylinder.init() )
-	{
-		printf("failed to init cylinder VBO");
-		return false;
-	}
-
-	if ( !cube.init() )
-	{
-		printf("failed to init cube VBO");
-		return false;
-	}
-
-	if ( !plane.init() )
-	{
-		printf("failed to init plane VBO");
-		return false;
-	}
-	return true;
+	return inited;
 }
 
 void Shapes::de_init()

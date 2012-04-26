@@ -29,7 +29,7 @@ add_subdirectory (demos/blending)
 add_subdirectory (demos/fractal2d)
 add_subdirectory (demos/stress_test)
 add_subdirectory (demos/game_tron)
-add_subdirectory (demos/voxel)
+add_subdirectory (demos/2dphysics)
 add_subdirectory (demos/stick_physics)
 
 

@@ -50,7 +50,7 @@ int main(int argc, const char* argv[])
 		glm::vec2 normalized_mouse(normalized_mx, normalized_my);
 
 		float zoom = normalized_my * 5.f;
-		proto->setCamera( glm::vec3(0.f, zoom, -zoom), glm::vec3(0.f, 1.0f, 0.f), glm::vec3(0.f, 1.f, 0.f) );
+		proto->getCamera()->lookAt( glm::vec3(0.f, zoom, -zoom), glm::vec3(0.f, 1.0f, 0.f), glm::vec3(0.f, 1.f, 0.f) );
 		draw_models();
 
 		//float ang = normalized_mouse.x*6.28f;
