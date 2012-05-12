@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm>
 
-#include "text_file.h"
+#include "proto/fileio/text_file.h"
 
 using std::cout;
 using std::endl;

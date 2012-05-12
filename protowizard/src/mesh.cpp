@@ -1,6 +1,6 @@
-#include "mesh.h"
+#include "proto/shapes/mesh.h"
 
-#include "../vertex_types.h"
+#include "proto/vertex_types.h"
 
 
 Mesh::~Mesh()

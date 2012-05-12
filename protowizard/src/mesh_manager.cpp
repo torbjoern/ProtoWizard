@@ -1,8 +1,8 @@
-#include "mesh_manager.h"
+#include "proto/mesh_manager.h"
 
 #include <memory>
 
-#include "shapes/mesh.h"
+#include "proto/shapes/mesh.h"
 #include "../depends/obj_loader/objLoader.h"
 
 class MeshManagerImplementation : public MeshManager
@@ -34,7 +34,6 @@ public:
 		mesh_map.find( file_path )->second->draw();
 	}
 
-private:
 	virtual MeshPtr createMesh(const std::string& fileName)
 	{
 		// no need to keep vertices around in here... just make a VBO

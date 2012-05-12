@@ -1,4 +1,4 @@
-#include "path.h"
+#include "proto/path.h"
 
 // expects somedir/bin/debug/program.exe
 std::string extractExePath( std::string & path )

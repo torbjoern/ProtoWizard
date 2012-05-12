@@ -10,6 +10,8 @@
 class ProtoGraphics;
 typedef std::shared_ptr<ProtoGraphics> ProtoGraphicsPtr;
 
+class Mesh;
+typedef std::shared_ptr<Mesh> MeshPtr;
 
 class ProtoGraphics
 {
@@ -61,6 +63,7 @@ public:
 	virtual void drawCube( glm::vec3 position ) = 0;
 	virtual void drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path ) = 0;
 	virtual void drawMesh( glm::vec3 position, std::string path ) = 0;
+	virtual void drawMesh( glm::vec3 position, MeshPtr mesh ) = 0;
 
 	// Draw state modify
 	virtual void setOrientation( const glm::mat4 &ori ) = 0;
@@ -87,4 +90,6 @@ public:
 	virtual std::string getResourceDir() = 0;
 	virtual void setResourceDir( const std::string& new_dir ) = 0;
 
+	// Creation
+	//MeshPtr createMesh(std::vector<Vertex_VNT>& verts);
 };

@@ -1,7 +1,7 @@
 
-#include "camera.h"
+#include "proto/camera.h"
 
-#include "common.h"
+#include "proto/common.h"
 #include <glm/gtc/quaternion.hpp>
 
 FirstPersonCamera::FirstPersonCamera()

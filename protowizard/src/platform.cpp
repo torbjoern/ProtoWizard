@@ -1,7 +1,7 @@
 #ifndef _PLATFORM_H
 #define _PLATFORM_H
 
-#include "platform.h"
+#include "proto/platform.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

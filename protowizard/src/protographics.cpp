@@ -399,6 +399,13 @@ public:
 		state->mesh = mesh_manager->getMesh(path);
 	}
 
+	virtual void drawMesh( glm::vec3 position, MeshPtr mesh )
+	{
+		std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
+		save_state( state, get3DTransform(currentOrientation, position, scale ));
+		state->mesh = mesh;
+	}
+
 	virtual void setOrientation( const glm::mat4 &ori )
 	{
 		currentOrientation = ori;
