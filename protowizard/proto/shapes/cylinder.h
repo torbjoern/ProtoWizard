@@ -1,8 +1,8 @@
-#ifndef _CYLINDER_H
-#define _CYLINDER_H
+#pragma once
+#include "proto/math/math_common.h"
+#include "../opengl_stuff.h"
 
-#include "../common.h"
-
+namespace protowizard{
 class CylinderGeometry
 {
 	public:
@@ -187,6 +187,4 @@ class CylinderGeometry
 		
 
 };
-
-
-#endif
+} // ::proto

@@ -1,8 +1,8 @@
-#ifndef _SPHERE_H
-#define _SPHERE_H
+#pragma once
+#include "proto/math/math_common.h"
+#include "../opengl_stuff.h"
 
-#include "../common.h"
-
+namespace protowizard{
 class SphereGeometry
 {
 	public:
@@ -73,7 +73,7 @@ class SphereGeometry
 			6,1,10,   9,0,11,  9,11,2,   9,2,5,   7,2,11   
 		};
 
-		int subDivDepth = 1;
+		int subDivDepth = 2; // 1 isn't bad
 		std::vector< PNVertex > sphere_vertices;
 		for (int i = 0; i < 20; i++)
 		{ 
@@ -112,6 +112,4 @@ class SphereGeometry
 		unsigned int sphereVAO;
 		int SPHERE_VERTS;
 };
-
-#endif
-
+} // ::proto

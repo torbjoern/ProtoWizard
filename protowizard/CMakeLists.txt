@@ -97,7 +97,6 @@ set(HDRS
 	${shape_HDRS}
 	proto/camera.h
 	proto/color_utils.h
-	proto/common.h
 	proto/opengl_stuff.h
 	proto/platform.h
 	proto/protographics.h

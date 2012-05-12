@@ -3,7 +3,7 @@
 #include <string>
 
 namespace {
-		ProtoGraphicsPtr proto;
+		protowizard::ProtoGraphicsPtr proto;
 }
 
 void draw_models()
@@ -26,7 +26,7 @@ void draw_models()
 
 int main(int argc, const char* argv[])
 {
-	proto = ProtoGraphics::create();
+	proto = protowizard::ProtoGraphics::create();
 
 	if (!proto->init(640,480,argv) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");

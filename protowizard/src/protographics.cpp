@@ -1,7 +1,8 @@
 
 #include "proto/protographics.h"
 
-#include "proto/common.h"
+using namespace protowizard;
+
 #include "proto/camera.h"
 #include "proto/shapes/shapes.h"
 
@@ -12,35 +13,22 @@
 #include "proto/camera.h"
 #include "proto/shader.h"
 
+#include "proto/math/math_ray.h"
+#include "proto/math/math_common.h"
+#include "proto/opengl_stuff.h"
+
 #include <vector>
 #include <algorithm>
 #include <functional>
-
-
-// Forward decls
-class TextureManager;
-class MeshManager;
-
-struct LineSegmentState;
-struct CircleState;
-
-struct BaseState3D;
-struct SphereState;
-struct CylinderState;
-struct PlaneState;
-struct CubeState;
-struct MeshState;
-
-
-#include <vector>
 
 #define GLM_SWIZZLE 
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
 
-#include "proto/math/math_ray.h"
-#include "proto/math/math_common.h"
+
+#include <GL/glfw.h>
+
 
 class ProtoGraphicsImplementation : public ProtoGraphics
 {
@@ -145,7 +133,7 @@ public:
 		}
 
 
-		Shapes::init();
+		Shapes.init();
 
 		if ( !install_shaders() ) return false;
 		
@@ -245,9 +233,9 @@ public:
 		return times_hit > 0;
 	}
 
-	virtual protomath::Ray getMousePickRay()
+	virtual Ray getMousePickRay()
 	{
-		protomath::Ray ray;
+		Ray ray;
 		ray.origin = camera->getPos();
 		float cameraPlaneDistance = 1.0f / (2.0f * tan(camera->getFov()*M_PI/180.f*0.5f) );
 		float u = -.5f + (mousx+.5f) / (float)(xres-1);
@@ -539,7 +527,7 @@ private:
 		}
 		texture_manager->shutdown( texture_manager );
 		mesh_manager->shutdown( mesh_manager );
-		Shapes::de_init();
+		Shapes.de_init();
 		delete camera;
 
 		for( auto it=shader_list.begin(); it != shader_list.end(); ++it )
@@ -583,7 +571,7 @@ private:
 		unsigned int loc = shader_lines2d->GetVariable("mvp");
 		glm::mat4 orthomat = glm::ortho(  0.f, (float)xres, (float)yres, 0.f );
 		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(orthomat) );
-		Shapes::line.draw(buffered_lines);
+		Shapes.line.draw(buffered_lines);
 		buffered_lines.clear();
 	}
 
@@ -623,11 +611,11 @@ private:
 
 			if ( buffered_circles[i].radius < 0.f )
 			{
-				Shapes::circle.draw_open();
+				Shapes.circle.draw_open();
 			} 
 			else
 			{
-				Shapes::circle.draw_fill();
+				Shapes.circle.draw_fill();
 			}
 		
 		}
@@ -643,7 +631,7 @@ private:
 		unsigned int viewLoc = active_shader_ref.GetVariable("viewMatrix");
 		unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
 		glm::mat4 projection =
-			glm::perspective( camera->getFov(), xres/(float)yres, .5f, 1000.f);
+			glm::perspective( camera->getFov(), xres/(float)yres, camera->getNearDist(), camera->getFarDist() );
 		glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 		glm::mat4 viewMatrix = camera->getViewMatrix();

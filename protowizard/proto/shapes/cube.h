@@ -1,8 +1,8 @@
-#ifndef _CUBE_H
-#define _CUBE_H
+#pragma once
+#include "proto/math/math_common.h"
+#include "../opengl_stuff.h"
 
-#include "../common.h"
-
+namespace protowizard{
 class CubeGeometry
 {
 	public:
@@ -97,7 +97,4 @@ class CubeGeometry
 	int num_vertices;
 	
 };
-
-
-
-#endif
+} // ::proto

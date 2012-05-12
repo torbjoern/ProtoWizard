@@ -5,6 +5,8 @@
 #include "proto/shapes/mesh.h"
 #include "../depends/obj_loader/objLoader.h"
 
+using namespace protowizard;
+
 class MeshManagerImplementation : public MeshManager
 {
 	friend MeshManager;

@@ -2,6 +2,9 @@
 
 #include "proto/vertex_types.h"
 
+using namespace protowizard;
+
+#include "../depends/gl3w/gl3w.h"
 
 Mesh::~Mesh()
 {
@@ -97,6 +100,32 @@ Mesh::Mesh( std::vector<Vertex_VNT>& verts )
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+
+Mesh::Mesh( size_t nverts, glm::vec3* verts )
+{
+	this->num_vertices = (int)nverts;
+	int num_tris = num_vertices / 3;
+	vbo = vao = 0;
+	glGenVertexArrays( 1, &vao );
+	glBindVertexArray(vao);
+	glGenBuffers(1, &vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XYZVertex) * num_vertices, &verts[0], GL_STATIC_DRAW);
+	if (glGetError() == GL_OUT_OF_MEMORY)
+	{
+		std::runtime_error("fatal err: GL_OUT_OF_MEMORY");
+	}
+
+	// XYZ vertices
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(XYZVertex), 0);
+
+	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

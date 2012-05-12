@@ -1,8 +1,8 @@
 #include "proto/texture_manager.h"
+#include "proto/opengl_stuff.h"
 
 #include "../depends/soil/SOIL.h"
 
-#include "proto/common.h"
 #include <map>
 #include <memory>
 

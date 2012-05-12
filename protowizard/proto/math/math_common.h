@@ -6,8 +6,11 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp> // Value ptr -> column-ordered pointer to GLM type
 
+#include <cmath>
 #define TWO_PI     6.28318530717958647692f
 #define M_PI       3.14159265358979323846f
+
+
 
 const glm::mat4 identityMatrix(1.f);
 const glm::vec3 unitX( 1.f, 0.f, 0.f );

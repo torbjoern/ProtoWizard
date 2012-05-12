@@ -1,11 +1,8 @@
-#ifndef _MATH_RAY_H_
-#define _MATH_RAY_H_
+#pragma once
 
 #include <glm/glm.hpp>
 
-namespace protomath{
-
-
+namespace protowizard{
 struct Ray
 {
 	glm::vec3 origin;
@@ -80,9 +77,5 @@ struct Ray
 	}
 };
 
-
-
 } // end namespace
 
-
-#endif

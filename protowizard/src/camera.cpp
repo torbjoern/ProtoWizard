@@ -1,7 +1,7 @@
 
 #include "proto/camera.h"
 
-#include "proto/common.h"
+#include "proto/math/math_common.h"
 #include <glm/gtc/quaternion.hpp>
 
 FirstPersonCamera::FirstPersonCamera()
@@ -9,6 +9,8 @@ FirstPersonCamera::FirstPersonCamera()
 	mCam = identityMatrix;
 	pos = glm::vec3(0.f);
 	fov = 90.f;
+	near_dist = 0.5f;
+	far_dist = 1000.f;
 
 	hang = 0.0f;
 	vang = 0.0f;

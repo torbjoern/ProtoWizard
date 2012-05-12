@@ -1,26 +1,27 @@
-#ifndef _MESH_H
-#define _MESH_H
-
-#include "../common.h"
+#pragma once
 
 #include <string>
 #include <map>
+#include <vector>
 
+#include "../vertex_types.h"
 
 // Create drawable VBO from VertexArray
-class Mesh
-{
-public:
-	void draw();
-	Mesh( std::vector<Vertex_VNC>& verts );
-	Mesh( std::vector<Vertex_VNT>& verts );
-	~Mesh();
+namespace protowizard{
+	class Mesh
+	{
+	public:
+		void draw();
+		Mesh( std::vector<Vertex_VNC>& verts );
+		Mesh( std::vector<Vertex_VNT>& verts );
+		Mesh( size_t nverts, glm::vec3* verts );
+		~Mesh();
 
 
-private:
-	GLuint vbo;
-	GLuint vao;
-	int num_vertices;
-};
+	private:
+		unsigned int vbo;
+		unsigned int vao;
+		int num_vertices;
+	};
+}
 
-#endif

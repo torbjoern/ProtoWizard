@@ -1,8 +1,9 @@
-#ifndef _LINE_H
-#define _LINE_H
+#pragma once
+#include <vector>
+#include "../vertex_types.h"
+#include "../depends/gl3w/gl3w.h"
 
-#include "../common.h"
-
+namespace protowizard{
 class LineGeometry
 {
 	public:
@@ -63,6 +64,4 @@ class LineGeometry
 		unsigned int LineBufferObject;
 		unsigned int line_vao;
 };
-
-
-#endif
+} // ::proto

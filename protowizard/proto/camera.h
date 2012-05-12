@@ -39,6 +39,13 @@ public:
 	}
 
 	float getFov(){return fov;}
+	void setFov( float fov ){ this->fov = fov;}
+
+	float getNearDist() { return near_dist; }
+	float getFarDist() { return far_dist; }
+	void setNearDist(float near_dist) { this->near_dist = near_dist; }
+	void setFarDist(float far_dist) { this->far_dist = far_dist; }
+
 	glm::mat4 getViewMatrix();
 	void setViewMatrix( const glm::mat4& mat ) { mCam = mat; }
 	void setPos(const glm::vec3& pos );
@@ -49,6 +56,7 @@ private:
 	glm::mat4 mCam;
 	glm::vec3 pos;
 	float fov;
+	float far_dist, near_dist;
 
 	float oldmousx;
 	float oldmousy;

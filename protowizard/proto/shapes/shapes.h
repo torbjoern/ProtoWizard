@@ -1,5 +1,4 @@
-#ifndef _SHAPES_H
-#define _SHAPES_H
+#pragma once;
 
 #include "line.h"
 #include "circle.h"
@@ -12,24 +11,53 @@
 #include "mesh.h"
 
 #include "../vertex_types.h"
-#include "../common.h"
+#include "../opengl_stuff.h"
 
 #include <map>
 #include <memory>
 
-
-namespace Shapes
+namespace protowizard{
+struct Shapes_t
 {
-	extern LineGeometry line;
-	extern CircleGeometry circle;
-	extern CylinderGeometry cylinder;
-	extern SphereGeometry sphere;
-	extern CubeGeometry cube;
-	extern PlaneGeometry plane;
+	LineGeometry line;
+	CircleGeometry circle;
+	CylinderGeometry cylinder;
+	SphereGeometry sphere;
+	CubeGeometry cube;
+	PlaneGeometry plane;
 
-	bool init();
-	void de_init();
-}
+	bool init()
+	{
+		// TODO.. remove this, make it so line is a static class that checks if it
+		// has a VBO on draw...
+		if ( !line.init() )
+		{
+			printf("failed to init Line VBO");
+			return false;
+		}
+
+		bool inited = true;
+		inited &= circle.init();
+		inited &= sphere.init();
+		inited &= cylinder.init();
+		inited &= cube.init();
+		inited &= plane.init();
+
+		if ( !inited ) {
+			printf("failed to init some shape");
+		}
+		return inited;
+	}
+	void de_init()
+	{
+		circle.shutdown();
+		line.shutdown();
+		sphere.shutdown();
+		cube.shutdown();
+		cylinder.shutdown();
+		plane.shutdown();
+	}
+} Shapes;
 
 namespace blending
 {
@@ -141,14 +169,14 @@ struct MeshState : public BaseState3D
 struct SphereState : public BaseState3D
 {
 	virtual void draw() {
-		Shapes::sphere.draw();
+		Shapes.sphere.draw();
 	}
 };
 
 struct CylinderState : public BaseState3D
 {
 	virtual void draw() {
-		Shapes::cylinder.draw( hasCap );
+		Shapes.cylinder.draw( hasCap );
 	}
 	bool hasCap;
 };
@@ -156,7 +184,7 @@ struct CylinderState : public BaseState3D
 struct CubeState : public BaseState3D
 {
 	void draw() {
-		Shapes::cube.draw();
+		Shapes.cube.draw();
 	}
 };
 
@@ -167,8 +195,8 @@ struct PlaneState : public BaseState3D
 		glm::vec3 pos = glm::vec3(transform[3]);
 		glDisable(GL_CULL_FACE);
 		// TODO
-		Shapes::plane.createGeometry( pos, normal, 1.0 );
-		Shapes::plane.draw();
+		Shapes.plane.createGeometry( pos, normal, 1.0 );
+		Shapes.plane.draw();
 
 		glEnable(GL_CULL_FACE);
 	}
@@ -176,6 +204,5 @@ struct PlaneState : public BaseState3D
 	glm::vec3 normal;
 };
 
+} // ::proto
 
-
-#endif

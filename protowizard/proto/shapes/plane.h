@@ -1,8 +1,8 @@
-#ifndef _PLANE_H
-#define _PLANE_H
+#pragma once
+#include "proto/math/math_common.h"
+#include "../opengl_stuff.h"
 
-#include "../common.h"
-
+namespace protowizard{
 class PlaneGeometry
 {
 	public:
@@ -116,7 +116,4 @@ class PlaneGeometry
 	int num_vertices;
 	
 };
-
-
-
-#endif
+} // namespace

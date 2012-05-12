@@ -1,9 +1,8 @@
-#ifndef _CIRCLE_H
-#define _CIRCLE_H
+#pragma once
+#include "proto/opengl_stuff.h"
+#include "proto/math/math_common.h"
 
-#include "../common.h"
-
-
+namespace protowizard{
 class CircleGeometry
 {
 public:
@@ -96,5 +95,4 @@ private:
 	unsigned int vao_handle;
 	int num_vertices;
 };
-
-#endif
+} // ::proto

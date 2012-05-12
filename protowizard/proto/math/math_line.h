@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-namespace ProtoMath{
+namespace protowizard{
 
 template <typename T>
 struct line_t{
