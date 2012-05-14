@@ -18,17 +18,8 @@ namespace
 	btDiscreteDynamicsWorld* dynamicsWorld;
 	std::vector<glm::vec3> constraint_lines;
 	std::vector<btGeneric6DofConstraint*> constraints;
-	ProtoGraphicsPtr proto;
+	protowizard::ProtoGraphicsPtr proto;
 }
-
-namespace KEY
-{
-	const static int  SPECIAL = 256;
-	const static int  UP = SPECIAL + 27;
-	const static int  DOWN = SPECIAL + 28;
-	const static int  LEFT = SPECIAL + 29;
-	const static int  RIGHT = SPECIAL + 30;
-};
 
 struct rigid_body_t
 {
@@ -584,7 +575,10 @@ int main(int argc, const char* argv[])
 		proto->setColor(0.1f, 0.5f, 0.1f); proto->drawCone( origin, origin + proto->getCamera()->getUpDirection(), .1f );
 		proto->setColor(0.1f, 0.1f, 0.5f); proto->drawCone( origin, origin + proto->getCamera()->getLookDirection(), .1f );
 		
+		{
+		using protowizard;
 		proto->getCamera()->update( proto->keystatus(KEY::LEFT), proto->keystatus(KEY::RIGHT), proto->keystatus(KEY::UP), proto->keystatus(KEY::DOWN), (float)proto->getMouseX(), (float)proto->getMouseY(), proto->mouseDownLeft(), proto->getMSPF() );
+		}
 
 		proto->frame();
 		

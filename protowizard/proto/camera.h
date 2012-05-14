@@ -38,6 +38,13 @@ public:
 		return -1.f * glm::vec3( mCam[0].z, mCam[1].z, mCam[2].z );
 	}
 
+	void setCameraBasis( const glm::vec3& cameraStrafe, const glm::vec3& cameraUp, const glm::vec3& cameraForward )
+	{ 
+		this->cameraStrafe = cameraStrafe;
+		this->cameraUp = cameraUp;
+		this->cameraForward = cameraForward;
+	}
+
 	float getFov(){return fov;}
 	void setFov( float fov ){ this->fov = fov;}
 
@@ -55,6 +62,7 @@ private:
 	float hang, vang;
 	glm::mat4 mCam;
 	glm::vec3 pos;
+	glm::vec3 cameraStrafe, cameraUp, cameraForward;
 	float fov;
 	float far_dist, near_dist;
 

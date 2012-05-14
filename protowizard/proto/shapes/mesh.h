@@ -11,7 +11,7 @@ namespace protowizard{
 	class Mesh
 	{
 	public:
-		void draw();
+		void draw( bool isTwoSided );
 		Mesh( std::vector<Vertex_VNC>& verts );
 		Mesh( std::vector<Vertex_VNT>& verts );
 		Mesh( size_t nverts, glm::vec3* verts );

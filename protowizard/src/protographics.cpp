@@ -45,8 +45,10 @@ public:
 		shutdown();
 	}
 
-	virtual bool init(int xres, int yres, const char* argv[] )
+	virtual bool init(int xres, int yres, const std::string resDir )
 	{
+		setResourceDir( resDir );
+
 		texture_manager = TextureManager::init();
 		mesh_manager = MeshManager::init();
 		camera = new FirstPersonCamera;
@@ -89,10 +91,6 @@ public:
 		for(int i=0; i<10; i++) {
 			mspf_samples[i] = 0;
 		}
-		resource_dir = "";
-
-		std::string folderWithBinary = extractExePath( std::string(argv[0]) );
-		setResourceDir( folderWithBinary+"\\assets" );
 
 		int ok = glfwInit();
 		if ( ok==0 ) return false;
@@ -384,13 +382,15 @@ public:
 	{
 		std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
 		save_state( state, get3DTransform(currentOrientation, position, scale ));
+		state->isTwoSided = false;
 		state->mesh = mesh_manager->getMesh(path);
 	}
 
-	virtual void drawMesh( glm::vec3 position, MeshPtr mesh )
+	virtual void drawMesh( MeshPtr mesh, bool isTwoSided )
 	{
 		std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
-		save_state( state, get3DTransform(currentOrientation, position, scale ));
+		save_state( state, get3DTransform(currentOrientation, glm::vec3(0.f), scale ));
+		state->isTwoSided = isTwoSided;
 		state->mesh = mesh;
 	}
 
@@ -753,10 +753,10 @@ private:
 
 	bool install_shaders()
 	{
-		shader_lines2d = std::make_shared<Shader>( getResourceDir()+"\\line2d_shader.vert", getResourceDir()+"\\line2d_shader.frag" );
-		shader_2d = std::make_shared<Shader>( getResourceDir()+"\\shader2d.vert", getResourceDir()+"\\shader2d.frag" );
-		phong_shader = std::make_shared<Shader>(getResourceDir()+"\\phong.vert", getResourceDir()+"\\phong.frag");
-		geo_shader_normals = std::make_shared<Shader>(getResourceDir()+"\\passthru.vert", getResourceDir()+"\\normals.gs", getResourceDir()+"\\normals.frag");
+		shader_lines2d = std::make_shared<Shader>( resource_dir+"line2d_shader.vert", resource_dir+"line2d_shader.frag" );
+		shader_2d = std::make_shared<Shader>( resource_dir+"shader2d.vert", resource_dir+"shader2d.frag" );
+		phong_shader = std::make_shared<Shader>(resource_dir+"phong.vert", resource_dir+"phong.frag");
+		geo_shader_normals = std::make_shared<Shader>(resource_dir+"passthru.vert", resource_dir+"normals.gs", resource_dir+"normals.frag");
 
 		shader_list.push_back( shader_lines2d );
 		shader_list.push_back( shader_2d );

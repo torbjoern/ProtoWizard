@@ -54,7 +54,7 @@ public:
 
 		GLuint texture_handle = 0;
 		glGenTextures( 1, &texture_handle );
-		texture_handle = SOIL_load_OGL_texture( &cstr_path[0], SOIL_LOAD_AUTO, texture_handle, SOIL_FLAG_MIPMAPS|SOIL_FLAG_MULTIPLY_ALPHA|SOIL_FLAG_INVERT_Y ); // SOIL_FLAG_INVERT_Y kan være nyttig 
+		texture_handle = SOIL_load_OGL_texture( &cstr_path[0], SOIL_LOAD_AUTO, texture_handle, SOIL_FLAG_MIPMAPS|SOIL_FLAG_MULTIPLY_ALPHA|SOIL_FLAG_INVERT_Y|SOIL_FLAG_TEXTURE_REPEATS ); // SOIL_FLAG_INVERT_Y kan være nyttig 
 		GetError( "TextureManager::setTexture" );
 
 		if ( texture_handle == 0 )

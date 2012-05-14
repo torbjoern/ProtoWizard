@@ -28,7 +28,7 @@ int main(int argc, const char* argv[])
 {
 	proto = protowizard::ProtoGraphics::create();
 
-	if (!proto->init(640,480,argv) ) {
+	if (!proto->init(640,480) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}

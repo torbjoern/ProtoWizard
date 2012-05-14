@@ -12,10 +12,14 @@ Mesh::~Mesh()
 	glDeleteVertexArrays(1, &vao );
 }
 
-void Mesh::draw()
+void Mesh::draw( bool isTwoSided )
 {
-	glDisable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
+	if ( isTwoSided ) {
+		glDisable(GL_CULL_FACE);
+	}
+	else {
+		glCullFace(GL_BACK);
+	}
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, num_vertices );
 	glBindVertexArray(0);

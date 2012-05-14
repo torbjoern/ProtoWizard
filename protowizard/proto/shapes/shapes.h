@@ -73,8 +73,7 @@ struct BaseState
 {
 	int blend_mode;
 	glm::vec4 color;
-	BaseState() {
-	}
+	BaseState() { }
 	BaseState(const glm::vec4& color, int blend_mode) : color(color), blend_mode(blend_mode)
 	{
 	}
@@ -161,9 +160,10 @@ struct BaseState3D : public BaseState
 struct MeshState : public BaseState3D
 {
 	virtual void draw() {
-		mesh->draw();
+		mesh->draw( isTwoSided );
 	}
 	MeshPtr mesh;
+	bool isTwoSided;
 };
 
 struct SphereState : public BaseState3D

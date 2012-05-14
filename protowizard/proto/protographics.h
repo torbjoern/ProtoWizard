@@ -10,6 +10,15 @@
 
 namespace protowizard
 {
+	namespace KEY
+	{
+		const static int SPECIAL = 256;
+		const static int UP = SPECIAL + 27;
+		const static int DOWN = SPECIAL + 28;
+		const static int LEFT = SPECIAL + 29;
+		const static int RIGHT = SPECIAL + 30;
+	};
+
 	class ProtoGraphics;
 	typedef std::shared_ptr<ProtoGraphics> ProtoGraphicsPtr;
 
@@ -25,7 +34,7 @@ namespace protowizard
 		virtual ~ProtoGraphics() {}
 		static ProtoGraphicsPtr create();
 
-		virtual bool init(int xres, int yres, const char* argv[] ) = 0;
+		virtual bool init(int xres, int yres, const std::string resDir = "../assets/") = 0;
 
 		virtual float getMSPF()= 0;
 		virtual float getAverageMSPF()= 0;
@@ -66,7 +75,7 @@ namespace protowizard
 		virtual void drawCube( glm::vec3 position ) = 0;
 		virtual void drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path ) = 0;
 		virtual void drawMesh( glm::vec3 position, std::string path ) = 0;
-		virtual void drawMesh( glm::vec3 position, MeshPtr mesh ) = 0;
+		virtual void drawMesh( MeshPtr mesh, bool isTwoSided ) = 0;
 
 		// Draw state modify
 		virtual void setOrientation( const glm::mat4 &ori ) = 0;

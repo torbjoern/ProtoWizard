@@ -31,11 +31,6 @@ public:
 		return mesh_map[file_path];
 	}
 
-	virtual void drawMesh( const std::string& file_path )
-	{
-		mesh_map.find( file_path )->second->draw();
-	}
-
 	virtual MeshPtr createMesh(const std::string& fileName)
 	{
 		// no need to keep vertices around in here... just make a VBO

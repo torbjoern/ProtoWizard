@@ -8,6 +8,11 @@ FirstPersonCamera::FirstPersonCamera()
 {
 	mCam = identityMatrix;
 	pos = glm::vec3(0.f);
+
+	cameraStrafe =  glm::vec3(1.f, 0.f, 0.f);
+	cameraUp =      glm::vec3(0.f, 1.f, 0.f);
+	cameraForward = glm::vec3(0.f, 0.f, 1.f);
+
 	fov = 90.f;
 	near_dist = 0.5f;
 	far_dist = 1000.f;
@@ -58,8 +63,8 @@ void FirstPersonCamera::update(bool left_key, bool right_key, bool back_key, boo
 	}
 	float speed = delta * 50.0f; // meters per second
 
-	glm::mat4 rmx = glm::rotate( identityMatrix, vang, glm::vec3(1.f, 0.f, 0.f)  );
-	glm::mat4 rmy = glm::rotate( identityMatrix, hang, glm::vec3(0.f, 1.f, 0.f)  );
+	glm::mat4 rmx = glm::rotate( identityMatrix, vang, cameraStrafe );
+	glm::mat4 rmy = glm::rotate( identityMatrix, hang, cameraUp );
 	glm::mat4 rotMat = rmx * rmy;
 
 	glm::vec4 moveDir( speed * (left_key-right_key), 0.0f, speed * (back_key - forwards_key), 0.0f );
