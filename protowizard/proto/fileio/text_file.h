@@ -14,7 +14,7 @@ public:
 	~TextFile();
 	void fail_check();
 
-	int numLines();
+	size_t numLines();
 	std::string getLine(int i);
 	
 	void setParseLine(int i);

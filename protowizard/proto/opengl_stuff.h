@@ -3,7 +3,6 @@
 // opengl_stuff.h is included by all .cpp's that need GL and GLFW
 
 #include "../depends/gl3w/gl3w.h"
-#include <GL/glfw.h>
 #include "shader.h"
 
 #include <cstdio>

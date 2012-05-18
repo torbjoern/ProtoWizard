@@ -2,28 +2,29 @@
 #include <proto/math/math_common.h>
 
 // last tested timings in mspf
+// num: 64x64 = 4096
 // in release: 7-8  
 // in debug  : 20-21
 
 int main(int argc, const char* argv[])
 {
-	ProtoGraphicsPtr proto = ProtoGraphics::create();
-	if ( !proto->init(600,600,argv) )
+	protowizard::ProtoGraphicsPtr proto = protowizard::ProtoGraphics::create();
+	if ( !proto->init(600,600) )
 	{
-		fprintf(stderr, "failed to init proto-> remembered to set default data dir???");
+		throw "failed to init proto-> remembered to set default data dir???";
+		return 1;
 	}
-
 
 	do
 	{
 		proto->cls(0,0,0);
 
 		//proto->setCamera( glm::vec3(0.f, -30.f, 0.f), glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f) );
-		proto->setCamera( glm::vec3(0.f, 30.f, 0.f), 0.f, -90.f ); // setcam(0,-30,0,0,pi/2);
+		proto->getCamera()->set( glm::vec3(0.f, 30.f, 0.f), 0.f, -90.f ); // setcam(0,-30,0,0,pi/2);
 		proto->setScale( 1.f );
 		proto->setOrientation( identityMatrix );
-	   int wid = 64;
-	   int dep = 64;
+	   int wid = 40; // 64 40
+	   int dep = 40; // 64 40
 	   for(int i=0; i<wid; i++)
 	   {
 	      for(int j=0; j<dep; j++)
@@ -35,8 +36,10 @@ int main(int argc, const char* argv[])
 	         proto->setColor( u , v, 0 );
 	         glm::vec3 p1( x, 0.f, z );
 	         glm::vec3 p2( x, 2.f, z );
-	         proto->drawCone(p1,p2,.5f);
-	         //drawsph( x, 0, z, .5 );
+	         //proto->drawCone(p1,p2,.5f);
+			 proto->drawPlane( p1, glm::vec3(0.f, 1.f, 0.f), 0.5f );
+			 //proto->drawCube( p1 );
+	         //proto->drawSphere( p1, .5f );
 	      }
 	   }
 

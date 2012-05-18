@@ -64,4 +64,4 @@ class LineGeometry
 		unsigned int LineBufferObject;
 		unsigned int line_vao;
 };
-} // ::proto
+} 

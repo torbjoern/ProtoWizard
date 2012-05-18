@@ -2,10 +2,10 @@
 
 #include "line.h"
 #include "circle.h"
-#include "sphere.h"
-#include "cylinder.h"
-#include "cube.h"
-#include "plane.h"
+#include "../geo_sphere.h"
+#include "../geo_cylinder.h"
+#include "../geo_cube.h"
+#include "../geo_plane.h"
 
 #include "../mesh_manager.h"
 #include "mesh.h"
@@ -21,10 +21,7 @@ struct Shapes_t
 {
 	LineGeometry line;
 	CircleGeometry circle;
-	CylinderGeometry cylinder;
-	SphereGeometry sphere;
-	CubeGeometry cube;
-	PlaneGeometry plane;
+
 
 	bool init()
 	{
@@ -38,10 +35,10 @@ struct Shapes_t
 
 		bool inited = true;
 		inited &= circle.init();
-		inited &= sphere.init();
-		inited &= cylinder.init();
-		inited &= cube.init();
-		inited &= plane.init();
+		inited &= SphereGeometry::init();
+		inited &= CylinderGeometry::init();
+		inited &= CubeGeometry::init();
+		inited &= PlaneGeometry::init();
 
 		if ( !inited ) {
 			printf("failed to init some shape");
@@ -52,10 +49,10 @@ struct Shapes_t
 	{
 		circle.shutdown();
 		line.shutdown();
-		sphere.shutdown();
-		cube.shutdown();
-		cylinder.shutdown();
-		plane.shutdown();
+		SphereGeometry::shutdown();
+		CubeGeometry::shutdown();
+		CylinderGeometry::shutdown();
+		PlaneGeometry::shutdown();
 	}
 } Shapes;
 
@@ -169,14 +166,14 @@ struct MeshState : public BaseState3D
 struct SphereState : public BaseState3D
 {
 	virtual void draw() {
-		Shapes.sphere.draw();
+		SphereGeometry::draw();
 	}
 };
 
 struct CylinderState : public BaseState3D
 {
 	virtual void draw() {
-		Shapes.cylinder.draw( hasCap );
+		CylinderGeometry::draw( hasCap );
 	}
 	bool hasCap;
 };
@@ -184,7 +181,7 @@ struct CylinderState : public BaseState3D
 struct CubeState : public BaseState3D
 {
 	void draw() {
-		Shapes.cube.draw();
+		CubeGeometry::draw();
 	}
 };
 
@@ -192,17 +189,11 @@ struct PlaneState : public BaseState3D
 {
 	virtual void draw()
 	{
-		glm::vec3 pos = glm::vec3(transform[3]);
 		glDisable(GL_CULL_FACE);
-		// TODO
-		Shapes.plane.createGeometry( pos, normal, 1.0 );
-		Shapes.plane.draw();
-
+		PlaneGeometry::draw();
 		glEnable(GL_CULL_FACE);
 	}
-
-	glm::vec3 normal;
 };
 
-} // ::proto
+} 
 

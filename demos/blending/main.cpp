@@ -4,7 +4,7 @@
 #include <string>
 
 namespace {
-		ProtoGraphicsPtr proto;
+		protowizard::ProtoGraphicsPtr proto;
 }
 
 glm::vec2 pointOnCicle( float u )
@@ -18,6 +18,8 @@ void circle_of_things()
 	proto->setLightBlend();
 	proto->setAlpha(1.0f);
 
+	float time = (float)proto->klock();
+
 	int num_things = 12;
 	for ( int i=0; i<num_things; i++ ){
 		float param = i / float(num_things);
@@ -28,22 +30,22 @@ void circle_of_things()
 
 		proto->setColor( protowizard::hsv2rgb( hang, 1,1 ) ); 
 		proto->setTexture( proto->getResourceDir() + std::string("/textures/alpha_particle.png") );
-		proto->drawPlane( glm::vec3(point.x, 0.f, point.y), glm::vec3(0.f, 0.f, 1.f), 2.f );
+		float ca = cos(4.f*time + ang);
+		float sa = sin(4.f*time + ang);
+		proto->drawPlane( glm::vec3(point.x, 0.f, point.y), glm::vec3(ca, 0.f, sa), 2.f );
 	}
 }
 
 int main(int argc, const char* argv[])
 {
-	proto = ProtoGraphics::create();
+	proto = protowizard::ProtoGraphics::create();
 
-	if (!proto->init(640,480,argv) ) {
+	if (!proto->init(640,480) ) {
 		throw char("proto failed to init. probably shaders not found or GL drivers");
 		return 1;
 	}
 
 
-
-	proto->setCamera( glm::vec3(0.f, 0.f, -15.f), 0.f, 0.f );
 	size_t numframes = 0;
 
 	glm::vec3 cam_pos(0.f, 2.f, -15.f);
@@ -105,12 +107,13 @@ int main(int argc, const char* argv[])
 		float spin = revolutions_per_second * (float)proto->klock();
 
 		cam_pos = 10.f * glm::vec3( sin(spin), 0.f, cos(spin) );
-		proto->setCamera( cam_pos, cam_target, glm::vec3(0.f, 1.f, 0.f) );
+		proto->getCamera()->lookAt( cam_pos, cam_target, glm::vec3(0.f, 1.f, 0.f) );
 		
 
 		proto->frame();
 		numframes++;
 	} while( proto->isWindowOpen() );
 
+	proto.reset();
 
 }

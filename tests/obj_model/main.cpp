@@ -2,11 +2,7 @@
 #include <proto/color_utils.h>
 #include <string>
 
-namespace {
-		protowizard::ProtoGraphicsPtr proto;
-}
-
-void draw_models()
+void draw_models( protowizard::ProtoGraphicsPtr proto )
 {
 	proto->setScale( 1.f );
 	static float horiz = 0.f;
@@ -26,10 +22,10 @@ void draw_models()
 
 int main(int argc, const char* argv[])
 {
-	proto = protowizard::ProtoGraphics::create();
+	protowizard::ProtoGraphicsPtr proto = protowizard::ProtoGraphics::create();
 
 	if (!proto->init(640,480) ) {
-		throw char("proto failed to init. probably shaders not found or GL drivers");
+		throw "failed to init proto-> remembered to set default data dir???";
 		return 1;
 	}
 
@@ -51,7 +47,7 @@ int main(int argc, const char* argv[])
 
 		float zoom = normalized_my * 5.f;
 		proto->getCamera()->lookAt( glm::vec3(0.f, zoom, -zoom), glm::vec3(0.f, 1.0f, 0.f), glm::vec3(0.f, 1.f, 0.f) );
-		draw_models();
+		draw_models( proto );
 
 		//float ang = normalized_mouse.x*6.28f;
 		//glm::vec3 cam_pos( cos(ang), 0.f, sin(ang) );

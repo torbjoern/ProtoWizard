@@ -80,17 +80,24 @@ SOURCE_GROUP("Header Files\\math" FILES ${math_HDRS})
 SOURCE_GROUP("Source Files\\math" FILES ${math_SRCS})
 
 set(shape_HDRS
-	proto/shapes/sphere.h
-	proto/shapes/shapes.h
-	proto/shapes/plane.h
+	proto/geo_cube.h
+	proto/geo_cylinder.h
+	proto/geo_plane.h
+	proto/geo_sphere.h
+
 	proto/shapes/line.h
-	proto/shapes/cylinder.h
-	proto/shapes/cube.h
 	proto/shapes/circle.h
 	proto/shapes/mesh.h
 )
+set(shape_SRCS
+	src/geo_cube.cpp
+	src/geo_cylinder.cpp
+	src/geo_plane.cpp
+	src/geo_sphere.cpp
+)
 
 SOURCE_GROUP("Header Files\\shapes" FILES ${shape_HDRS})
+SOURCE_GROUP("Source Files\\shapes" FILES ${shape_SRCS})
 
 set(HDRS
 	${math_HDRS}
@@ -110,6 +117,7 @@ set(HDRS
 
 set(SRCS
 	${math_SRCS}
+	${shape_SRCS}
 	src/camera.cpp
 	src/color_utils.cpp
 	src/platform.cpp
@@ -121,6 +129,7 @@ set(SRCS
 	src/mesh_manager.cpp
 	src/text_file.cpp
 	src/path.cpp
+	src/gl_vbo.cpp
 )
 
 add_library( ProtoWizard ${Dependency_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )

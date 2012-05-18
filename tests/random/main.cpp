@@ -10,7 +10,7 @@
 
 
 namespace {
-	ProtoGraphicsPtr proto;
+	protowizard::ProtoGraphicsPtr proto;
 }
 
 glm::vec3 random_vector() {
@@ -399,9 +399,8 @@ int main(int argc, const char* argv[])
 	//enableFloatExceptions();
 	//testFP();
 
-	proto = ProtoGraphics::create();
-	proto->setResourceDir("");
-	if( !proto->init(1024,768,argv) )
+	proto = protowizard::ProtoGraphics::create();
+	if( !proto->init(1024,768) )
 	{
 		std::cerr << "failed to init" << std::endl;
 		return -1;

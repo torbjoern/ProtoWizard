@@ -141,6 +141,8 @@ public:
 	#ifdef _DEBUG
 		 GetError("ProtoGraphicsImplementation::init"); 
 	#endif
+
+		 glViewport(0,0,xres,yres);
 		return true;
 	}
 
@@ -317,7 +319,7 @@ public:
 	// Create a matrix that will orient an object from p1 to p2
 	// currently for cylinders & rods
 	// could be extended with scale along x,y,z indep....
-	glm::mat4 calcMatrix(const glm::vec3& p1, const glm::vec3& p2, float radius)
+	glm::mat4 orientAlongAxis(const glm::vec3& p1, const glm::vec3& p2, glm::vec3 axisScales )
 	{
 		glm::vec3 normal = glm::normalize(p2 - p1);
 		glm::vec3 not_normal = normal;
@@ -333,10 +335,9 @@ public:
 		glm::vec3 a = glm::normalize( glm::cross(perp,not_normal) );
 		glm::vec3 b = glm::cross(perp,a);
 
-		float length = glm::distance( p1, p2 );
-		return glm::mat4( glm::vec4(radius*a, 0.f),		// X-axis
-						  glm::vec4(length*normal, 0.f),// Y-axis
-						  glm::vec4(radius*b, 0.f),		// Z-axis
+		return glm::mat4( glm::vec4(axisScales.x*a, 0.f),		// X-axis
+						  glm::vec4(axisScales.y*normal, 0.f),// Y-axis
+						  glm::vec4(axisScales.z*b, 0.f),		// Z-axis
 						  glm::vec4(p1,1.f) );			// Position
 	}
 
@@ -345,7 +346,8 @@ public:
 		auto state = std::make_shared<CylinderState>();
 		//glm::vec3 pos = 0.5f*(p1+p2);
 		//const glm::mat4& worldTf = get3DTransform(currentOrientation, pos, scale );
-		const glm::mat4& localTf = calcMatrix( p1, p2, radius );
+		float length = glm::distance( p1, p2 );
+		const glm::mat4& localTf = orientAlongAxis( p1, p2, glm::vec3(radius, length, radius) );
 		save_state( state, localTf );
 		state->hasCap = radius >= 0; // if neg radius, dont draw cap
 	}
@@ -359,8 +361,7 @@ public:
 	virtual void drawPlane( glm::vec3 position, glm::vec3 normal, float radius )
 	{
 		auto state = std::make_shared<PlaneState>();
-		save_state( state, get3DTransform(currentOrientation, position, glm::vec3(radius) ) );
-		state->normal = normal;
+		save_state( state, orientAlongAxis(position, position+normal, glm::vec3(radius, 1.f, radius) ) );
 	}
 
 	virtual void drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path )
@@ -386,6 +387,7 @@ public:
 		state->mesh = mesh_manager->getMesh(path);
 	}
 
+	// Doesn't use mesh_manager
 	virtual void drawMesh( MeshPtr mesh, bool isTwoSided )
 	{
 		std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
@@ -632,6 +634,7 @@ private:
 		unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
 		glm::mat4 projection =
 			glm::perspective( camera->getFov(), xres/(float)yres, camera->getNearDist(), camera->getFarDist() );
+			//glm::perspectiveFov( camera->getFov(), (float)xres, (float)yres, camera->getNearDist(), camera->getFarDist() );
 		glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 		glm::mat4 viewMatrix = camera->getViewMatrix();

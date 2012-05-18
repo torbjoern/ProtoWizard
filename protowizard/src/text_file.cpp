@@ -37,7 +37,7 @@ void TextFile::fail_check()
 		cout << "nop! \n";
 }
 	
-int TextFile::numLines()
+size_t TextFile::numLines()
 {
 	rewind();
 	return std::count( std::istreambuf_iterator<char>(input_file),
