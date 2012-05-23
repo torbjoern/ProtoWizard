@@ -33,8 +33,6 @@ using namespace protowizard;
 class ProtoGraphicsImplementation : public ProtoGraphics
 {
 private:
-	typedef std::shared_ptr<BaseState3D> BaseState3DPtr;
-private:
 	// Disallowing copying. Please pass protographics about as a const ptr or refrence!
 	//ProtoGraphicsImplementation(const ProtoGraphicsImplementation&); // no implementation 
 	//ProtoGraphicsImplementation& operator=(const ProtoGraphicsImplementation&); // no implementation 
@@ -143,6 +141,12 @@ public:
 	#endif
 
 		 glViewport(0,0,xres,yres);
+
+		 int bytes = sizeof(BaseState3D);
+		 int kb = bytes/1024;
+		 opaque.reserve(64*64);
+		 translucent.reserve(64*64);
+
 		return true;
 	}
 
@@ -310,12 +314,6 @@ public:
 		buffered_circles.push_back( CircleState(colorState,blend_state,x,y,radius) );
 	}
 
-	virtual void drawSphere( glm::vec3 position, float radius ) 
-	{
-		auto state = std::make_shared<SphereState>();
-		save_state( state, get3DTransform(currentOrientation, position, glm::vec3(radius) ) );
-	}
-
 	// Create a matrix that will orient an object from p1 to p2
 	// currently for cylinders & rods
 	// could be extended with scale along x,y,z indep....
@@ -336,35 +334,53 @@ public:
 		glm::vec3 b = glm::cross(perp,a);
 
 		return glm::mat4( glm::vec4(axisScales.x*a, 0.f),		// X-axis
-						  glm::vec4(axisScales.y*normal, 0.f),// Y-axis
+						  glm::vec4(axisScales.y*normal, 0.f),  // Y-axis
 						  glm::vec4(axisScales.z*b, 0.f),		// Z-axis
 						  glm::vec4(p1,1.f) );			// Position
 	}
 
-	virtual void drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) 
+	void queuePrimitive( const glm::mat4 &xform, void (*drawFun) () )
 	{
-		auto state = std::make_shared<CylinderState>();
-		//glm::vec3 pos = 0.5f*(p1+p2);
-		//const glm::mat4& worldTf = get3DTransform(currentOrientation, pos, scale );
+		BaseState3D(colorState, blend_state, xform, texture_manager->getActiveTexture(),
+			        opaque, translucent, drawFun );
+	}
+
+	void queuePrimitive( const glm::mat4 &xform, const MeshPtr &mesh )
+	{
+		BaseState3D(colorState, blend_state, xform, texture_manager->getActiveTexture(),
+			        opaque, translucent, mesh );
+	}
+
+	virtual void drawSphere( const glm::vec3 &position, float radius ) 
+	{
+		const auto xform = get3DTransform(currentOrientation, position, glm::vec3(radius));
+		queuePrimitive( xform, SphereGeometry::draw );
+	}
+
+	virtual void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) 
+	{
 		float length = glm::distance( p1, p2 );
-		const glm::mat4& localTf = orientAlongAxis( p1, p2, glm::vec3(radius, length, radius) );
-		save_state( state, localTf );
-		state->hasCap = radius >= 0; // if neg radius, dont draw cap
+		const glm::mat4& xform = orientAlongAxis( p1, p2, glm::vec3(radius, length, radius) );
+		if ( radius >= 0 ) {
+			queuePrimitive( xform, CylinderGeometry::drawWithCap );
+		} else {
+			queuePrimitive( xform, CylinderGeometry::drawNoCap );
+		}
 	}
 
-	virtual void drawCube( glm::vec3 position )
+	virtual void drawCube( const glm::vec3 &position )
 	{
-		auto state = std::make_shared<CubeState>();
-		save_state( state, get3DTransform(currentOrientation, position, scale) );
+		const auto xform = get3DTransform(currentOrientation, position, scale);
+		queuePrimitive( xform, CubeGeometry::draw );
 	}
 
-	virtual void drawPlane( glm::vec3 position, glm::vec3 normal, float radius )
+	virtual void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius )
 	{
-		auto state = std::make_shared<PlaneState>();
-		save_state( state, orientAlongAxis(position, position+normal, glm::vec3(radius, 1.f, radius) ) );
+		const auto xform = orientAlongAxis(position, position+normal, glm::vec3(radius, 1.f, radius) );
+		queuePrimitive( xform, PlaneGeometry::draw );
 	}
 
-	virtual void drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path )
+	virtual void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path )
 	{
 		// backup current tfrom matrix state
 		glm::mat4 backup = currentOrientation;
@@ -379,21 +395,18 @@ public:
 		currentOrientation = backup;
 	}
 
-	virtual void drawMesh( glm::vec3 position, std::string path )
+	virtual void drawMesh( const glm::vec3 &position, std::string path )
 	{
-		std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
-		save_state( state, get3DTransform(currentOrientation, position, scale ));
-		state->isTwoSided = false;
-		state->mesh = mesh_manager->getMesh(path);
+		const auto xform = get3DTransform(currentOrientation, position, scale);
+		queuePrimitive( xform, mesh_manager->getMesh(path) ); // TODO two sided
 	}
 
 	// Doesn't use mesh_manager
 	virtual void drawMesh( MeshPtr mesh, bool isTwoSided )
 	{
-		std::shared_ptr<MeshState> state = std::make_shared<MeshState>();
-		save_state( state, get3DTransform(currentOrientation, glm::vec3(0.f), scale ));
-		state->isTwoSided = isTwoSided;
-		state->mesh = mesh;
+		const auto xform = get3DTransform(currentOrientation, glm::vec3(0.f), scale);
+		mesh->setIsTwoSided( isTwoSided );
+		queuePrimitive( xform, mesh ); // TODO two sided
 	}
 
 	virtual void setOrientation( const glm::mat4 &ori )
@@ -652,10 +665,10 @@ private:
 
 		for (unsigned int i=0; i<opaque.size(); i++)
 		{
-				BaseState3DPtr state = opaque[i];
-				active_shader_ref.SetVec4( colorLoc, state->color );
-				state->pre_draw( active_shader_ref, useTexture );
-				state->draw();	
+				const auto &state = opaque[i];
+				active_shader_ref.SetVec4( colorLoc, state.color );
+				state.pre_draw( active_shader_ref, useTexture );
+				state.draw();	
 		}
 
 
@@ -670,10 +683,10 @@ private:
 			int num_objs = translucent.size();
 			for (int i=0; i<num_objs; i++)
 			{
-				BaseState3DPtr state = translucent[i];
-				active_shader_ref.SetVec4( colorLoc, state->color );
-				state->pre_draw( active_shader_ref, useTexture );
-				translucent[i]->draw();
+				const auto &state = translucent[i];
+				active_shader_ref.SetVec4( colorLoc, state.color );
+				state.pre_draw( active_shader_ref, useTexture );
+				translucent[i].draw();
 			}
 
 			glDisable(GL_BLEND);
@@ -791,21 +804,6 @@ private:
 		return transform;
 	}
 	
-	void save_state( BaseState3DPtr state, const glm::mat4& transform )
-	{
-		state->color = this->colorState;
-		state->blend_mode = this->blend_state;
-		state->tex_handle = texture_manager->getActiveTexture();
-		state->transform = transform;
-
-		if( blend_state == blending::SOLID_BLEND )
-		{
-			opaque.push_back( state );
-		}else{
-			translucent.push_back(state);
-		}
-	}
-
 private:
 	static ProtoGraphicsImplementation *instance;
 	bool isRunning;
@@ -840,8 +838,8 @@ private:
 	
 	std::vector< LineSegmentState > buffered_lines;
 	std::vector< CircleState > buffered_circles;
-	std::vector<BaseState3DPtr> opaque;
-	std::vector<BaseState3DPtr> translucent;
+	std::vector<BaseState3D> opaque;
+	std::vector<BaseState3D> translucent;
 
 	double delta_time;
 	double time;

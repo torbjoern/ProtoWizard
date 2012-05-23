@@ -12,21 +12,18 @@ Mesh::~Mesh()
 	glDeleteVertexArrays(1, &vao );
 }
 
-void Mesh::draw( bool isTwoSided )
+void Mesh::draw()
 {
-	if ( isTwoSided ) {
-		glDisable(GL_CULL_FACE);
-	}
-	else {
-		glCullFace(GL_BACK);
-	}
+	if ( isTwoSided ) { glDisable(GL_CULL_FACE); }
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLES, 0, num_vertices );
 	glBindVertexArray(0);
+	if ( isTwoSided ) { glEnable(GL_CULL_FACE); }
 }
 
 Mesh::Mesh( std::vector<Vertex_VNC>& verts ) 
 {
+	isTwoSided = false;
 	this->num_vertices = (int)verts.size();
 	int num_tris = num_vertices / 3;
 	vbo = vao = 0;
@@ -36,8 +33,7 @@ Mesh::Mesh( std::vector<Vertex_VNC>& verts )
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNC) * num_vertices, &verts[0], GL_STATIC_DRAW);
-	if (glGetError() == GL_OUT_OF_MEMORY)
-	{
+	if (glGetError() == GL_OUT_OF_MEMORY) {
 		std::runtime_error("fatal, out of GL memory");
 	}
 
@@ -69,6 +65,7 @@ Mesh::Mesh( std::vector<Vertex_VNC>& verts )
 
 Mesh::Mesh( std::vector<Vertex_VNT>& verts ) 
 {
+	isTwoSided = false;
 	this->num_vertices = (int)verts.size();
 	int num_tris = num_vertices / 3;
 	vbo = vao = 0;
@@ -112,6 +109,7 @@ Mesh::Mesh( std::vector<Vertex_VNT>& verts )
 
 Mesh::Mesh( size_t nverts, glm::vec3* verts )
 {
+	isTwoSided = false;
 	this->num_vertices = (int)nverts;
 	int num_tris = num_vertices / 3;
 	vbo = vao = 0;

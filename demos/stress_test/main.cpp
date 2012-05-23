@@ -21,10 +21,24 @@ int main(int argc, const char* argv[])
 
 		//proto->setCamera( glm::vec3(0.f, -30.f, 0.f), glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f) );
 		proto->getCamera()->set( glm::vec3(0.f, 30.f, 0.f), 0.f, -90.f ); // setcam(0,-30,0,0,pi/2);
+		
+		/*
+		glm::mat4 rot = glm::rotate( glm::mat4(1.f), (float)proto->klock()*90.f, glm::vec3(0.f, 1.f, 0.f) );
+		glm::vec4 pos( 0.f, 0.f, -2.5f, 1.f );
+
+		proto->getCamera()->lookAt( (glm::vec3) (rot*pos), glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f) );
 		proto->setScale( 1.f );
 		proto->setOrientation( identityMatrix );
-	   int wid = 40; // 64 40
-	   int dep = 40; // 64 40
+		*/
+
+		//proto->drawSphere( glm::vec3(0.f), 1.0f );
+		//proto->drawCone(glm::vec3(0.f,-.5f, 0.f), glm::vec3(0.f,+.5f, 0.f),.5f);
+		//proto->drawCube( glm::vec3(0.f) );
+		//proto->drawPlane( glm::vec3(0.f), glm::vec3(0.f, 0.f, -1.f), 1.f );
+		//proto->drawMesh( glm::vec3(0.f), proto->getResourceDir() + "/models/wheel.obj" );
+		
+	   int wid = 64; // 64 40
+	   int dep = 64; // 64 40
 	   for(int i=0; i<wid; i++)
 	   {
 	      for(int j=0; j<dep; j++)
@@ -37,9 +51,9 @@ int main(int argc, const char* argv[])
 	         glm::vec3 p1( x, 0.f, z );
 	         glm::vec3 p2( x, 2.f, z );
 	         //proto->drawCone(p1,p2,.5f);
-			 proto->drawPlane( p1, glm::vec3(0.f, 1.f, 0.f), 0.5f );
+			 //proto->drawPlane( p1, glm::vec3(0.f, 1.f, 0.f), 0.25f );
 			 //proto->drawCube( p1 );
-	         //proto->drawSphere( p1, .5f );
+	         proto->drawSphere( p1, .5f );
 	      }
 	   }
 

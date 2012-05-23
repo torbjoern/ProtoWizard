@@ -6,6 +6,7 @@
 #include "../geo_cylinder.h"
 #include "../geo_cube.h"
 #include "../geo_plane.h"
+#include "../shapes/mesh.h"
 
 #include "../mesh_manager.h"
 #include "mesh.h"
@@ -15,6 +16,7 @@
 
 #include <map>
 #include <memory>
+#include <vector>
 
 namespace protowizard{
 struct Shapes_t
@@ -84,23 +86,61 @@ struct CircleState : public BaseState
 				BaseState(color, blend_mode), x(x), y(y), radius(radius) {}
 };
 
-struct BaseState3D : public BaseState
+class BaseState3D : public BaseState
 {
+  public:
 	glm::mat4 transform;
 	unsigned int tex_handle;
+	void (*drawPtr) (void);
+	MeshPtr mesh;
 
-	BaseState3D()
-	{
-		transform = glm::mat4( 1.0f );
-		tex_handle = 0;
-	}
-	BaseState3D ( const glm::vec4& color, int blend_mode, const glm::mat4& transform, unsigned int tex_handle ) : 
-				  BaseState(color, blend_mode), transform(transform), tex_handle(tex_handle)
-	{
-	}
-
+	BaseState3D() {} 
 	
-	virtual float distance_from_camera( glm::vec3 const& camera_pos )
+	BaseState3D ( const glm::vec4& color
+	              , int blend_mode
+				  , const glm::mat4& transform
+				  , unsigned int tex_handle
+				  , std::vector<BaseState3D>& opaque
+				  , std::vector<BaseState3D>& translucent
+				  , void (*drawPtr) (void)
+				  ) 
+				  : BaseState(color, blend_mode)
+				  , transform(transform)
+				  , tex_handle(tex_handle)
+				  , drawPtr (drawPtr)
+				  , mesh(nullptr)
+	{
+		if( blend_mode == blending::SOLID_BLEND )
+		{
+			opaque.push_back( *this );
+		}else{
+			translucent.push_back( *this );
+		}
+	}
+
+	BaseState3D ( const glm::vec4& color
+	              , int blend_mode
+				  , const glm::mat4& transform
+				  , unsigned int tex_handle
+				  , std::vector<BaseState3D>& opaque
+				  , std::vector<BaseState3D>& translucent
+				  , const MeshPtr mesh
+				  ) 
+				  : BaseState(color, blend_mode)
+				  , transform(transform)
+				  , tex_handle(tex_handle)
+				  , drawPtr (nullptr)
+				  , mesh(mesh)
+	{
+		if( blend_mode == blending::SOLID_BLEND )
+		{
+			opaque.push_back( *this );
+		}else{
+			translucent.push_back( *this );
+		}
+	}
+
+	float distance_from_camera( glm::vec3 const& camera_pos )
 	{
 		return glm::distance( glm::vec3(transform[3]), camera_pos );
 	}
@@ -110,7 +150,7 @@ struct BaseState3D : public BaseState
 		return blend_mode != blending::SOLID_BLEND;
 	}
 
-	void setBlendMode()
+	void setBlendMode() const
 	{
 		//http://www.opengl.org/sdk/docs/man/xhtml/glBlendFunc.xml
 		switch ( blend_mode )
@@ -124,7 +164,7 @@ struct BaseState3D : public BaseState
 		}
 	}
 
-	virtual void pre_draw(Shader const& shader, bool useTexture)
+	void pre_draw(const Shader &shader, bool useTexture) const
 	{
 		if ( useTexture ) {
 			if ( tex_handle != 0 )
@@ -151,47 +191,13 @@ struct BaseState3D : public BaseState
 		//glm::mat4 model_view_projection = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
-	virtual void draw() = 0;
-};
-
-struct MeshState : public BaseState3D
-{
-	virtual void draw() {
-		mesh->draw( isTwoSided );
-	}
-	MeshPtr mesh;
-	bool isTwoSided;
-};
-
-struct SphereState : public BaseState3D
-{
-	virtual void draw() {
-		SphereGeometry::draw();
-	}
-};
-
-struct CylinderState : public BaseState3D
-{
-	virtual void draw() {
-		CylinderGeometry::draw( hasCap );
-	}
-	bool hasCap;
-};
-
-struct CubeState : public BaseState3D
-{
-	void draw() {
-		CubeGeometry::draw();
-	}
-};
-
-struct PlaneState : public BaseState3D
-{
-	virtual void draw()
+	void draw() const
 	{
-		glDisable(GL_CULL_FACE);
-		PlaneGeometry::draw();
-		glEnable(GL_CULL_FACE);
+		if ( drawPtr ) {
+			(*drawPtr)();
+		} else {
+			mesh->draw();
+		}
 	}
 };
 

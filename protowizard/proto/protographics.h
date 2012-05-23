@@ -69,12 +69,12 @@ namespace protowizard
 		virtual void drawCircle( float x, float y, float radius ) = 0;
 
 		// Draw 3D
-		virtual void drawSphere( glm::vec3 position, float radius ) = 0;
-		virtual void drawCone( glm::vec3 p1, glm::vec3 p2, float radius ) = 0;
-		virtual void drawPlane( glm::vec3 position, glm::vec3 normal, float radius ) = 0;
-		virtual void drawCube( glm::vec3 position ) = 0;
-		virtual void drawMesh( glm::vec3 position, float horiz_ang, float verti_ang, std::string path ) = 0;
-		virtual void drawMesh( glm::vec3 position, std::string path ) = 0;
+		virtual void drawSphere( const glm::vec3 &position, float radius ) = 0;
+		virtual void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) = 0;
+		virtual void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) = 0;
+		virtual void drawCube( const glm::vec3 &position ) = 0;
+		virtual void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path ) = 0;
+		virtual void drawMesh( const glm::vec3 &position, std::string path ) = 0;
 		virtual void drawMesh( MeshPtr mesh, bool isTwoSided ) = 0;
 
 		// Draw state modify

@@ -139,30 +139,27 @@ bool CylinderGeometry::init()
 
 	return true;
 }
-	
-void CylinderGeometry::draw( bool draw_cap )
-{
-	if ( !draw_cap ){
-		glDisable(GL_CULL_FACE);
-	}
 
+void CylinderGeometry::drawWithCap()
+{	
 	glBindVertexArray(cylinderVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, num_cylinder_vertices );
 	glBindVertexArray(0);
 
-	if ( !draw_cap ){
-		glEnable(GL_CULL_FACE);
-	}
+	glBindVertexArray(topcapVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, num_topcap_vertices );
+	glBindVertexArray(0);
 
-	if ( draw_cap ){
-		glBindVertexArray(topcapVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_topcap_vertices );
-		glBindVertexArray(0);
-
-		glBindVertexArray(bottomcapVAO);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, num_bottomcap_vertices );
-		glBindVertexArray(0);
-	}
+	glBindVertexArray(bottomcapVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, num_bottomcap_vertices );
+	glBindVertexArray(0);
+}
+	
+void CylinderGeometry::drawNoCap()
+{
+	glBindVertexArray(cylinderVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, num_cylinder_vertices );
+	glBindVertexArray(0);
 }
 	
 void CylinderGeometry::shutdown()

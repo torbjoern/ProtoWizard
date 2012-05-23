@@ -6,6 +6,7 @@ class CylinderGeometry
 public:
 	static bool init();
 	static void shutdown();
-	static void draw(bool draw_cap);
+	static void drawWithCap();
+	static void drawNoCap();
 };
 }

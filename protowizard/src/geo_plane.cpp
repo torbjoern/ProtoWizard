@@ -104,7 +104,9 @@ void PlaneGeometry::shutdown()
 	
 void PlaneGeometry::draw() 
 {
+	glDisable(GL_CULL_FACE); // TODO. does it make sense to buffer this drawstate?
 	glBindVertexArray(planeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, num_vertices );
 	glBindVertexArray(0);
+	glEnable(GL_CULL_FACE);
 }

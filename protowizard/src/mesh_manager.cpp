@@ -11,7 +11,6 @@ class MeshManagerImplementation : public MeshManager
 {
 	friend MeshManager;
 private:
-	typedef std::shared_ptr<Mesh> MeshPtr;
 	std::map< std::string, MeshPtr > mesh_map;
 public:
 	virtual ~MeshManagerImplementation() {
