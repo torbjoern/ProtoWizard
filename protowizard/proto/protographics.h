@@ -19,87 +19,85 @@ namespace protowizard
 		const static int RIGHT = SPECIAL + 30;
 	};
 
-	class ProtoGraphics;
-	typedef std::shared_ptr<ProtoGraphics> ProtoGraphicsPtr;
 
 	class Mesh;
 	typedef std::shared_ptr<Mesh> MeshPtr;
 
 	class ProtoGraphics
 	{
-	private:
-	
 	public:
-		//ProtoGraphics() {}
-		virtual ~ProtoGraphics() {}
-		static ProtoGraphicsPtr create();
+		ProtoGraphics();
+		~ProtoGraphics();
 
-		virtual bool init(int xres, int yres, const std::string resDir = "../assets/") = 0;
+		bool init(int xres, int yres, const std::string resDir = "../assets/") ;
 
-		virtual float getMSPF()= 0;
-		virtual float getAverageMSPF()= 0;
-		virtual bool isWindowOpen()= 0;
-		virtual int getWindowWidth()= 0;
-		virtual int getWindowHeight()= 0;
-		virtual double klock()= 0;
+		bool isWindowOpen();
+		glm::ivec2 getWindowDimensions();
+		double klock();
 	
 		// Debug
-		virtual void toggleWireframe() = 0;
-		virtual void debugNormals( bool enable )= 0;
-		virtual void reloadShaders() = 0;
+		float getMSPF();
+		float getAverageMSPF();
+		void toggleWireframe() ;
+		void debugNormals( bool enable );
+		void reloadShaders() ;
 
 		// Input
-		virtual float getNormalizedMouseX()= 0;
-		virtual float getNormalizedMouseY()= 0;
-		virtual int getMouseX()= 0;
-		virtual int getMouseY()= 0;
-		virtual int getMouseWheel()= 0;
-		virtual bool mouseDownLeft()= 0;
-		virtual bool mouseDownRight()= 0;
-		virtual bool keystatus(int key)= 0;
-		virtual bool keyhit(int key)= 0;
-		virtual Ray getMousePickRay()= 0;
+		glm::vec2 getNormalizedMouse();
+		int getMouseX();
+		int getMouseY();
+		int getMouseWheel();
+		bool mouseDownLeft();
+		bool mouseDownRight();
+		bool keystatus(int key);
+		bool keyhit(int key);
+		Ray getMousePickRay();
 
 		// Camera
-		virtual FirstPersonCamera* getCamera() = 0;
+		FirstPersonCamera* getCamera() ;
 
 		// Draw 2D
-		virtual void moveTo( float x, float y ) = 0;
-		virtual void lineTo( float to_x, float to_y ) = 0;
-		virtual void drawCircle( float x, float y, float radius ) = 0;
+		void moveTo( float x, float y ) ;
+		void lineTo( float to_x, float to_y ) ;
+		void drawCircle( float x, float y, float radius ) ;
 
 		// Draw 3D
-		virtual void drawSphere( const glm::vec3 &position, float radius ) = 0;
-		virtual void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) = 0;
-		virtual void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) = 0;
-		virtual void drawCube( const glm::vec3 &position ) = 0;
-		virtual void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path ) = 0;
-		virtual void drawMesh( const glm::vec3 &position, std::string path ) = 0;
-		virtual void drawMesh( MeshPtr mesh, bool isTwoSided ) = 0;
+		void drawSphere( const glm::vec3 &position, float radius ) ;
+		void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) ;
+		void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) ;
+		void drawCube( const glm::vec3 &position ) ;
+		void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path ) ;
+		void drawMesh( const glm::vec3 &position, std::string path ) ;
+		void drawMesh( MeshPtr mesh, bool isTwoSided ) ;
 
 		// Draw state modify
-		virtual void setOrientation( const glm::mat4 &ori ) = 0;
-		virtual void setScale( float x, float y, float z ) = 0;
-		virtual void setScale( float uniform_scale ) = 0;
+		void setOrientation( const glm::mat4 &ori ) ;
+		void setScale( float x, float y, float z ) ;
+		void setScale( float uniform_scale ) ;
 	
-		virtual void setColor( const glm::vec3 &c ) = 0;
-		virtual void setColor( float r, float g, float b ) = 0;
-		virtual void setAlpha( float a ) = 0;
-		virtual void setBlend( bool active ) = 0;
-		virtual void setLightBlend() = 0;
-		virtual void setTexture( const std::string& path ) = 0;
-		virtual void disableTexture() = 0;
-		virtual void clz() = 0;
-		virtual void cls( float r, float g, float b ) = 0;
+		void setColor( const glm::vec3 &c ) ;
+		void setColor( float r, float g, float b ) ;
+		void setAlpha( float a ) ;
+		void setBlend( bool active ) ;
+		void setLightBlend() ;
+		void setTexture( const std::string& path ) ;
+		void disableTexture() ;
+		void clz();
+		void cls( float r, float g, float b ) ;
 
 		// Draw Frame!
-		virtual void frame() = 0;
+		void frame() ;
 
 		// Set
-		virtual void setFrameRate( int frames_per_second ) = 0;
-		virtual void setTitle( const std::string &str) = 0;
+		void setFrameRate( int frames_per_second ) ;
+		void setTitle( const std::string &str) ;
+
 		// Resource
-		virtual std::string getResourceDir() = 0;
-		virtual void setResourceDir( const std::string& new_dir ) = 0;
+		std::string getResourceDir() ;
+		void setResourceDir( const std::string& new_dir ) ;
+
+	private:
+		class ProtoGraphicsImplementation;
+		std::unique_ptr<ProtoGraphicsImplementation> pimpl;
 	};
 } // end ::proto

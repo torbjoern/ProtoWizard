@@ -5,7 +5,7 @@
 
 layout(triangles) in; // points/lines/LINES_ADJACENCY/TRIANGLES/TRIANGLES_ADJACENCY
 layout(line_strip) out; //  points, line_strip, and triangle_strip
-layout(max_vertices = 8) out;
+layout(max_vertices = 6) out;
 
 
 
@@ -28,13 +28,16 @@ void main (void)
    gl_FrontColor = vec4(1,1,1,1);
 
 
-
-for(int i=0;i<gl_VerticesIn;i++)
+/*
+// 
+for(int i=0;i<gl_VerticesIn + 1;i++)
 {
    fColor = vec4(1,1,1,1);
-   gl_Position=m*gl_PositionIn[i];  fColor = vec4(0,1,0,1); EmitVertex();
+   gl_Position=m*gl_PositionIn[i % gl_VerticesIn];  fColor = vec4(0,1,0,1); EmitVertex();
 }
 EndPrimitive();
+*/
+
 
 mat4 modelview = viewMatrix * worldMatrix;
 
@@ -45,6 +48,7 @@ for(int i=0;i<gl_VerticesIn;i++)
    gl_Position=projMatrix * pn;  fColor = vec4(1,1,1,1);  EmitVertex();
    EndPrimitive();
 }
+
 
 
 

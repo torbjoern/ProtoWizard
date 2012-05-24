@@ -52,30 +52,6 @@ void subdivide( std::vector<glm::vec3> &verts, std::vector<face_t> &faces)
 	}
 }
 
-	
-//// Num tris: levels*240 (240 = 4 * 20 * 3 verts pr triangle)
-//void subdivide(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, int depth, std::vector<PNVertex> &vertbuf) 
-//{ 
-//	if(depth == 0)
-//	{
-//		// actually create a triangle
-//		// could crate a hash/unique inx pr vertex, and refer to it, when created again. Then create indices.
-//		vertbuf.push_back( PNVertex(v3, glm::normalize(v3) ));
-//		vertbuf.push_back( PNVertex(v2, glm::normalize(v2) ));
-//		vertbuf.push_back( PNVertex(v1, glm::normalize(v1) ));
-//		return;
-//	}
-//
-//	glm::vec3 v12 = glm::normalize(v1 + v2);
-//	glm::vec3 v23 = glm::normalize(v2 + v3);
-//	glm::vec3 v31 = glm::normalize(v3 + v1);
-//
-//	subdivide(v1,v12,v31, depth-1, vertbuf);
-//	subdivide(v2,v23,v12, depth-1, vertbuf);
-//	subdivide(v3,v31,v23, depth-1, vertbuf);
-//	subdivide(v12,v23,v31, depth-1, vertbuf);
-//}
-
 bool SphereGeometry::init()
 {
 	// The vertices that make up a icosahedron
@@ -150,6 +126,7 @@ bool SphereGeometry::init()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( PNVertex ), BUFFER_OFFSET(12) ); 
 
 	vbo->unbind();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	return true;
 }
@@ -164,6 +141,7 @@ void SphereGeometry::shutdown()
 void SphereGeometry::draw() 
 {
 	glBindVertexArray(sphereVAO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereIBO);
 	glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr );
 	
 #ifdef _DEBUG

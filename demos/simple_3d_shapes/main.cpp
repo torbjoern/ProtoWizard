@@ -1,90 +1,106 @@
 #include <proto/protographics.h>
 #include <proto/math/math_common.h>
+#include <proto/color_utils.h>
 
 #include <iostream>
 #include <string>
 
-void drawArm( protowizard::ProtoGraphicsPtr proto, float angle )
+void funkyLogo( protowizard::ProtoGraphics& proto )
 {
-   int segs = 30;
-   double periods = 3;
-   double a = 0.0;
-   glm::vec3 p1( -11+20*0, 4.f * sin(periods * a), 4.f * sin(.5*M_PI + periods*a) );
-   for(int i=0; i<segs; i++)
-   {
-      double t = i / double(segs-1);
+	proto.setBlend( true );
+	proto.setAlpha( 0.5f );
 
-      
-      double a = TWO_PI * t;
-      glm::vec3 p2( -10+20*t, 4.f * sin(periods * a), 4.f * sin(.5*M_PI + periods*a) );
-	  proto->drawSphere( p2, 1.0f );
-	  proto->drawCone( p1, p2, -1.0f );
-	  p1 = p2;
-   }
+	proto.setScale( 4.f );
+	glm::mat4 rotmat = glm::rotate( identityMatrix, 45.f, glm::vec3(0.f, 0.f, 1.f) );
+	proto.setOrientation( rotmat );
+
+	proto.setColor( 1.f, 0.f, .0f );
+	float z = -2.5f;
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, -2.5f, z, 1.f)) );
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, +2.5f, z, 1.f)) );
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, +2.5f, z, 1.f)) );
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, z, 1.f)) );
+
+	proto.setColor( 1.f, 1.f, 1.f );
+	z = 2.5f;
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, -2.5f, z, 1.f)) );
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, +2.5f, z, 1.f)) );
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, +2.5f, z, 1.f)) );
+	proto.drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, z, 1.f)) );
+
+	proto.setBlend( false );
+	proto.setOrientation( identityMatrix );
+}
+
+void wave( protowizard::ProtoGraphics& proto )
+{
+	float time = (float) proto.klock();
+	
+	float scale = 3.f;
+	proto.setScale(scale);
+	const int sideBySide = 128;
+    const float fSideBySide = float(sideBySide);
+	for ( int i=0; i<sideBySide; i++ ) {
+		for ( int j=0; j<sideBySide; j++ ) {
+            const float u = -.5f + i/fSideBySide;
+            const float v = -.5f + j/fSideBySide;
+			const float freq = 6.f * 6.28f;
+            const float distOrigin = sqrt(u*u + v*v);
+			const float wave = cos(distOrigin * freq + time);
+            const float x = scale * fSideBySide*u;
+            const float y = scale * 1.5f * wave - 5.f;
+			const float z = scale * fSideBySide*v;
+            
+			
+			proto.setColor( protowizard::hsv2rgb( 180.f + wave*45.f, 1.f, 1.f ));
+			proto.drawCube( glm::vec3(x,y,z) );
+		}
+	}
 }
 
 int main(int argc, const char* argv[])
 {
-	protowizard::ProtoGraphicsPtr proto = protowizard::ProtoGraphics::create();
+	protowizard::ProtoGraphics proto;
 
-	if( !proto->init(640,480) )
+	if( !proto.init(640,480) )
 	{
-		throw "failed to init proto-> remembered to set default data dir???";
+		throw "failed to init proto. remembered to set default data dir???";
 		return 1;
 	}
 
-	float t = 0.f;
-	while( proto->isWindowOpen() )
+	while( proto.isWindowOpen() )
 	{
-		proto->cls(1,1,1);
+		proto.cls(0,0,0);
 
-		if ( proto->mouseDownLeft() == false )
+		if ( proto.mouseDownLeft() == false )
 		{
-			float ang = TWO_PI * proto->getNormalizedMouseX();
+			float ang = TWO_PI * proto.getNormalizedMouse().x;
 			float ca = cos(ang); 
 			float sa = sin(ang); 
 			float radi = 15.f;
 
-			proto->getCamera()->lookAt( glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+			proto.getCamera()->lookAt( glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 		} else {
+
 			// Move cam up, back and right
-			proto->getCamera()->lookAt( glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+			bool left = proto.keystatus(protowizard::KEY::LEFT);
+			bool right = proto.keystatus(protowizard::KEY::RIGHT);
+			bool back = proto.keystatus(protowizard::KEY::DOWN);
+			bool forwards = proto.keystatus(protowizard::KEY::UP);
+			proto.getCamera()->update( left, right, back, forwards, (float)proto.getMouseX(), (float)proto.getMouseY(), proto.mouseDownRight(), (float)proto.getMSPF() );
 		}
 
-		proto->debugNormals( proto->keystatus('N') );
+		proto.debugNormals( proto.keystatus('N') );
 		
-		proto->setBlend( true );
-		//proto->setLightBlend();
-		proto->setAlpha( 0.5f );
-		//proto->setColor( 0.f, 1.f, .0f ); proto->drawSphere( glm::vec3(-2.5f, 0.f, 0.f), 5.f );
-		//proto->setColor( 0.f, 0.f, 1.f ); proto->drawSphere( glm::vec3(+2.5f, 0.f, 0.f), 5.f );
-		//proto->setColor( 1.f, 0.f, .0f ); proto->drawSphere( glm::vec3(+0.f, 5.f, 0.f), 5.f );
+		funkyLogo( proto );
 
-		proto->setScale( 4.f );
-		glm::mat4 rotmat = glm::rotate( identityMatrix, 45.f, glm::vec3(0.f, 0.f, 1.f) );
-		proto->setOrientation( rotmat );
+		char buf[512];
+		double mspf = proto.getMSPF();
+		sprintf_s( buf, 512, "fps = %.1f,  mspf: %.1f", 1.0 / mspf, 1000.0 * mspf );
+		proto.setTitle( std::string(buf) );
 
-		proto->setColor( 1.f, 0.f, .0f );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, -2.5f, 0.f, 1.f)) );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, +2.5f, 0.f, 1.f)) );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, +2.5f, 0.f, 1.f)) );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, 0.f, 1.f)) );
-
-		proto->setColor( 1.f, 1.f, 1.f );
-		float z = 5.0f;
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, -2.5f, z, 1.f)) );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(-2.5f, +2.5f, z, 1.f)) );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, +2.5f, z, 1.f)) );
-		proto->drawCube( glm::vec3(rotmat * glm::vec4(+2.5f, -2.5f, z, 1.f)) );
+		wave( proto );
 		
-		proto->setColor( 0.f, .5f, .8f );
-		proto->setBlend( false );
-		drawArm( proto, proto->getNormalizedMouseY() );
-
-		//proto->drawCircle( 320 + 30.f * proto->noise(t), 240 + 30.f * proto->noise(t-.5f), 50.f );
-
-		proto->frame();
-
-		t += 1.f / 500.f;
+		proto.frame();
 	}
 }

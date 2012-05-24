@@ -29,21 +29,24 @@ using namespace protowizard;
 
 #include <GL/glfw.h>
 
-
-class ProtoGraphicsImplementation : public ProtoGraphics
+class ProtoGraphics::ProtoGraphicsImplementation
 {
 private:
-	// Disallowing copying. Please pass protographics about as a const ptr or refrence!
-	//ProtoGraphicsImplementation(const ProtoGraphicsImplementation&); // no implementation 
-	//ProtoGraphicsImplementation& operator=(const ProtoGraphicsImplementation&); // no implementation 
+	// Disallowing copying. Please pass protographics about as a const ptr or reference!
+	ProtoGraphicsImplementation(const ProtoGraphicsImplementation&); // no implementation 
+	ProtoGraphicsImplementation& operator=(const ProtoGraphicsImplementation&); // no implementation 
 
 public:
+
+	ProtoGraphicsImplementation()
+	{
+	}
 
 	~ProtoGraphicsImplementation() {
 		shutdown();
 	}
 
-	virtual bool init(int xres, int yres, const std::string resDir )
+	 bool init(int xres, int yres, const std::string resDir )
 	{
 		setResourceDir( resDir );
 
@@ -151,12 +154,12 @@ public:
 	}
 
 
-	virtual float getMSPF()	
+	 float getMSPF()	
 	{
 			return (float)delta_time;
 	}
 
-	virtual float getAverageMSPF()
+	 float getAverageMSPF()
 	{
 		double acc = 0.f;
 		for (int i=0; i<10; i++) {
@@ -165,79 +168,41 @@ public:
 		return (float) acc / 10.f;
 	}
 
-	virtual void debugNormals( bool enable )
+	 void debugNormals( bool enable )
 	{
 		isDebugNormalsActive = enable;
 	}
 
-	virtual bool isWindowOpen() 
+	 bool isWindowOpen() 
 	{
 		return isRunning;
 	}
 
-	virtual int getWindowWidth() 
-	{
-		return xres;
-	}
+	glm::ivec2 getWindowDimensions() { return glm::ivec2(xres,yres); }
 
-	virtual int getWindowHeight() 
-	{
-		return yres;
-	}
+	double klock() { return glfwGetTime(); }
 
-	virtual double klock()
-	{
-		return glfwGetTime();
-	}
+	glm::vec2 getNormalizedMouse() { return glm::vec2( mousx/float(xres), mousy/float(yres) );  }
 
-	virtual float getNormalizedMouseX() 
-	{
-		return mousx / (float)getWindowWidth();
-	}
+	int getMouseX() { return mousx; }
 
-	virtual float getNormalizedMouseY() 
-	{
-		return mousy / (float)getWindowHeight();
-	}
+	int getMouseY() { return mousy; }
 
-	virtual int getMouseX() 
-	{
-		return mousx;
-	}
+	int getMouseWheel() { return glfwGetMouseWheel(); }
 
-	virtual int getMouseY() 
-	{
-		return mousy;
-	}
+	bool mouseDownLeft() { return glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT ) == 1; }
 
-	virtual int getMouseWheel() 
-	{
-		return glfwGetMouseWheel();
-	}
+	bool mouseDownRight() { return glfwGetMouseButton( GLFW_MOUSE_BUTTON_RIGHT ) == 1; }
 
-	virtual bool mouseDownLeft()
-	{
-		return glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT ) == 1;
-	}
+	bool keystatus(int key) { return key_array[key]; }
 
-	virtual bool mouseDownRight()
-	{
-		return glfwGetMouseButton( GLFW_MOUSE_BUTTON_RIGHT ) == 1;
-	}
-
-	virtual bool keystatus(int key)
-	{
-		return key_array[key];
-	}
-
-	virtual bool keyhit(int key)
-	{
+	bool keyhit(int key) {
 		int times_hit = key_hit_array[key];
 		key_hit_array[key] = 0;
 		return times_hit > 0;
 	}
 
-	virtual Ray getMousePickRay()
+	Ray getMousePickRay()
 	{
 		Ray ray;
 		ray.origin = camera->getPos();
@@ -252,18 +217,16 @@ public:
 		return ray;
 	}
 
-	virtual FirstPersonCamera* getCamera()
-	{
-		return camera;
-	}
 
-	virtual void clz()
+	FirstPersonCamera* getCamera() { return camera; }
+
+	void clz() 
 	{
 		assert( isRunning );
-		glClear(GL_DEPTH_BUFFER_BIT );
+		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
-	virtual void cls( float r, float g, float b )
+	void cls( float r, float g, float b )
 	{
 		assert( isRunning );
 		glClearColor( r,  g,  b, 1.0f );
@@ -273,7 +236,7 @@ public:
 	#endif
 	}
 
-	virtual void setFrameRate( int frames_per_second )
+	void setFrameRate( int frames_per_second )
 	{
 		if ( frames_per_second >= 1 )
 		{
@@ -281,21 +244,15 @@ public:
 		}
 	}
 
-	virtual void setTitle( const std::string &str)
-	{
-		glfwSetWindowTitle( str.c_str() );
-	}
+	void setTitle( const std::string &str) { glfwSetWindowTitle( str.c_str() ); }
 	
-	virtual std::string getResourceDir() { return resource_dir; }
+	std::string getResourceDir() { return resource_dir; }
 
-	virtual void setResourceDir( const std::string& path ) { resource_dir = path; }
+	void setResourceDir( const std::string& path ) { resource_dir = path; }
 
-	virtual void moveTo( float x, float y )
-	{
-		move_to_state = glm::vec2(x,y);
-	}
+	void moveTo( float x, float y ) { move_to_state = glm::vec2(x,y); }
 
-	virtual void lineTo( float to_x, float to_y )
+	void lineTo( float to_x, float to_y )
 	{
 		LineSegmentState state;
 		state.color1 = colorState;
@@ -309,7 +266,7 @@ public:
 		move_to_state = glm::vec2(to_x,to_y); 
 	}
 
-	virtual void drawCircle( float x, float y, float radius )
+	void drawCircle( float x, float y, float radius )
 	{
 		buffered_circles.push_back( CircleState(colorState,blend_state,x,y,radius) );
 	}
@@ -351,13 +308,13 @@ public:
 			        opaque, translucent, mesh );
 	}
 
-	virtual void drawSphere( const glm::vec3 &position, float radius ) 
+	void drawSphere( const glm::vec3 &position, float radius ) 
 	{
 		const auto xform = get3DTransform(currentOrientation, position, glm::vec3(radius));
 		queuePrimitive( xform, SphereGeometry::draw );
 	}
 
-	virtual void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) 
+	void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) 
 	{
 		float length = glm::distance( p1, p2 );
 		const glm::mat4& xform = orientAlongAxis( p1, p2, glm::vec3(radius, length, radius) );
@@ -368,19 +325,19 @@ public:
 		}
 	}
 
-	virtual void drawCube( const glm::vec3 &position )
+	void drawCube( const glm::vec3 &position )
 	{
 		const auto xform = get3DTransform(currentOrientation, position, scale);
 		queuePrimitive( xform, CubeGeometry::draw );
 	}
 
-	virtual void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius )
+	void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius )
 	{
 		const auto xform = orientAlongAxis(position, position+normal, glm::vec3(radius, 1.f, radius) );
 		queuePrimitive( xform, PlaneGeometry::draw );
 	}
 
-	virtual void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path )
+	void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path )
 	{
 		// backup current tfrom matrix state
 		glm::mat4 backup = currentOrientation;
@@ -395,51 +352,42 @@ public:
 		currentOrientation = backup;
 	}
 
-	virtual void drawMesh( const glm::vec3 &position, std::string path )
+	void drawMesh( const glm::vec3 &position, std::string path )
 	{
 		const auto xform = get3DTransform(currentOrientation, position, scale);
 		queuePrimitive( xform, mesh_manager->getMesh(path) ); // TODO two sided
 	}
 
 	// Doesn't use mesh_manager
-	virtual void drawMesh( MeshPtr mesh, bool isTwoSided )
+	void drawMesh( MeshPtr mesh, bool isTwoSided )
 	{
 		const auto xform = get3DTransform(currentOrientation, glm::vec3(0.f), scale);
 		mesh->setIsTwoSided( isTwoSided );
 		queuePrimitive( xform, mesh ); // TODO two sided
 	}
 
-	virtual void setOrientation( const glm::mat4 &ori )
-	{
-		currentOrientation = ori;
-	}
+	void setOrientation( const glm::mat4 &ori ) { currentOrientation = ori; }
 
-	virtual void setScale( float x, float y, float z )
-	{
-		scale = glm::vec3(x,y,z);
-	}
+	void setScale( float x, float y, float z ) { scale = glm::vec3(x,y,z); }
 
-	virtual void setScale( float uniform_scale )
-	{
-		scale = glm::vec3( uniform_scale );
-	}
+	void setScale( float uniform_scale ) { scale = glm::vec3( uniform_scale ); }
 
-	virtual void setColor( const glm::vec3 &c )
+	void setColor( const glm::vec3 &c )
 	{
 		colorState.x = c.x; colorState.y = c.y; colorState.z = c.z;
 	}
 
-	virtual void setColor( float r, float g, float b )
+	void setColor( float r, float g, float b )
 	{
 		colorState.r = r; colorState.b = b; colorState.g = g;
 	}
 
-	virtual void setAlpha( float a )
+	void setAlpha( float a )
 	{
 		colorState.a = a;
 	}
 
-	virtual void setBlend( bool active )
+	void setBlend( bool active )
 	{
 		if ( active )
 		{
@@ -449,30 +397,30 @@ public:
 		}
 	}
 
-	//virtual void disableBlending() { blend_state = blending::SOLID_BLEND; } // SOLIDBLEND (no blend, overwrite)
-	//virtual void setAlphaBlend() { blend_state = blending::SOLID_BLEND;		// ALPHABLEND (use alpha channel in image and current color.a (alpha) )
-	virtual void setLightBlend() { blend_state = blending::ADDITIVE_BLEND; }// LIGHTBLEND (additive)
-	//virtual void setShadeBlend() { blend_state = blending::SHADE_BLEND; }// SHADEBLEND (multiply with backbuffer
-	//virtual void setMaskBlend() { blend_state = blending::MASK_BLEND; }// MASKBLEND (draw if alpha > .5 )
+	// void disableBlending() { blend_state = blending::SOLID_BLEND; } // SOLIDBLEND (no blend, overwrite)
+	// void setAlphaBlend() { blend_state = blending::SOLID_BLEND;		// ALPHABLEND (use alpha channel in image and current color.a (alpha) )
+	 void setLightBlend() { blend_state = blending::ADDITIVE_BLEND; }// LIGHTBLEND (additive)
+	// void setShadeBlend() { blend_state = blending::SHADE_BLEND; }// SHADEBLEND (multiply with backbuffer
+	// void setMaskBlend() { blend_state = blending::MASK_BLEND; }// MASKBLEND (draw if alpha > .5 )
 
-	virtual void setTexture( const std::string& path )
+	void setTexture( const std::string& path )
 	{
 		texture_manager->setTexture( path );
 	}
 
-	virtual void disableTexture()
+	void disableTexture()
 	{
 		texture_manager->disableTextures();
 	}
 
-	virtual void toggleWireframe()
+	void toggleWireframe()
 	{
 		static bool wire_frame_mode = false;
 		wire_frame_mode = !wire_frame_mode;			
 		glPolygonMode(GL_FRONT_AND_BACK, wire_frame_mode ? GL_LINE : GL_FILL);		
 	}
 
-	virtual void reloadShaders()
+	void reloadShaders()
 	{
 		printf("\nR E L O A D I N G   S H A D E R S\n\n");
 		for(unsigned int i=0; i<shader_list.size(); i++)
@@ -485,7 +433,7 @@ public:
 		}
 	}
 
-	virtual void frame()
+	void frame()
 	{	
 		assert( isRunning );
 	#ifdef _DEBUG
@@ -645,9 +593,8 @@ private:
 		unsigned int worldLoc = active_shader_ref.GetVariable("worldMatrix");
 		unsigned int viewLoc = active_shader_ref.GetVariable("viewMatrix");
 		unsigned int projLoc = active_shader_ref.GetVariable("projMatrix");
-		glm::mat4 projection =
-			glm::perspective( camera->getFov(), xres/(float)yres, camera->getNearDist(), camera->getFarDist() );
-			//glm::perspectiveFov( camera->getFov(), (float)xres, (float)yres, camera->getNearDist(), camera->getFarDist() );
+		camera->updateProjection(xres, yres);
+		glm::mat4 projection = camera->getProjection();
 		glUniformMatrix4fv( projLoc, 1, GL_FALSE, glm::value_ptr(projection) );
 
 		glm::mat4 viewMatrix = camera->getViewMatrix();
@@ -711,8 +658,8 @@ private:
 		// http://www.opengl.org/sdk/docs/man/xhtml/glCullFace.xml
 		glCullFace( GL_BACK );
 
-		num_opaque = opaque.size();
-		num_blended = translucent.size();
+		size_t num_opaque = opaque.size();
+		size_t num_blended = translucent.size();
 		if ( num_opaque > 0 || num_blended > 0 )
 		{
 			if ( isDebugNormalsActive ) {
@@ -723,11 +670,9 @@ private:
 			phong_shader->begin();
 			init_phong( (*phong_shader) );
 			draw3DShapes( (*phong_shader) );
-		
 
 			opaque.clear();
 			translucent.clear();
-
 		}
 
 		// for 2D we want overdraw in all cases, so turn depth test off
@@ -805,7 +750,7 @@ private:
 	}
 	
 private:
-	static ProtoGraphicsImplementation *instance;
+	static ProtoGraphicsImplementation *instance; // needed for C-style callbacks
 	bool isRunning;
 	bool hasShutdown;
 
@@ -847,18 +792,208 @@ private:
 	double max_millis_per_frame;
 	unsigned int numframes;
 
-	int num_opaque;
-	int num_blended;
+
 	bool isDebugNormalsActive;
 	double mspf_samples[10];
 	int currentSample;
 
 	std::string resource_dir;
-
-
 };
 
+ProtoGraphics::ProtoGraphicsImplementation *ProtoGraphics::ProtoGraphicsImplementation::instance = 0x0;
 
-ProtoGraphicsImplementation *ProtoGraphicsImplementation::instance = 0x0;
+//ProtoGraphicsImplementation *ProtoGraphicsImplementation::instance = nullptr;
 
-ProtoGraphicsPtr ProtoGraphics::create() { return std::shared_ptr<ProtoGraphics>(new ProtoGraphicsImplementation); }
+bool ProtoGraphics::init(int xres, int yres, const std::string resDir)
+{
+	return pimpl->init(xres,yres,resDir);
+}
+bool ProtoGraphics::isWindowOpen()
+{
+	return pimpl->isWindowOpen();
+}
+glm::ivec2 ProtoGraphics::getWindowDimensions()
+{
+	return pimpl->getWindowDimensions();
+}
+double ProtoGraphics::klock()
+{
+	return pimpl->klock();
+}
+float ProtoGraphics::getMSPF()
+{
+	return pimpl->getMSPF();
+}
+float ProtoGraphics::getAverageMSPF()
+{
+	return pimpl->getAverageMSPF();
+}
+void ProtoGraphics::toggleWireframe()
+{
+	pimpl->toggleWireframe();
+}
+void ProtoGraphics::debugNormals( bool enable )
+{
+	pimpl->debugNormals(enable);
+}
+void ProtoGraphics::reloadShaders()
+{
+	pimpl->reloadShaders();
+}
+glm::vec2 ProtoGraphics::getNormalizedMouse()
+{
+	return pimpl->getNormalizedMouse();
+}
+int ProtoGraphics::getMouseX()
+{
+	return pimpl->getMouseX();
+}
+int ProtoGraphics::getMouseY()
+{
+	return pimpl->getMouseY();
+}
+int ProtoGraphics::getMouseWheel()
+{
+	return pimpl->getMouseWheel();
+}
+bool ProtoGraphics::mouseDownLeft()
+{
+	return pimpl->mouseDownLeft();
+}
+bool ProtoGraphics::mouseDownRight()
+{
+	return pimpl->mouseDownRight();
+}
+bool ProtoGraphics::keystatus(int key)
+{
+	return pimpl->keystatus(key);
+}
+bool ProtoGraphics::keyhit(int key)
+{
+	return pimpl->keyhit(key);
+}
+Ray ProtoGraphics::getMousePickRay()
+{
+	return pimpl->getMousePickRay();
+}
+FirstPersonCamera* ProtoGraphics::getCamera()
+{
+	return pimpl->getCamera();
+}
+void ProtoGraphics::moveTo( float x, float y )
+{
+	pimpl->moveTo(x,y);
+}
+void ProtoGraphics::lineTo( float to_x, float to_y )
+{
+	pimpl->lineTo(to_x,to_y);
+}
+void ProtoGraphics::drawCircle( float x, float y, float radius )
+{
+	pimpl->drawCircle(x,y,radius);
+}
+void ProtoGraphics::drawSphere( const glm::vec3 &position, float radius )
+{
+	pimpl->drawSphere(position,radius);
+}
+void ProtoGraphics::drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius )
+{
+	pimpl->drawCone(p1,p2,radius);
+}
+void ProtoGraphics::drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius )
+{
+	pimpl->drawPlane(position,normal,radius);
+}
+void ProtoGraphics::drawCube( const glm::vec3 &position )
+{
+	pimpl->drawCube(position);
+}
+void ProtoGraphics::drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path )
+{
+	pimpl->drawMesh(position,horiz_ang,verti_ang,path);
+}
+void ProtoGraphics::drawMesh( const glm::vec3 &position, std::string path )
+{
+	pimpl->drawMesh(position,path);
+}
+void ProtoGraphics::drawMesh( MeshPtr mesh, bool isTwoSided )
+{
+	pimpl->drawMesh(mesh,isTwoSided);
+}
+void ProtoGraphics::setOrientation( const glm::mat4 &ori )
+{
+	pimpl->setOrientation(ori);
+}
+void ProtoGraphics::setScale( float x, float y, float z )
+{
+	pimpl->setScale(x,y,z);
+}
+void ProtoGraphics::setScale( float uniform_scale )
+{
+	pimpl->setScale(uniform_scale);
+}
+void ProtoGraphics::setColor( const glm::vec3 &c )
+{
+	pimpl->setColor(c);
+}
+void ProtoGraphics::setColor( float r, float g, float b )
+{
+	pimpl->setColor(r,g,b);
+}
+void ProtoGraphics::setAlpha( float a )
+{
+	pimpl->setAlpha(a);
+}
+void ProtoGraphics::setBlend( bool active )
+{
+	pimpl->setBlend(active);
+}
+void ProtoGraphics::setLightBlend()
+{
+	pimpl->setLightBlend();
+}
+void ProtoGraphics::setTexture( const std::string& path )
+{
+	pimpl->setTexture(path);
+}
+void ProtoGraphics::disableTexture()
+{
+	pimpl->disableTexture();
+}
+void ProtoGraphics::clz()
+{
+	pimpl->clz();
+}
+void ProtoGraphics::cls( float r, float g, float b )
+{
+	pimpl->cls(r,g,b);
+}
+void ProtoGraphics::frame()
+{
+	pimpl->frame();
+}
+void ProtoGraphics::setFrameRate( int frames_per_second )
+{
+	pimpl->setFrameRate(frames_per_second);
+}
+void ProtoGraphics::setTitle( const std::string &str)
+{
+	pimpl->setTitle(str);
+}
+std::string ProtoGraphics::getResourceDir()
+{
+	return pimpl->getResourceDir();
+}
+void ProtoGraphics::setResourceDir( const std::string& new_dir )
+{
+	pimpl->setResourceDir(new_dir);
+}
+
+ProtoGraphics::ProtoGraphics()
+{
+	pimpl = std::unique_ptr<ProtoGraphicsImplementation>( new ProtoGraphicsImplementation );
+}
+ProtoGraphics::~ProtoGraphics()
+{
+	//pimpl.reset();
+}
