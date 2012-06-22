@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 
+using namespace protowizard;
 
 Shader::Shader()
 {

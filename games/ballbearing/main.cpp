@@ -412,7 +412,7 @@ void loadConstraints()
 		float zp = xcoord;
 		float yp = zcoord;
 
-		// rotate (x,z) 90* ... shounldn't it be enough to do (x,z) -> (-z,x) ?
+		// rotate (x,z) 90* ... should be enough to do (x,z) -> (-z,x) ?
 		//float ca = cos( 1.57f );
 		//float sa = sin( 1.57f );
 		//float tx = xp; float ty = zp;

@@ -23,13 +23,16 @@ namespace protowizard
 	class Mesh;
 	typedef std::shared_ptr<Mesh> MeshPtr;
 
+	class ProtoGraphics;
+	typedef std::shared_ptr<ProtoGraphics> ProtoGraphicsPtr;
+
 	class ProtoGraphics
 	{
 	public:
 		ProtoGraphics();
 		~ProtoGraphics();
 
-		bool init(int xres, int yres, const std::string resDir = "../assets/") ;
+		bool init(int xres, int yres, const std::string &resDir);
 
 		bool isWindowOpen();
 		glm::ivec2 getWindowDimensions();
@@ -47,6 +50,7 @@ namespace protowizard
 		int getMouseX();
 		int getMouseY();
 		int getMouseWheel();
+		void setMouseWheel(int pos);
 		bool mouseDownLeft();
 		bool mouseDownRight();
 		bool keystatus(int key);
@@ -66,8 +70,8 @@ namespace protowizard
 		void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) ;
 		void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) ;
 		void drawCube( const glm::vec3 &position ) ;
-		void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, std::string path ) ;
-		void drawMesh( const glm::vec3 &position, std::string path ) ;
+		void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, const std::string &path ) ;
+		void drawMesh( const glm::vec3 &position, const std::string &path ) ;
 		void drawMesh( MeshPtr mesh, bool isTwoSided ) ;
 
 		// Draw state modify
@@ -97,7 +101,7 @@ namespace protowizard
 		void setResourceDir( const std::string& new_dir ) ;
 
 	private:
-		class ProtoGraphicsImplementation;
-		std::unique_ptr<ProtoGraphicsImplementation> pimpl;
+		class impl;
+		std::unique_ptr<impl> pimpl;
 	};
 } // end ::proto

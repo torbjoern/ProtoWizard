@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/norm.hpp>
-#include <glm/gtx/vector_angle.hpp>
 
 using namespace protowizard;
 
@@ -14,25 +13,10 @@ const glm::mat4 &FirstPersonCamera::updateProjection(int w, int h)
 	return projection;
 }
 
-float angleBetween(const glm::vec3& v1, const glm::vec3& v2)
-{
-   float ftol = 1e-6f;
-   if( fabs(v1[0]-v2[0]) < ftol || fabs(v1[1]-v2[1]) < ftol || fabs(v1[2]-v2[2]) < ftol) return 0;
-   
-   return acos( glm::dot(v1,v2) / (glm::length(v1)*glm::length(v2)) );
-}
-
 void FirstPersonCamera::lookAt( const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up )
 {
 	setPos(pos);
 	view = glm::lookAt( pos, target, up );
-
-	// not 0,0,1
-	// not 0,0,-1
-	horiz_deg = glm::angle( getLookDirection(), glm::vec3(0.f, 0.f, -1.f) );
-	verti_deg = glm::angle( getStrafeDirection(), glm::vec3(-1.f, 0.f, 0.f) ) ;//- 3.14;
-	//horiz_deg = glm::degrees( angleBetween( getLookDirection(), glm::vec3(0.f, 0.f, 1.f) ) );
-	//verti_deg = glm::degrees( angleBetween( getStrafeDirection(), glm::vec3(1.f, 0.f, 0.f) ) );
 }
 
 void FirstPersonCamera::update(bool left_key, bool right_key, bool back_key, bool forwards_key,
@@ -43,8 +27,8 @@ void FirstPersonCamera::update(bool left_key, bool right_key, bool back_key, boo
 	oldmousx = mouse_x;
 	oldmousy = mouse_y;
 	if ( mouse_is_down ) {	
-        horiz_deg += mouse_speed_x;
-		verti_deg += mouse_speed_y;
+        horiz_deg -= mouse_speed_x;
+		verti_deg -= mouse_speed_y;
 	}
 	float speed = delta * movementUnitsPerSecond; // meters per second
 

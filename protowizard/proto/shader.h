@@ -8,8 +8,8 @@
 #include <vector>
 #include <algorithm>
 
+namespace protowizard{
 enum eShaderTypes { VERTEX_SHADER, GEOMETRY_SHADER, FRAGMENT_SHADER };
-
 
 class ShaderSource
 {
@@ -80,3 +80,4 @@ private:
 	std::string gsPath;
 	std::string fsPath;
 };
+}

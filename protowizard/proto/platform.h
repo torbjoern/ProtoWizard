@@ -1,5 +1,9 @@
-
+#pragma once
 
 #include <string>
 
-void Show_message_box( std::string str );
+namespace protowizard
+{
+	void ShowMessageBox( const std::string &message, const std::string &title );
+	std::string GetExePath();
+}

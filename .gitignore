@@ -3,3 +3,4 @@ bin/MinSizeRel
 bin/assets/models
 bin/assets/textures
 build
+lib

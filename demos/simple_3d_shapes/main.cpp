@@ -38,7 +38,7 @@ void wave( protowizard::ProtoGraphics& proto )
 	
 	float scale = 3.f;
 	proto.setScale(scale);
-	const int sideBySide = 128;
+	const int sideBySide = 32;
     const float fSideBySide = float(sideBySide);
 	for ( int i=0; i<sideBySide; i++ ) {
 		for ( int j=0; j<sideBySide; j++ ) {
@@ -48,7 +48,7 @@ void wave( protowizard::ProtoGraphics& proto )
             const float distOrigin = sqrt(u*u + v*v);
 			const float wave = cos(distOrigin * freq + time);
             const float x = scale * fSideBySide*u;
-            const float y = scale * 1.5f * wave - 5.f;
+            const float y = scale * 1.5f * wave - 10.f;
 			const float z = scale * fSideBySide*v;
             
 			
@@ -75,6 +75,7 @@ int main(int argc, const char* argv[])
 		if ( proto.mouseDownLeft() == false )
 		{
 			float ang = TWO_PI * proto.getNormalizedMouse().x;
+			float degs = glm::degrees(ang);
 			float ca = cos(ang); 
 			float sa = sin(ang); 
 			float radi = 15.f;

@@ -1,5 +1,5 @@
 
-SET(GLFW_ROOT_PATH F:/dok/kode/libraries/glfw-2.7.2/ )
+SET(GLFW_ROOT_PATH F:/dok/kode/libraries/glfw-2.7.5 )
 
 
 FIND_PATH( GLFW_INCLUDE_DIR NAMES GL/glfw.h 
@@ -7,9 +7,9 @@ FIND_PATH( GLFW_INCLUDE_DIR NAMES GL/glfw.h
 	)
 
 FIND_LIBRARY( GLFW_STATIC_DEBUG_LIBRARY NAMES glfw
-		PATHS ${GLFW_ROOT_PATH}/bin/lib-msvc100/debug
+		PATHS ${GLFW_ROOT_PATH}/lib-msvc100
 	) 
 
 FIND_LIBRARY( GLFW_STATIC_RELEASE_LIBRARY NAMES glfw
-		PATHS ${GLFW_ROOT_PATH}/bin/lib-msvc100/release
+		PATHS ${GLFW_ROOT_PATH}/lib-msvc100
 	) 

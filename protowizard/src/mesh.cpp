@@ -6,6 +6,8 @@ using namespace protowizard;
 
 #include "../depends/gl3w/gl3w.h"
 
+#include <glm/ext.hpp>
+
 Mesh::~Mesh()
 {
 	glDeleteBuffers( 1, &vbo );	
@@ -21,8 +23,52 @@ void Mesh::draw()
 	if ( isTwoSided ) { glEnable(GL_CULL_FACE); }
 }
 
+void Mesh::calcDimensions(const std::vector<Vertex_VNC>& verts)
+{
+	centroid = glm::vec3(0.f);
+	glm::vec3 bounds_min(0.f);
+	glm::vec3 bounds_max(0.f);
+	for (size_t i=0; i<verts.size(); i++){
+		centroid += verts[i].v;
+
+		for ( int dim=0; dim<3; dim++){
+			if ( verts[i].v[dim] < bounds_min[dim] ) {
+				bounds_min[dim]= verts[i].v[dim];
+			}
+		
+			if ( verts[i].v[dim] > bounds_max[dim] ) {
+				bounds_max[dim] = verts[i].v[dim];
+			}
+		}
+	}
+	centroid /= (float)verts.size();
+	dimensions = glm::abs(bounds_max - bounds_min);
+}
+void Mesh::calcDimensions(const std::vector<Vertex_VNT>& verts)
+{
+	centroid = glm::vec3(0.f);
+	glm::vec3 bounds_min(0.f);
+	glm::vec3 bounds_max(0.f);
+	for (size_t i=0; i<verts.size(); i++){
+		centroid += verts[i].v;
+
+		for ( int dim=0; dim<3; dim++){
+			if ( verts[i].v[dim] < bounds_min[dim] ) {
+				bounds_min[dim]= verts[i].v[dim];
+			}
+		
+			if ( verts[i].v[dim] > bounds_max[dim] ) {
+				bounds_max[dim] = verts[i].v[dim];
+			}
+		}
+	}
+	centroid /= (float)verts.size();
+	dimensions = glm::abs(bounds_max - bounds_min);
+}
+
 Mesh::Mesh( std::vector<Vertex_VNC>& verts ) 
 {
+	calcDimensions( verts );
 	isTwoSided = false;
 	this->num_vertices = (int)verts.size();
 	int num_tris = num_vertices / 3;
@@ -33,9 +79,6 @@ Mesh::Mesh( std::vector<Vertex_VNC>& verts )
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNC) * num_vertices, &verts[0], GL_STATIC_DRAW);
-	if (glGetError() == GL_OUT_OF_MEMORY) {
-		std::runtime_error("fatal, out of GL memory");
-	}
 
 	// XYZ vertices
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNC ), 0);
@@ -53,11 +96,9 @@ Mesh::Mesh( std::vector<Vertex_VNC>& verts )
 
 #undef BUFFER_OFFSET
 
-
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	//glEnableVertexAttribArray(2);
-
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -65,6 +106,7 @@ Mesh::Mesh( std::vector<Vertex_VNC>& verts )
 
 Mesh::Mesh( std::vector<Vertex_VNT>& verts ) 
 {
+	calcDimensions(verts);
 	isTwoSided = false;
 	this->num_vertices = (int)verts.size();
 	int num_tris = num_vertices / 3;
@@ -75,10 +117,6 @@ Mesh::Mesh( std::vector<Vertex_VNT>& verts )
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNT) * num_vertices, &verts[0], GL_STATIC_DRAW);
-	if (glGetError() == GL_OUT_OF_MEMORY)
-	{
-		std::runtime_error("fatal err: GL_OUT_OF_MEMORY");
-	}
 
 	// XYZ vertices
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), 0);
@@ -106,29 +144,3 @@ Mesh::Mesh( std::vector<Vertex_VNT>& verts )
 	glBindVertexArray(0);
 }
 
-
-Mesh::Mesh( size_t nverts, glm::vec3* verts )
-{
-	isTwoSided = false;
-	this->num_vertices = (int)nverts;
-	int num_tris = num_vertices / 3;
-	vbo = vao = 0;
-	glGenVertexArrays( 1, &vao );
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(XYZVertex) * num_vertices, &verts[0], GL_STATIC_DRAW);
-	if (glGetError() == GL_OUT_OF_MEMORY)
-	{
-		std::runtime_error("fatal err: GL_OUT_OF_MEMORY");
-	}
-
-	// XYZ vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(XYZVertex), 0);
-
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-}

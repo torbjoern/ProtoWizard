@@ -1,25 +1,9 @@
-#include <fstream>
+
 #include <string>
+#include <vector>
 
 class TextFile
 {
-private:
-	std::ifstream input_file;
-	
-	#define MAX_LINE_LENGTH 1024
-	char parse_line[MAX_LINE_LENGTH];
-	char* parse_char_ptr;
-public:
-	TextFile(const std::string& path);
-	~TextFile();
-	void fail_check();
-
-	size_t numLines();
-	std::string getLine(int i);
-	
-	void setParseLine(int i);
-	float getFloat();
-	int getInt();
-	void rewind();
-		
+ public:
+	static std::vector<std::string> ReadAllLines( const std::string &path );	
 };
