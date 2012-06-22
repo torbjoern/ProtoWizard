@@ -68,6 +68,7 @@ namespace protowizard
 		// Draw 3D
 		void drawSphere( const glm::vec3 &position, float radius ) ;
 		void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) ;
+		void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius1, float radius2 ) ;
 		void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) ;
 		void drawCube( const glm::vec3 &position ) ;
 		void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, const std::string &path ) ;

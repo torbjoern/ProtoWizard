@@ -304,6 +304,12 @@ public:
 		}
 	}
 
+	void drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius1, float radius2 ) 
+	{
+		//DrawConeState s = { p1,p2,radius1,radius2 };
+		//buffered_cones.push_back( s );
+	}
+	
 	void drawCube( const glm::vec3 &position )
 	{
 		const auto xform = get3DTransform(DrawState.xform, position, DrawState.scale);
@@ -813,6 +819,7 @@ void ProtoGraphics::lineTo( float to_x, float to_y ) { pimpl->lineTo(to_x,to_y);
 void ProtoGraphics::drawCircle( float x, float y, float radius ) { pimpl->drawCircle(x,y,radius); }
 void ProtoGraphics::drawSphere( const glm::vec3 &position, float radius ) { pimpl->drawSphere(position,radius); }
 void ProtoGraphics::drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius ) { pimpl->drawCone(p1,p2,radius); }
+void ProtoGraphics::drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius1, float radius2 ) { pimpl->drawCone(p1,p2,radius1,radius2); }
 void ProtoGraphics::drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) { pimpl->drawPlane(position,normal,radius); }
 void ProtoGraphics::drawCube( const glm::vec3 &position ) { pimpl->drawCube(position); }
 void ProtoGraphics::drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, const std::string &path ) { pimpl->drawMesh(position,horiz_ang,verti_ang,path); }

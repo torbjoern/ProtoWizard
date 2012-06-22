@@ -62,7 +62,7 @@ int main(int argc, const char* argv[])
 {
 	protowizard::ProtoGraphics proto;
 
-	if( !proto.init(640,480) )
+	if( !proto.init(640,480,"") )
 	{
 		throw "failed to init proto. remembered to set default data dir???";
 		return 1;

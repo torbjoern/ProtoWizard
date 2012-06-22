@@ -5,30 +5,29 @@
 
 #include <iostream>
 
-ProtoGraphicsPtr proto;
 
-void scene()
+void scene(protowizard::ProtoGraphics &proto)
 {
-	if ( proto->mouseDownLeft() )
+	if ( proto.mouseDownLeft() )
 	{
-		float ang = TWO_PI * proto->getMouseX() / (float)proto->getWindowWidth();
+		float ang = TWO_PI * proto.getNormalizedMouse().x;
 		float ca = cos(ang); 
 		float sa = sin(ang); 
 		float radi = 15.f;
 
-		proto->setCamera(  glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+		proto.getCamera()->lookAt(  glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 	} else {
 		// Move cam up, back and right
-		proto->setCamera(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+		proto.getCamera()->lookAt(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 	}
 
-	float time = (float)proto->klock();
+	float time = (float)proto.klock();
 
 	float zero_to_one = sin(time)*.5f+.5f;
 	glm::vec3 rayPos = glm::vec3(-5.f, 4.f*cos(time*0.25f), 4.f*sin(time*0.25f) );
-	protomath::Ray ray( rayPos, glm::vec3(10.f + 10.f * zero_to_one,0.f,0.f) );
-	proto->setColor(1.f, 0.f, 0.f);
-	proto->drawCone( ray.origin, ray.origin+ray.dir, 0.1f );
+	protowizard::Ray ray( rayPos, glm::vec3(10.f + 10.f * zero_to_one,0.f,0.f) );
+	proto.setColor(1.f, 0.f, 0.f);
+	proto.drawCone( ray.origin, ray.origin+ray.dir, 0.1f );
 
 	int num_boxes = 6;
 	float box_diameter = 2.f;
@@ -55,18 +54,18 @@ void scene()
 
 		if ( hit )  //  && t <= 1.f
 		{
-			proto->setColor( 0.f, 0.f, 1.f );
+			proto.setColor( 0.f, 0.f, 1.f );
 			glm::vec3 hit_point = ray.origin + ray.dir * t;
-			proto->drawSphere( hit_point, 0.3f );
+			proto.drawSphere( hit_point, 0.3f );
 			
-			proto->setColor( 1.f, 1.f, 0.f );
-			proto->setScale( box_dim.x ); proto->drawCube( box_pos + box_dim * 0.5f ); proto->setScale( 1.f );
+			proto.setColor( 1.f, 1.f, 0.f );
+			proto.setScale( box_dim.x ); proto.drawCube( box_pos + box_dim * 0.5f ); proto.setScale( 1.f );
 		}else{
-			proto->setColor( 1.f, 1.f, 1.f );
+			proto.setColor( 1.f, 1.f, 1.f );
 
-			proto->setScale( box_dim.x ); 
-			proto->setAlpha( 0.5f ); proto->setBlend( true ); proto->drawCube( box_pos + box_dim * 0.5f ); proto->setBlend( false );
-			proto->setScale( 1.f );
+			proto.setScale( box_dim.x ); 
+			proto.setAlpha( 0.5f ); proto.setBlend( true ); proto.drawCube( box_pos + box_dim * 0.5f ); proto.setBlend( false );
+			proto.setScale( 1.f );
 		}
 	}
 
@@ -77,8 +76,8 @@ void scene()
 int main(int argc, const char* argv[])
 {
 	using glm::vec3;
-	proto = ProtoGraphics::create();
-	if (proto->init(640,480,argv) == false )
+	protowizard::ProtoGraphics proto;
+	if (proto.init(640,480,"") == false )
 	{
 		std::cerr << "proto failed to init" << std::endl;
 		return 1;
@@ -86,11 +85,11 @@ int main(int argc, const char* argv[])
 
 	do
 	{
-		proto->cls(0,0,0);
+		proto.cls(0,0,0);
 
-		scene();
+		scene(proto);
 
-		proto->frame();
-	}while( proto->isWindowOpen() );
+		proto.frame();
+	}while( proto.isWindowOpen() );
 	return 0;
 }

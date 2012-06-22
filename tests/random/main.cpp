@@ -57,12 +57,12 @@ struct Particle
 		life -= timestep;
 	};
 
-	void draw() {
-		proto->setColor( color );
-		proto->setAlpha( life / max_life );
-		//proto->setAlpha(1);
-		proto->setTexture(proto->getResourceDir() + "/textures/alpha_dot.png");
-		proto->drawPlane( pos, proto->getCamera()->getLookDirection(), 0.5f );
+	void draw( protowizard::ProtoGraphics &proto ) {
+		proto.setColor( color );
+		proto.setAlpha( life / max_life );
+		//proto.setAlpha(1);
+		proto.setTexture(proto.getResourceDir() + "/textures/alpha_dot.png");
+		proto.drawPlane( pos, proto.getCamera()->getLookDirection(), 0.5f );
 	};
 };
 
@@ -107,9 +107,9 @@ struct ParticleSystem
 		});
 	}
 
-	void draw() {
-		std::for_each( particles.begin(), particles.end(), [](Particle& p) {
-			if( p.life > 0 ) p.draw();
+	void draw( protowizard::ProtoGraphics &proto ) {
+		std::for_each( particles.begin(), particles.end(), [&](Particle& p) {
+			if( p.life > 0 ) p.draw( proto );
 		});
 	}
 };
@@ -221,7 +221,7 @@ struct Magnetic
 		
 	}
 
-	void update() { 
+	void update( protowizard::ProtoGraphics &proto ) { 
 		//static glm::vec3 targ(0.f);
 
 		//if ( glm::distance(targ, polePos[0] ) < poleRadi ) {
@@ -233,11 +233,11 @@ struct Magnetic
 		//}
 		//glm::vec3 toTarg = targ - polePos[0];
 		//polePos[0] += 10.f * dt * glm::normalize(toTarg);
-		//polePos[0] = proto->noise( polePos[0].x, polePos[0].y, polePos[0].z );
+		//polePos[0] = proto.noise( polePos[0].x, polePos[0].y, polePos[0].z );
 
-		proto->setLightBlend();
-		//proto->setAlpha(0.75f);
-		proto->setAlpha(1.f);
+		proto.setLightBlend();
+		//proto.setAlpha(0.75f);
+		proto.setAlpha(1.f);
 		for(int i=0;i<NUMP;i++)
 		{
 			float x = particlePos[i].x; 
@@ -283,14 +283,14 @@ struct Magnetic
 				//float green = (i%80)+128.f;
 				//float blue = 64.f;
 				//float r255 = 1.f/255.f;
-				//proto->setColor( red*r255, green*r255, blue*r255 );
-				proto->setColor( (i%63) / 255.f, (i%23) / 255.f, .125f );
+				//proto.setColor( red*r255, green*r255, blue*r255 );
+				proto.setColor( (i%63) / 255.f, (i%23) / 255.f, .125f );
 				float len = .25f;// / mag;
 				//glm::vec3 dir = glm::normalize(vel) * len;
-				proto->drawSphere( particlePos[i], 0.1f );
-				//proto->drawCone( pos-dir, pos+dir, 0.05f );
-				//proto->setTexture(proto->getResourceDir() + "/textures/alpha_dot.png");
-				//proto->drawPlane( pos, proto->getCamera()->getLookDirection(), 0.1f );
+				proto.drawSphere( particlePos[i], 0.1f );
+				//proto.drawCone( pos-dir, pos+dir, 0.05f );
+				//proto.setTexture(proto.getResourceDir() + "/textures/alpha_dot.png");
+				//proto.drawPlane( pos, proto.getCamera()->getLookDirection(), 0.1f );
 
 				// Move
 				float f = 10*dt;
@@ -298,40 +298,40 @@ struct Magnetic
 			}
 		}
 
-			proto->setBlend(false);
-			proto->disableTexture();
+			proto.setBlend(false);
+			proto.disableTexture();
 			for(int i=0; i<MAXPOLES; i++){
-				if ( polarity[i] == +1.0 ) proto->setColor(1.f, 0.f, 0.f); else proto->setColor(0.f, 0.f, 1.f);
-				proto->drawSphere( polePos[i], poleRadi );
+				if ( polarity[i] == +1.0 ) proto.setColor(1.f, 0.f, 0.f); else proto.setColor(0.f, 0.f, 1.f);
+				proto.drawSphere( polePos[i], poleRadi );
 			}
 		 } // end method
 };
 
-void texturedTest(){
-	proto->setTexture(proto->getResourceDir() + "/textures/alpha_dot.png");
+void texturedTest( protowizard::ProtoGraphics &proto ){
+	proto.setTexture(proto.getResourceDir() + "/textures/alpha_dot.png");
 	
-	//proto->disableLight();
-	proto->setBlend(true);
-	//proto->setLightBlend();
-	proto->setAlpha(0.5f);
+	//proto.disableLight();
+	proto.setBlend(true);
+	//proto.setLightBlend();
+	proto.setAlpha(0.5f);
 	glm::vec3 pos(0.f);
-	proto->setColor(1.f,1.f,0.f); proto->drawPlane( pos + glm::vec3(-10.f, 0.f, 0.f), proto->getCamera()->getLookDirection(), 2.5f );
-	proto->setColor(1.f,1.f,1.f); proto->drawPlane( pos + glm::vec3(-5.f, 0.f, 0.f), proto->getCamera()->getLookDirection(), 2.5f );
-	proto->setColor(1.f,0,0); proto->drawPlane( pos + glm::vec3(0.f, 0.f, 0.f),proto->getCamera()->getLookDirection(), 2.5f );
-	proto->setColor(0.f,1.f,0.f); proto->drawPlane( pos + glm::vec3(+5.f, 0.f, 0.f), proto->getCamera()->getLookDirection(), 2.5f );
-	proto->setColor(0.f,0.f,1.f); proto->drawPlane( pos + glm::vec3(+10.f, 0.f, 0.f), proto->getCamera()->getLookDirection(), 2.5f );
+	proto.setColor(1.f,1.f,0.f); proto.drawPlane( pos + glm::vec3(-10.f, 0.f, 0.f), proto.getCamera()->getLookDirection(), 2.5f );
+	proto.setColor(1.f,1.f,1.f); proto.drawPlane( pos + glm::vec3(-5.f, 0.f, 0.f), proto.getCamera()->getLookDirection(), 2.5f );
+	proto.setColor(1.f,0,0); proto.drawPlane( pos + glm::vec3(0.f, 0.f, 0.f),proto.getCamera()->getLookDirection(), 2.5f );
+	proto.setColor(0.f,1.f,0.f); proto.drawPlane( pos + glm::vec3(+5.f, 0.f, 0.f), proto.getCamera()->getLookDirection(), 2.5f );
+	proto.setColor(0.f,0.f,1.f); proto.drawPlane( pos + glm::vec3(+10.f, 0.f, 0.f), proto.getCamera()->getLookDirection(), 2.5f );
 
-	proto->disableTexture();
-	proto->setBlend(false);
-	proto->setColor(1.f,1.f,1.f);
-	proto->setScale( 10.f, 5.f, 1.f );
-	proto->drawCube( glm::vec3(0.f, 0.f, -5.f) );
-	proto->setScale( 1.f );
+	proto.disableTexture();
+	proto.setBlend(false);
+	proto.setColor(1.f,1.f,1.f);
+	proto.setScale( 10.f, 5.f, 1.f );
+	proto.drawCube( glm::vec3(0.f, 0.f, -5.f) );
+	proto.setScale( 1.f );
 }
 
-void testRandomPointOnSphere()
+void testRandomPointOnSphere( protowizard::ProtoGraphics &proto )
 {
-	proto->setColor( 1.f, 1.f, 1.f );
+	proto.setColor( 1.f, 1.f, 1.f );
 
 	for (int i=0; i<100; i++){
 		float radii = 5.f;
@@ -340,7 +340,7 @@ void testRandomPointOnSphere()
 		if ( dist < (radii-1e-6f) || dist > (radii+1e-6f) ) {
 			throw std::runtime_error("perhaps some error margin");
 		}
-		proto->drawSphere( p, 0.1f );
+		proto.drawSphere( p, 0.1f );
 	}
 
 }
@@ -399,8 +399,8 @@ int main(int argc, const char* argv[])
 	//enableFloatExceptions();
 	//testFP();
 
-	proto = protowizard::ProtoGraphics::create();
-	if( !proto->init(1024,768) )
+	protowizard::ProtoGraphics proto;
+	if( !proto.init(1024,768,"") )
 	{
 		std::cerr << "failed to init" << std::endl;
 		return -1;
@@ -410,25 +410,25 @@ int main(int argc, const char* argv[])
 	ParticleSystem particleSystem;
 	Magnetic magneticEffect;
 	magneticEffect.init();
-	proto->setFrameRate(60);
-	//proto->debugNormals( true );
+	proto.setFrameRate(60);
+	//proto.debugNormals( true );
 
-	while( proto->isWindowOpen() )
+	while( proto.isWindowOpen() )
 	{
-		//proto->cls(0,0,0);
-		proto->clz();
+		//proto.cls(0,0,0);
+		proto.clz();
 
-		if ( proto->mouseDownLeft() == false )
+		if ( proto.mouseDownLeft() == false )
 		{
-			float ang = TWO_PI * proto->getNormalizedMouseX();
+			float ang = TWO_PI * proto.getNormalizedMouse().x;
 			float ca = cos(ang); 
 			float sa = sin(ang); 
 			float radi = 20.f;
 
-			proto->getCamera()->lookAt(  glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+			proto.getCamera()->lookAt(  glm::vec3(ca*radi, 0.f, sa*radi),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 		} else {
 			// Move cam up, back and right
-			proto->getCamera()->lookAt(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
+			proto.getCamera()->lookAt(  glm::vec3(-10.f, 10.f, -10.f),  glm::vec3(0.f, 0.f, 0.f),  glm::vec3(0.f, 1.f, 0.f) );
 		}
 
 
@@ -439,7 +439,7 @@ int main(int argc, const char* argv[])
 		glm::vec3 color = protowizard::hsv2rgb( green_hue, 1.f, 1.f );
 		particleSystem.create( 8, color ); // 60 fps. create Nx60 particles pr sec
 
-		if ( proto->keyhit(' ') ) {
+		if ( proto.keyhit(' ') ) {
 			float hue = protowizard::random( colors[KOLORS::red], colors[KOLORS::yellow] );
 			glm::vec3 color = protowizard::hsv2rgb( hue, 1.f, 1.f );
 			particleSystem.create( 150, color );
@@ -448,40 +448,40 @@ int main(int argc, const char* argv[])
 		//particleSystem.update();
 
 		
-		proto->disableTexture();
-		proto->setColor( 1.f, 0.f, 0.f );
-		proto->setBlend( false );
+		proto.disableTexture();
+		proto.setColor( 1.f, 0.f, 0.f );
+		proto.setBlend( false );
 		auto billBoard = glm::mat4( 
 				glm::vec4(1.f, 0.f, 0.f, 0.f),
 				glm::vec4(0.f, 4.f, 0.f, 0.f),
 				glm::vec4(0.f, 0.f, 1.f, 0.f),
 				glm::vec4(0.f, 0.f, 0.f, 1.f)
 				);
-		//proto->setOrientation( billBoard );
-		//proto->drawPlane( glm::vec3(0.f), glm::vec3(0.f, 0.f, -1.f), 1.f );
+		//proto.setOrientation( billBoard );
+		//proto.drawPlane( glm::vec3(0.f), glm::vec3(0.f, 0.f, -1.f), 1.f );
 
-		//proto->setLightBlend();
+		//proto.setLightBlend();
 		//particleSystem.draw();
 
-		if ( proto->keyhit('R') ) magneticEffect.init();
-		magneticEffect.dt = proto->getMSPF();
-		proto->setOrientation( identityMatrix );
-		magneticEffect.update();
+		if ( proto.keyhit('R') ) magneticEffect.init();
+		magneticEffect.dt = proto.getMSPF();
+		proto.setOrientation( identityMatrix );
+		magneticEffect.update(proto);
 
 		// Blend in a black quad
 		if (1)
 		{
-			proto->setColor(0.f, 0.f, 0.f);
-			proto->setBlend(true);
-			proto->setAlpha( 1.f / 64.f );
-			glm::vec3 camNorm = proto->getCamera()->getLookDirection();
-			proto->drawPlane( proto->getCamera()->getPos() + camNorm, camNorm, 1.5f );
+			proto.setColor(0.f, 0.f, 0.f);
+			proto.setBlend(true);
+			proto.setAlpha( 1.f / 64.f );
+			glm::vec3 camNorm = proto.getCamera()->getLookDirection();
+			proto.drawPlane( proto.getCamera()->getPos() + camNorm, camNorm, 1.5f );
 		}
 
-		proto->frame();
+		proto.frame();
 		static char title_buf[256];
-		float mspf = proto->getAverageMSPF();
+		float mspf = proto.getAverageMSPF();
 		sprintf_s( title_buf, 256, "%.2f mspf, parts %i", 1000.f * mspf, particleSystem.num_alive);
-		proto->setTitle( title_buf );
+		proto.setTitle( title_buf );
 	}
 }
