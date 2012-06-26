@@ -6,6 +6,7 @@
 #include "camera.h"
 
 #include <string>
+#include <vector>
 #include <memory>
 
 namespace protowizard
@@ -74,6 +75,9 @@ namespace protowizard
 		void drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, const std::string &path ) ;
 		void drawMesh( const glm::vec3 &position, const std::string &path ) ;
 		void drawMesh( MeshPtr mesh, bool isTwoSided ) ;
+
+		// where there's one, there is many
+		void drawCubes( const std::vector<glm::mat4> &object2world_matrices ) ;
 
 		// Draw state modify
 		void setOrientation( const glm::mat4 &ori ) ;

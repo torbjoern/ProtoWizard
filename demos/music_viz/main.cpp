@@ -48,7 +48,10 @@ struct SpectrumViz
 	}
 
 	void Draw(protowizard::ProtoGraphics &proto)
-	{	
+	{
+		object2world_matrices_radial.clear();
+		object2world_matrices_linear.clear();
+
 		// black floor
 		proto.setColor( 0.2f, 0.2f, 0.2f );
 		proto.setScale( num_bands, 0.5f, num_layers ); // scale it
@@ -140,9 +143,20 @@ struct SpectrumViz
 				tf = glm::translate(tf,pos);
 				tf = glm::rotate(tf, 90.f + glm::degrees(rot_angle), glm::vec3(0.f, 0.f, 1.f) );
 				tf = glm::scale(tf,scale);
+				//object2world_matrices_radial.push_back(tf);
 				proto.setOrientation( tf );
 				proto.drawCube(glm::vec3(0.f));
 
+				// Idea: Draw Quad with 2 points at cyl edge, 2 points at FreqAmp. Stretch!
+
+
+				float radi2 = 0.5f;
+				glm::mat4 v2;
+				v2 = glm::translate(v2, glm::vec3(xp*.5f, scale.y *.5f-8.f, -radi2*layer+20.f) );
+				v2 = glm::scale(v2, glm::vec3(radi2, 1.5f*yp, radi2) );
+				//object2world_matrices_linear.push_back( v2 );
+
+#ifdef SLOW_CODE
 				proto.setOrientation(identityMatrix);
 				//proto.drawCone( glm::vec3(xp,0.1f,z), glm::vec3(xp,0.1f + y,z), radi );
 				float radi2 = 0.5f;
@@ -151,17 +165,24 @@ struct SpectrumViz
 				pos = glm::vec3 ( xp*.5f, scale.y *.5f-8.f, -radi2*layer+20.f );
 				proto.drawCube(pos);
 				proto.setScale(1.f, 1.f, 1.f);
+#endif
 			}
 		}
+
+		//proto.drawCubes( object2world_matrices_radial );
+		//proto.drawCubes( object2world_matrices_linear );
+		
 		proto.setScale( 1.f );
 		proto.setOrientation(identityMatrix);
 
 	}
 
 	// 96 layers and 128 bands looks good. Captures a lot of features
-	static const int num_layers = 32;  // 32|64, z-layers going back in time!
+	static const int num_layers = 64;  // 32|64, z-layers going back in time!
 	static const int num_bands = 96;   // 24|96, a spectrum band
-	std::vector< float > heights[num_layers];
+	std::vector<float> heights[num_layers];
+	std::vector<glm::mat4> object2world_matrices_radial;
+	std::vector<glm::mat4> object2world_matrices_linear;
 
 	int currentColorScheme;
 	int numColorSchemes;

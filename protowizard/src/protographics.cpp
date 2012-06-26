@@ -316,6 +316,13 @@ public:
 		queuePrimitive( xform, CubeGeometry::draw );
 	}
 
+	void drawCubes( const std::vector<glm::mat4> &object2world_matrices )
+	{
+		for ( auto it=begin(object2world_matrices); it!=end(object2world_matrices); ++it ) {
+			queuePrimitive( *it, CubeGeometry::draw );
+		}
+	}
+
 	void drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius )
 	{
 		const auto xform = orientAlongAxis(position, position+normal, glm::vec3(radius, 1.f, radius) );
@@ -822,6 +829,7 @@ void ProtoGraphics::drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float ra
 void ProtoGraphics::drawCone( const glm::vec3 &p1, const glm::vec3 &p2, float radius1, float radius2 ) { pimpl->drawCone(p1,p2,radius1,radius2); }
 void ProtoGraphics::drawPlane( const glm::vec3 &position, const glm::vec3 &normal, float radius ) { pimpl->drawPlane(position,normal,radius); }
 void ProtoGraphics::drawCube( const glm::vec3 &position ) { pimpl->drawCube(position); }
+void ProtoGraphics::drawCubes( const std::vector<glm::mat4> &object2world_matrices ) { pimpl->drawCubes(object2world_matrices); }
 void ProtoGraphics::drawMesh( const glm::vec3 &position, float horiz_ang, float verti_ang, const std::string &path ) { pimpl->drawMesh(position,horiz_ang,verti_ang,path); }
 void ProtoGraphics::drawMesh( const glm::vec3 &position, const std::string &path ) { pimpl->drawMesh(position,path); }
 void ProtoGraphics::drawMesh( MeshPtr mesh, bool isTwoSided ) { pimpl->drawMesh(mesh,isTwoSided); }
