@@ -16,6 +16,15 @@ void shutdown()
 	mesh_map.clear();
 }
 
+glm::vec2 getTexCoord(objLoader &objLoader, int index )
+{
+	glm::vec2 co;
+	for (int dim=0; dim<2; dim++){ // xyz
+		co[dim] = (float)objLoader.textureList[index]->e[dim];
+	}
+	return co;
+}
+
 glm::vec3 getObjVector(objLoader &objLoader, obj_vector** list, int index )
 {
 	glm::vec3 vertex;
@@ -42,6 +51,14 @@ void internal_efficient_load( objLoader &objLoader, MeshData_t &meshData )
 		for (int i=0; i<objLoader.normalCount; i++)
 		{
 			meshData.normals.push_back( getNormal(objLoader, i) );
+		}
+	}
+
+	if ( objLoader.textureCount == objLoader.vertexCount )
+	{
+		for (int i=0; i<objLoader.normalCount; i++)
+		{
+			meshData.texcoords.push_back( getTexCoord(objLoader, i) );
 		}
 	}
 
@@ -78,6 +95,7 @@ void internal_best_effort_load( objLoader &objLoader, MeshData_t &meshData )
 			for (int coord=0; coord<3; coord++){
 				meshData.vertices.push_back( getVertex(objLoader, facePtr->vertex_index[coord]) );
 				if (facePtr->normal_index[coord] != -1 ) meshData.normals.push_back( getNormal(objLoader, facePtr->normal_index[coord]) );
+				if (facePtr->texture_index[coord] != -1 ) meshData.texcoords.push_back( getTexCoord(objLoader, facePtr->texture_index[coord]) );
 			}
 
 		} else if (facePtr->vertex_count==4 ) {
@@ -85,6 +103,7 @@ void internal_best_effort_load( objLoader &objLoader, MeshData_t &meshData )
 			for (int coord=0; coord<3; coord++){
 				meshData.vertices.push_back( getVertex(objLoader, facePtr->vertex_index[coord]) );
 				if (facePtr->normal_index[coord] != -1 ) meshData.normals.push_back( getNormal(objLoader, facePtr->normal_index[coord]) );
+				if (facePtr->texture_index[coord] != -1 ) meshData.texcoords.push_back( getTexCoord(objLoader, facePtr->texture_index[coord]) );
 			}
 
 			int triangle_two[] = {0,2,3};
@@ -92,8 +111,8 @@ void internal_best_effort_load( objLoader &objLoader, MeshData_t &meshData )
 				int idx2 = triangle_two[coord];
 				meshData.vertices.push_back( getVertex(objLoader, facePtr->vertex_index[idx2]) );
 				if (facePtr->normal_index[idx2] != -1 ) meshData.normals.push_back( getNormal(objLoader, facePtr->normal_index[idx2]) );
+				if (facePtr->texture_index[idx2] != -1 ) meshData.texcoords.push_back( getTexCoord(objLoader, facePtr->texture_index[idx2]) );
 			}
-
 
 		}
 	}

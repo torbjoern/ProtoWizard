@@ -64,23 +64,23 @@ Mesh::Mesh( MeshData_t &meshData )
 	
 	std::vector<GLsizeiptr> offsets;
 	std::vector<GLint> elemSizes;
+	std::vector<GLint> attribLocations;
 #define countOf(T) ( sizeof(T)/sizeof(T[0]) )
-	offsets.push_back( vbo->buffer<glm::vec3>(meshData.vertices) ); elemSizes.push_back( (countOf(meshData.vertices[0])) );
-	if (meshData.hasNormals())    { offsets.push_back( vbo->buffer<glm::vec3>(meshData.normals) );   elemSizes.push_back(countOf(meshData.normals[0])); }
-	if (meshData.hasTangents())   { offsets.push_back( vbo->buffer<glm::vec3>(meshData.tangents) );  elemSizes.push_back(countOf(meshData.tangents[0])); }
-	if (meshData.hasBitangents()) { offsets.push_back( vbo->buffer<glm::vec3>(meshData.bitangents) );elemSizes.push_back(countOf(meshData.bitangents[0])); }
-	if (meshData.hasTexCoords())  { offsets.push_back( vbo->buffer<glm::vec2>(meshData.texcoords) ); elemSizes.push_back(countOf(meshData.texcoords[0])); }
-	if (meshData.hasColors())     { offsets.push_back( vbo->buffer<glm::vec4>(meshData.colors) );    elemSizes.push_back(countOf(meshData.colors[0])); }
+	offsets.push_back( vbo->buffer<glm::vec3>(meshData.vertices) ); elemSizes.push_back( (countOf(meshData.vertices[0])) );                                attribLocations.push_back(0);
+	if (meshData.hasNormals())    { offsets.push_back( vbo->buffer<glm::vec3>(meshData.normals) );   elemSizes.push_back(countOf(meshData.normals[0]));    attribLocations.push_back(1); }
+	if (meshData.hasTexCoords())  { offsets.push_back( vbo->buffer<glm::vec2>(meshData.texcoords) ); elemSizes.push_back(countOf(meshData.texcoords[0]));  attribLocations.push_back(2); }
+	if (meshData.hasTangents())   { offsets.push_back( vbo->buffer<glm::vec3>(meshData.tangents) );  elemSizes.push_back(countOf(meshData.tangents[0]));   attribLocations.push_back(3); }
+	if (meshData.hasBitangents()) { offsets.push_back( vbo->buffer<glm::vec3>(meshData.bitangents) );elemSizes.push_back(countOf(meshData.bitangents[0])); attribLocations.push_back(4); }
+	if (meshData.hasColors())     { offsets.push_back( vbo->buffer<glm::vec4>(meshData.colors) );    elemSizes.push_back(countOf(meshData.colors[0]));     attribLocations.push_back(5); }
 #undef countOf
 
 	for (size_t i=0; i<offsets.size(); i++){
-		GLuint loc = i;
 		//glVertexAttribPointer( attIdx, elementSize, dataType, isNormalized, stride, ptrOffset ) 
-		glVertexAttribPointer(loc, elemSizes[i], GL_FLOAT, GL_FALSE, 0, (char*)0 + offsets[i]);
-		glEnableVertexAttribArray(loc);
+		glVertexAttribPointer( attribLocations[i], elemSizes[i], GL_FLOAT, GL_FALSE, 0, (char*)0 + offsets[i]);
+		glEnableVertexAttribArray(attribLocations[i]);
 	}
 
 	vao->unbind();
 	vbo->unbind();
-	ibo->unbind();
+	if (ibo) ibo->unbind();
 }
