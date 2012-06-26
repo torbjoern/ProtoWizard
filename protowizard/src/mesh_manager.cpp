@@ -25,27 +25,23 @@ glm::vec3 getObjVector(objLoader &objLoader, obj_vector** list, int index )
 	return vertex;
 }
 
-void internal_load( objLoader &objLoader, MeshData_t &meshData )
-{
-	printf("Number of faces: %i\n", objLoader.faceCount);
-	printf("Number of vertices: %i\n", objLoader.vertexCount);
-	printf("Number of vertex normals: %i\n", objLoader.normalCount);
-	printf("Number of texture coordinates: %i\n", objLoader.textureCount);
-	printf("Number of material definitions: %i\n", objLoader.materialCount);
-	printf("\n");
+glm::vec3 getVertex(objLoader &objLoader, int index ) { return getObjVector(objLoader, objLoader.vertexList, index ); }
+glm::vec3 getNormal(objLoader &objLoader, int index ) { return getObjVector(objLoader, objLoader.normalList, index ); }
 
+// function: internal_efficient_load
+// description: uses mesh indices. Loads normals, only if there is one normal pr vertex in objLoader
+void internal_efficient_load( objLoader &objLoader, MeshData_t &meshData )
+{
 	for (int i=0; i<objLoader.vertexCount; i++)
 	{
-		glm::vec3 vertex = getObjVector(objLoader, objLoader.vertexList, i );
-		meshData.vertices.push_back( vertex );
+		meshData.vertices.push_back( getVertex(objLoader, i) );
 	}
 
 	if ( objLoader.normalCount == objLoader.vertexCount )
 	{
 		for (int i=0; i<objLoader.normalCount; i++)
 		{
-			glm::vec3 vertex = getObjVector(objLoader, objLoader.normalList, i );
-			meshData.normals.push_back( vertex );
+			meshData.normals.push_back( getNormal(objLoader, i) );
 		}
 	}
 
@@ -69,8 +65,59 @@ void internal_load( objLoader &objLoader, MeshData_t &meshData )
 			meshData.indices.push_back(v2);
 			meshData.indices.push_back(v3);
 		}
-
 	}
+}
+
+void internal_best_effort_load( objLoader &objLoader, MeshData_t &meshData )
+{
+	for (int i=0; i<objLoader.faceCount; i++){
+		obj_face *facePtr = objLoader.faceList[i];
+
+		if ( facePtr->vertex_count==3 ) {
+
+			for (int coord=0; coord<3; coord++){
+				meshData.vertices.push_back( getVertex(objLoader, facePtr->vertex_index[coord]) );
+				if (facePtr->normal_index[coord] != -1 ) meshData.normals.push_back( getNormal(objLoader, facePtr->normal_index[coord]) );
+			}
+
+		} else if (facePtr->vertex_count==4 ) {
+
+			for (int coord=0; coord<3; coord++){
+				meshData.vertices.push_back( getVertex(objLoader, facePtr->vertex_index[coord]) );
+				if (facePtr->normal_index[coord] != -1 ) meshData.normals.push_back( getNormal(objLoader, facePtr->normal_index[coord]) );
+			}
+
+			int triangle_two[] = {0,2,3};
+			for (int coord=0; coord<3; coord++){
+				int idx2 = triangle_two[coord];
+				meshData.vertices.push_back( getVertex(objLoader, facePtr->vertex_index[idx2]) );
+				if (facePtr->normal_index[idx2] != -1 ) meshData.normals.push_back( getNormal(objLoader, facePtr->normal_index[idx2]) );
+			}
+
+
+		}
+	}
+	// do NOT create indices
+}
+
+void internal_load( objLoader &objLoader, MeshData_t &meshData )
+{
+	printf("Number of faces: %i\n", objLoader.faceCount);
+	printf("Number of vertices: %i\n", objLoader.vertexCount);
+	printf("Number of vertex normals: %i\n", objLoader.normalCount);
+	printf("Number of texture coordinates: %i\n", objLoader.textureCount);
+	printf("Number of material definitions: %i\n", objLoader.materialCount);
+	printf("\n");
+
+	if ( objLoader.normalCount == objLoader.vertexCount )
+	{
+		internal_efficient_load(objLoader, meshData);
+		puts("using vertcount==normcount loader");
+	} else {
+		internal_best_effort_load(objLoader, meshData);
+		puts("using best effort loader");
+	}
+
 }
 
 MeshPtr createMesh(const std::string& fileName)
