@@ -1,6 +1,10 @@
 #include "proto/shapes/mesh.h"
 
 #include "proto/vertex_types.h"
+#include "proto/gl_attrib.h"
+#include "proto/gl_vao.h"
+#include "proto/gl_vbo.h"
+#include "proto/gl_ibo.h"
 
 using namespace protowizard;
 
@@ -8,139 +12,75 @@ using namespace protowizard;
 
 #include <glm/ext.hpp>
 
-Mesh::~Mesh()
-{
-	glDeleteBuffers( 1, &vbo );	
-	glDeleteVertexArrays(1, &vao );
-}
-
 void Mesh::draw()
 {
 	if ( isTwoSided ) { glDisable(GL_CULL_FACE); }
-	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, num_vertices );
+	
+	vao->bind();
+	if ( ibo ) {
+		glDrawElements(GL_TRIANGLES, ibo->size(), GL_UNSIGNED_INT, 0);
+	} else {
+		glDrawArrays(GL_TRIANGLES, 0, num_vertices );
+	}
 	glBindVertexArray(0);
 	if ( isTwoSided ) { glEnable(GL_CULL_FACE); }
 }
 
-void Mesh::calcDimensions(const std::vector<Vertex_VNC>& verts)
+void Mesh::calcDimensions(const MeshData_t &meshData)
 {
 	centroid = glm::vec3(0.f);
 	glm::vec3 bounds_min(0.f);
 	glm::vec3 bounds_max(0.f);
-	for (size_t i=0; i<verts.size(); i++){
-		centroid += verts[i].v;
+
+	for(size_t i=0; i<meshData.vertices.size(); i++){
+		const glm::vec3 &vert = meshData.vertices[i];
+		centroid += vert;
 
 		for ( int dim=0; dim<3; dim++){
-			if ( verts[i].v[dim] < bounds_min[dim] ) {
-				bounds_min[dim]= verts[i].v[dim];
+			if ( vert[dim] < bounds_min[dim] ) {
+				bounds_min[dim]= vert[dim];
 			}
 		
-			if ( verts[i].v[dim] > bounds_max[dim] ) {
-				bounds_max[dim] = verts[i].v[dim];
+			if ( vert[dim] > bounds_max[dim] ) {
+				bounds_max[dim] = vert[dim];
 			}
 		}
 	}
-	centroid /= (float)verts.size();
+	centroid /= (float)meshData.vertices.size();
 	dimensions = glm::abs(bounds_max - bounds_min);
 }
-void Mesh::calcDimensions(const std::vector<Vertex_VNT>& verts)
-{
-	centroid = glm::vec3(0.f);
-	glm::vec3 bounds_min(0.f);
-	glm::vec3 bounds_max(0.f);
-	for (size_t i=0; i<verts.size(); i++){
-		centroid += verts[i].v;
 
-		for ( int dim=0; dim<3; dim++){
-			if ( verts[i].v[dim] < bounds_min[dim] ) {
-				bounds_min[dim]= verts[i].v[dim];
-			}
-		
-			if ( verts[i].v[dim] > bounds_max[dim] ) {
-				bounds_max[dim] = verts[i].v[dim];
-			}
-		}
+Mesh::Mesh( MeshData_t &meshData )
+{
+	calcDimensions(meshData);
+	isTwoSided = false;
+	this->num_vertices = (int)meshData.vertices.size();
+	this->num_triangles = (int)meshData.indices.size() / 3;
+	this->num_indices = (int)meshData.indices.size();
+	vao = VAOPtr( new VAO );
+	vbo = VBOPtr( new VBO(meshData.getBufferSize(), GL_STATIC_DRAW) );
+	if ( meshData.indices.size() )  ibo = IBOPtr( new IBO(meshData.indices, GL_STATIC_DRAW) );
+
+	
+	std::vector<GLsizeiptr> offsets;
+	std::vector<GLint> elemSizes;
+#define countOf(T) ( sizeof(T)/sizeof(T[0]) )
+	offsets.push_back( vbo->buffer<glm::vec3>(meshData.vertices) ); elemSizes.push_back( (countOf(meshData.vertices[0])) );
+	if (meshData.hasNormals())    { offsets.push_back( vbo->buffer<glm::vec3>(meshData.normals) );   elemSizes.push_back(countOf(meshData.normals[0])); }
+	if (meshData.hasTangents())   { offsets.push_back( vbo->buffer<glm::vec3>(meshData.tangents) );  elemSizes.push_back(countOf(meshData.tangents[0])); }
+	if (meshData.hasBitangents()) { offsets.push_back( vbo->buffer<glm::vec3>(meshData.bitangents) );elemSizes.push_back(countOf(meshData.bitangents[0])); }
+	if (meshData.hasTexCoords())  { offsets.push_back( vbo->buffer<glm::vec2>(meshData.texcoords) ); elemSizes.push_back(countOf(meshData.texcoords[0])); }
+	if (meshData.hasColors())     { offsets.push_back( vbo->buffer<glm::vec4>(meshData.colors) );    elemSizes.push_back(countOf(meshData.colors[0])); }
+#undef countOf
+
+	for (size_t i=0; i<offsets.size(); i++){
+		GLuint loc = i;
+		//glVertexAttribPointer( attIdx, elementSize, dataType, isNormalized, stride, ptrOffset ) 
+		glVertexAttribPointer(loc, elemSizes[i], GL_FLOAT, GL_FALSE, 0, (char*)0 + offsets[i]);
+		glEnableVertexAttribArray(loc);
 	}
-	centroid /= (float)verts.size();
-	dimensions = glm::abs(bounds_max - bounds_min);
+
+	vao->unbind();
+	vbo->unbind();
+	ibo->unbind();
 }
-
-Mesh::Mesh( std::vector<Vertex_VNC>& verts ) 
-{
-	calcDimensions( verts );
-	isTwoSided = false;
-	this->num_vertices = (int)verts.size();
-	int num_tris = num_vertices / 3;
-	vbo = vao = 0;
-	glGenVertexArrays( 1, &vao );
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNC) * num_vertices, &verts[0], GL_STATIC_DRAW);
-
-	// XYZ vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNC ), 0);
-
-#define BUFFER_OFFSET(p) ((char*)0 + (p))
-	// we use buffer offset to set stride
-	// stride for the format pos & normal assuming pos is xyz and normal is nxnynz, aka 3 floats in each
-	// 3 floats * 4 bytes pr float = 12 bytes, means stride = 12
-
-	// normals
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNC ), BUFFER_OFFSET( 12 ) );
-
-	// colors
-	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNC ), BUFFER_OFFSET( 12 ) );
-
-#undef BUFFER_OFFSET
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	//glEnableVertexAttribArray(2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-}
-
-Mesh::Mesh( std::vector<Vertex_VNT>& verts ) 
-{
-	calcDimensions(verts);
-	isTwoSided = false;
-	this->num_vertices = (int)verts.size();
-	int num_tris = num_vertices / 3;
-	vbo = vao = 0;
-	glGenVertexArrays( 1, &vao );
-	glBindVertexArray(vao);
-	glGenBuffers(1, &vbo);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_VNT) * num_vertices, &verts[0], GL_STATIC_DRAW);
-
-	// XYZ vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), 0);
-
-#define BUFFER_OFFSET(p) ((char*)0 + (p))
-	// we use buffer offset to set stride
-	// stride for the format pos & normal assuming pos is xyz and normal is nxnynz, aka 3 floats in each
-	// 3 floats * 4 bytes pr float = 12 bytes, means stride = 12
-
-	// normals
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), BUFFER_OFFSET( 12 ) );
-
-	// texcoords (s,t)
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof( Vertex_VNT ), BUFFER_OFFSET( 24 ) );
-
-#undef BUFFER_OFFSET
-
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-}
-

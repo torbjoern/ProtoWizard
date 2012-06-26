@@ -143,7 +143,6 @@ struct SpectrumViz
 				proto.setOrientation( tf );
 				proto.drawCube(glm::vec3(0.f));
 
-
 				proto.setOrientation(identityMatrix);
 				//proto.drawCone( glm::vec3(xp,0.1f,z), glm::vec3(xp,0.1f + y,z), radi );
 				float radi2 = 0.5f;

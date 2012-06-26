@@ -116,6 +116,10 @@ void* list_get_name(list *listo, char *name_to_find)
 
 int list_find(list *listo, char *name_to_find)
 {
+	char *noname = "";
+	if (name_to_find == nullptr) {		
+		name_to_find = noname;
+	}
 	int i = 0;
 
 	for(i=0; i < listo->item_count; i++)

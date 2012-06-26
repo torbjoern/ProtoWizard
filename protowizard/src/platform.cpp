@@ -3,6 +3,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <CommDlg.h>
 
 #include <vector>
 #include <algorithm>
@@ -38,8 +39,31 @@ std::string protowizard::GetExePath()
 	// We've got the path, construct a standard string from it
 	char backslash = '\\';
 	char forwardslash = '//';
-	std::replace( executablePath.begin(), executablePath.begin() + result, backslash, forwardslash );
+	std::replace( executablePath.begin(), executablePath.begin() + (int)result, backslash, forwardslash );
 	auto path = std::string(executablePath.begin(), executablePath.begin() + result);
 	path = path.substr( 0, path.find_last_of('/')+1 );
 	return path;
+}
+
+std::string protowizard::OpenFileDlg(const std::string &path, const std::string &extension)
+{
+	OPENFILENAME ofn;
+	char szFileName[MAX_PATH] = "";
+
+	ZeroMemory(&ofn,sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = 0x0;//lwnd;
+
+	const std::string fileFilter =  "*." + extension;
+	//ofn.lpstrFilter = "*.obj";//fileFilter.c_str();
+	ofn.lpstrFilter = "obj 3d file\0*.obj;       \0All Files (*.*)      \0*.*       \0";
+	ofn.lpstrFile = szFileName;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_EXPLORER|OFN_FILEMUSTEXIST;
+	ofn.lpstrDefExt = extension.c_str();
+	if (GetOpenFileName(&ofn))
+	{
+		return std::string(ofn.lpstrFile);
+	}
+	return std::string("");
 }

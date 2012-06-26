@@ -7,9 +7,13 @@
 
 #include "../vertex_types.h"
 
-// Create drawable VBO from VertexArray
 
 namespace protowizard{
+
+	class VAO; typedef std::shared_ptr<VAO> VAOPtr;
+	class VBO; typedef std::shared_ptr<VBO> VBOPtr;
+	class IBO; typedef std::shared_ptr<IBO> IBOPtr;
+
 	class Mesh;
 	typedef std::shared_ptr<Mesh> MeshPtr;
 
@@ -17,21 +21,20 @@ namespace protowizard{
 	{
 	public:
 		void draw(); // should not be exposed
-		Mesh( std::vector<Vertex_VNC>& verts );
-		Mesh( std::vector<Vertex_VNT>& verts );
+		Mesh( MeshData_t &meshData );
 		void setIsTwoSided(bool isTwoSided) { this->isTwoSided = isTwoSided; }
 		const glm::vec3 &getDimensions() { return dimensions; }
 		const glm::vec3 &getCenter() { return centroid; }
-		~Mesh();
-
-
 	private:
-		void calcDimensions(const std::vector<Vertex_VNC>& verts);
-		void calcDimensions(const std::vector<Vertex_VNT>& verts);
+		void calcDimensions(const MeshData_t &meshData);
 
-		unsigned int vbo;
-		unsigned int vao;
+		VAOPtr vao;
+		VBOPtr vbo;
+		IBOPtr ibo;
+
 		int num_vertices;
+		int num_triangles;
+		int num_indices;
 		bool isTwoSided;
 		glm::vec3 dimensions;
 		glm::vec3 centroid;

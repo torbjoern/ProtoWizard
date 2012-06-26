@@ -15,4 +15,4 @@ SOURCE_GROUP("Header Files\\Dependency\\kixor_obj_loader" FILES ${kixor_obj_load
 SOURCE_GROUP("Source Files\\Dependency\\kixor_obj_loader" FILES ${kixor_obj_loader_SRCS})
 
 
-add_library( obj_loader ${kixor_obj_loader_HDRS} ${kixor_obj_loader_SRCS} )
+add_library( obj_loader STATIC ${kixor_obj_loader_HDRS} ${kixor_obj_loader_SRCS} )

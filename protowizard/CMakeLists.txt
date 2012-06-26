@@ -96,6 +96,10 @@ set(HDRS
 	proto/fileio/text_file.h
 	proto/path.h
 	proto/string_utils.h
+	proto/gl_attrib.h
+	proto/gl_vao.h
+	proto/gl_vbo.h
+	proto/gl_ibo.h
 )
 
 set(SRCS
@@ -112,7 +116,9 @@ set(SRCS
 	src/mesh_manager.cpp
 	src/text_file.cpp
 	src/path.cpp
+	src/gl_vao.cpp
 	src/gl_vbo.cpp
+	src/gl_ibo.cpp
 )
 
-add_library( protowizard ${Dependency_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )
+add_library( protowizard STATIC ${Dependency_HDRS} ${HDRS} ${Dependency_SRCS} ${SRCS} )

@@ -41,12 +41,11 @@ add_subdirectory (depends/obj_loader)
 add_subdirectory (demos/stress_test)
 add_subdirectory (demos/stick_physics)
 add_subdirectory (demos/simple_3d_shapes)
+add_subdirectory (demos/obj_viewer)
 add_subdirectory (demos/music_viz)
 add_subdirectory (demos/fractal2d)
 add_subdirectory (demos/blending)
 add_subdirectory (demos/2dphysics)
-
-
 
 add_subdirectory (tests/obj_model)
 add_subdirectory (tests/ray_isect)

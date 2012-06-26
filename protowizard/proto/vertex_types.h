@@ -77,5 +77,35 @@ namespace protowizard{
 		static const int stride = 3*4;
 	};
 
+	struct MeshData_t
+	{
+		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> normals;
+		std::vector<glm::vec3> tangents;
+		std::vector<glm::vec3> bitangents;
+		std::vector<glm::vec2> texcoords;
+		std::vector<glm::vec4> colors;
+		std::vector<unsigned int> indices;
+
+		bool hasVertices() const { return !vertices.empty(); }
+		bool hasNormals() const { return !normals.empty(); }
+		bool hasTangents() const { return !tangents.empty(); }
+		bool hasBitangents() const { return !bitangents.empty(); }
+		bool hasTexCoords() const { return !texcoords.empty(); }
+		bool hasColors() const { return !colors.empty(); }
+
+		unsigned int getBufferSize() 
+		{
+			unsigned int size_in_bytes = 0;
+			if (hasVertices() )   size_in_bytes += sizeof(vertices[0]) * vertices.size();
+			if (hasNormals() )    size_in_bytes += sizeof(normals[0]) * normals.size();
+			if (hasTangents() )   size_in_bytes += sizeof(tangents[0]) * tangents.size();
+			if (hasBitangents() ) size_in_bytes += sizeof(bitangents[0]) * bitangents.size();
+			if (hasTexCoords() )  size_in_bytes += sizeof(texcoords[0]) * texcoords.size();
+			if (hasColors() )     size_in_bytes += sizeof(colors[0]) * colors.size();
+			return size_in_bytes;
+		}
+	};
+
 
 } // namespace
