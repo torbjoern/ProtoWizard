@@ -371,6 +371,32 @@ void drawSpeakers( protowizard::ProtoGraphics &proto, BassWrapper &bassWrapper, 
 	bassWrapper.getLevel( &left, &right );
 }
 
+void frameInFrame( protowizard::ProtoGraphics &proto, const glm::vec3 pos, float scale, float time ) {
+	proto.setLightBlend();
+	proto.setAlpha(0.3f);
+	proto.setScale(1.f);
+
+	float hang = time;
+	float vang = time;
+	int steps = 10;
+	float sc = scale;
+	for (int i=0; i<steps; i++){
+		float u = i/float(steps);
+		proto.setColor( protowizard::hsv2rgb( 360.f - fmodf(2.f*u*360.f,360.f), 1.f, 1.f ));
+		glm::mat4 tf(1.f);
+		tf = glm::rotate(tf, glm::degrees(hang), glm::vec3(1.f,0.f,0.f) );
+		tf = glm::rotate(tf, glm::degrees(vang), glm::vec3(0.f,1.f,0.f) );
+		tf = glm::scale(tf, glm::vec3(sc));
+		proto.setOrientation( tf );
+		proto.drawMesh( pos, proto.getResourceDir() + "/models/cubeframe.obj");
+
+		sc -= scale/(float)steps;
+		hang += 3.14f/(float)steps;
+		vang += 3.14f/(float)steps;
+	}
+	proto.setOrientation( identityMatrix );
+}
+
 int main(int argc, char* argv[])
 {
 	int recording_device_num = -1;
@@ -418,6 +444,7 @@ int main(int argc, char* argv[])
 	//proto.setFrameRate( desired_fps );
 	do
 	{
+		double time_now = proto.klock();
 		bass_wrap.update_fft_capture();
 
 		secTimer -= proto.getMSPF();
@@ -449,7 +476,17 @@ int main(int argc, char* argv[])
 		//waveViz.Update( bass_wrap );
 		//waveViz.Draw( proto );
 
-		double time_now = proto.klock();
+		float leftLevel, rightLevel;
+		bass_wrap.getLevel( &leftLevel, &rightLevel );
+
+		frameInFrame( proto, glm::vec3(-8.f, 0.f, 0.f), 1.5f+leftLevel, (float)time_now );
+		static float timeLevel = 0.f;
+
+		float absLevel = (leftLevel+rightLevel);
+		if ( absLevel > 0.025f ) timeLevel += .1f*absLevel;
+		frameInFrame( proto, glm::vec3(+8.f, 0.f, 0.f), 1.5f, timeLevel);
+
+		
 		if ( time_now > last_sec )
 		{
 			fps = (numframes - last_sec_num_frames);
